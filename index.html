@@ -8,165 +8,324 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #0a0a0a;
-      --surface: #111;
-      --border: #1e1e1e;
-      --text: #e8e8e8;
-      --muted: #444;
+      --wall: #1a1714;
+      --wall-light: #221f1b;
+      --frame-outer: #2e2820;
+      --frame-inner: #3d3428;
+      --mat: #f5f0e8;
+      --text: #e8e2d8;
+      --muted: #6b6158;
       --accent: #c8a96e;
+      --placard: #1e1b17;
       --mono: 'Courier New', monospace;
       --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     }
 
+    html, body {
+      min-height: 100%;
+    }
+
     body {
-      background: var(--bg);
+      background-color: var(--wall);
+      background-image:
+        radial-gradient(ellipse 80% 60% at 50% 0%, rgba(255,240,200,0.045) 0%, transparent 70%),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
       color: var(--text);
       font-family: var(--sans);
       min-height: 100vh;
-      padding: 48px 24px 80px;
     }
 
+    /* ── Header ── */
     header {
-      max-width: 1100px;
-      margin: 0 auto 48px;
       display: flex;
-      align-items: baseline;
-      gap: 16px;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 20px;
+      align-items: center;
+      justify-content: space-between;
+      padding: 28px 40px 24px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
     }
 
     header h1 {
       font-family: var(--mono);
-      font-size: 0.9rem;
+      font-size: 0.78rem;
       font-weight: normal;
-      letter-spacing: 0.1em;
+      letter-spacing: 0.14em;
       text-transform: uppercase;
       color: var(--accent);
     }
 
-    header span {
+    header nav {
       font-family: var(--mono);
-      font-size: 0.72rem;
-      color: var(--muted);
-    }
-
-    main {
-      max-width: 1100px;
-      margin: 0 auto;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 2px;
-    }
-
-    .card {
-      display: block;
-      text-decoration: none;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      overflow: hidden;
-      position: relative;
-      aspect-ratio: 16 / 10;
-      transition: border-color 0.15s;
-    }
-
-    .card:hover {
-      border-color: var(--accent);
-    }
-
-    .card img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-      opacity: 0.85;
-      transition: opacity 0.2s;
-    }
-
-    .card:hover img {
-      opacity: 1;
-    }
-
-    .card-no-thumb {
-      width: 100%;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: var(--surface);
-      font-family: var(--mono);
-      font-size: 0.7rem;
+      font-size: 0.68rem;
       color: var(--muted);
       letter-spacing: 0.08em;
     }
 
-    .card-meta {
-      position: absolute;
+    /* ── Wall ── */
+    .wall {
+      padding: 60px 40px 100px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 48px;
+      align-items: flex-end;
+      justify-content: center;
+      position: relative;
+    }
+
+    /* Baseboard */
+    .wall::after {
+      content: '';
+      position: fixed;
       bottom: 0;
       left: 0;
       right: 0;
-      padding: 24px 14px 12px;
-      background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 100%);
+      height: 6px;
+      background: linear-gradient(to top, #0d0b09, transparent);
+      pointer-events: none;
     }
 
-    .card-title {
-      font-size: 0.85rem;
+    /* ── Hanging Wire ── */
+    .artwork-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+      transition: transform 0.3s cubic-bezier(.22,.68,0,1.2);
+    }
+
+    .artwork-wrap:hover {
+      transform: translateY(-6px);
+    }
+
+    .wire {
+      width: 1px;
+      height: 20px;
+      background: linear-gradient(to bottom, transparent, rgba(180,160,120,0.35));
+      margin-bottom: 0;
+    }
+
+    /* ── Frame ── */
+    .frame {
+      position: relative;
+      padding: 10px;
+      background:
+        linear-gradient(145deg, #3e3428 0%, #2a2318 40%, #1e1a12 60%, #2e2820 100%);
+      box-shadow:
+        0 2px 0 rgba(255,240,180,0.06) inset,
+        0 -1px 0 rgba(0,0,0,0.5) inset,
+        1px 0 0 rgba(255,240,180,0.04) inset,
+        -1px 0 0 rgba(0,0,0,0.4) inset,
+        0 20px 60px rgba(0,0,0,0.7),
+        0 8px 20px rgba(0,0,0,0.5),
+        0 2px 4px rgba(0,0,0,0.4);
+      border-radius: 1px;
+    }
+
+    /* Frame bevel detail */
+    .frame::before {
+      content: '';
+      position: absolute;
+      inset: 4px;
+      border: 1px solid rgba(0,0,0,0.4);
+      border-radius: 1px;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    /* Mat board */
+    .mat {
+      background: var(--mat);
+      padding: 16px 16px 28px;
+      position: relative;
+    }
+
+    /* Gallery spotlight on hover */
+    .artwork-wrap:hover .frame {
+      box-shadow:
+        0 2px 0 rgba(255,240,180,0.08) inset,
+        0 -1px 0 rgba(0,0,0,0.5) inset,
+        1px 0 0 rgba(255,240,180,0.06) inset,
+        -1px 0 0 rgba(0,0,0,0.4) inset,
+        0 28px 80px rgba(0,0,0,0.7),
+        0 10px 30px rgba(0,0,0,0.5),
+        0 0 60px rgba(255,240,180,0.04);
+    }
+
+    /* ── Canvas / Thumbnail ── */
+    .canvas {
+      display: block;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .canvas img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .canvas-empty {
+      width: 100%;
+      height: 100%;
+      background: #0e0c0a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .canvas-empty span {
+      font-family: var(--mono);
+      font-size: 0.6rem;
+      color: #2a2520;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    /* ── Placard ── */
+    .placard {
+      margin-top: 14px;
+      background: var(--placard);
+      border: 1px solid rgba(255,255,255,0.05);
+      padding: 10px 14px 11px;
+      min-width: 160px;
+      max-width: 260px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    }
+
+    .placard-title {
+      font-size: 0.8rem;
       font-weight: 500;
-      color: #fff;
+      color: var(--text);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      letter-spacing: 0.01em;
     }
 
-    .card-date {
-      margin-top: 3px;
+    .placard-meta {
+      margin-top: 4px;
       font-family: var(--mono);
-      font-size: 0.65rem;
-      color: rgba(255,255,255,0.45);
-    }
-
-    .empty {
-      font-family: var(--mono);
-      font-size: 0.78rem;
+      font-size: 0.62rem;
       color: var(--muted);
       letter-spacing: 0.06em;
-      padding: 60px 0;
-      text-align: center;
     }
 
-    footer {
-      max-width: 1100px;
-      margin: 56px auto 0;
-      padding-top: 20px;
-      border-top: 1px solid var(--border);
+    /* ── Empty Wall ── */
+    .empty-wall {
+      width: 100%;
+      padding: 120px 0;
+      text-align: center;
       font-family: var(--mono);
-      font-size: 0.68rem;
-      color: var(--muted);
-      letter-spacing: 0.04em;
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.08);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
     }
+
+    /* ── Footer ── */
+    footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 10px 40px;
+      background: linear-gradient(to top, rgba(10,8,6,0.95), transparent);
+      font-family: var(--mono);
+      font-size: 0.62rem;
+      color: rgba(255,255,255,0.12);
+      letter-spacing: 0.06em;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    a.artwork-wrap { text-decoration: none; }
   </style>
 </head>
 <body>
 
   <header>
     <h1>chuck.neoteric.art</h1>
-    <span>— publishing space</span>
+    <nav id="count"></nav>
   </header>
 
-  <main>
-
-    <!-- GRID START -->
-    <div class="empty">— nothing published yet —</div>
-    <!-- GRID END -->
-
-  </main>
+  <div class="wall" id="wall">
+    <!-- ARTWORKS START -->
+    <!-- ARTWORKS END -->
+  </div>
 
   <footer>
-    &copy; 2026 &nbsp;·&nbsp; updated automatically
+    <span>chuck.neoteric.art</span>
+    <span id="year"></span>
   </footer>
+
+  <script>
+    // Year
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Artworks definition
+    // Each item: { title, date, type, href, thumb, width, height }
+    // width/height = canvas dimensions in px (aspect ratio only)
+    const artworks = [
+      // ARTWORK_DATA
+    ];
+
+    const wall = document.getElementById('wall');
+    const countEl = document.getElementById('count');
+
+    if (artworks.length === 0) {
+      wall.innerHTML = '<div class="empty-wall">— the walls are bare —</div>';
+      countEl.textContent = '0 works';
+    } else {
+      countEl.textContent = artworks.length + ' work' + (artworks.length !== 1 ? 's' : '');
+      artworks.forEach(a => {
+        const w = a.width  || 320;
+        const h = a.height || 240;
+
+        const wrap = document.createElement('a');
+        wrap.className = 'artwork-wrap';
+        wrap.href = a.href || '#';
+
+        const wire = document.createElement('div');
+        wire.className = 'wire';
+
+        const frame = document.createElement('div');
+        frame.className = 'frame';
+
+        const mat = document.createElement('div');
+        mat.className = 'mat';
+
+        const canvas = document.createElement('div');
+        canvas.className = 'canvas';
+        canvas.style.width  = w + 'px';
+        canvas.style.height = h + 'px';
+
+        if (a.thumb) {
+          const img = document.createElement('img');
+          img.src = a.thumb;
+          img.alt = a.title;
+          img.loading = 'lazy';
+          canvas.appendChild(img);
+        } else {
+          canvas.innerHTML = '<div class="canvas-empty"><span>' + (a.type || 'work') + '</span></div>';
+        }
+
+        mat.appendChild(canvas);
+        frame.appendChild(mat);
+
+        const placard = document.createElement('div');
+        placard.className = 'placard';
+        placard.style.maxWidth = (w + 52) + 'px';
+        placard.innerHTML =
+          '<div class="placard-title">' + a.title + '</div>' +
+          '<div class="placard-meta">' + a.date + (a.type ? ' &nbsp;·&nbsp; ' + a.type : '') + '</div>';
+
+        wrap.appendChild(wire);
+        wrap.appendChild(frame);
+        wrap.appendChild(placard);
+        wall.appendChild(wrap);
+      });
+    }
+  </script>
 
 </body>
 </html>

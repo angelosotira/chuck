@@ -7,27 +7,29 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.4/p5.min.js"></script>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
-html, body { width:100%; height:100%; background:#030310; overflow:hidden; display:flex; flex-direction:column; align-items:center; justify-content:center; font-family:'Georgia',serif; }
+html, body { background:#02020f; overflow:hidden; width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; font-family:'Georgia',serif; }
 #profile-bar { position:fixed; top:16px; left:50%; transform:translateX(-50%); display:flex; gap:10px; z-index:100; }
-.pbtn { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); color:rgba(255,255,255,0.6); padding:7px 16px; border-radius:20px; cursor:pointer; font-family:'Georgia',serif; font-size:12px; letter-spacing:.05em; transition:all .3s; white-space:nowrap; }
-.pbtn:hover { background:rgba(255,255,255,0.1); border-color:rgba(255,255,255,0.25); color:rgba(255,255,255,0.9); }
-.pbtn.active { background:rgba(100,40,180,0.35); border-color:rgba(160,100,255,0.6); color:#d4aaff; }
-#modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:200; backdrop-filter:blur(6px); align-items:center; justify-content:center; }
+.pbtn { background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); color:rgba(255,255,255,0.5); padding:7px 18px; border-radius:20px; cursor:pointer; font-family:'Georgia',serif; font-size:12px; letter-spacing:.06em; transition:all .3s; white-space:nowrap; }
+.pbtn:hover { background:rgba(255,255,255,0.09); border-color:rgba(255,255,255,0.22); color:rgba(255,255,255,0.85); }
+.pbtn.active { background:rgba(100,40,180,0.3); border-color:rgba(160,100,255,0.55); color:#d4aaff; }
+#modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:200; backdrop-filter:blur(8px); align-items:center; justify-content:center; }
 #modal-overlay.show { display:flex; }
-#modal { background:rgba(8,6,28,0.95); border:1px solid rgba(160,100,255,0.3); border-radius:16px; padding:32px; width:380px; max-width:90vw; }
-#modal h2 { color:#d4aaff; font-size:18px; font-weight:normal; letter-spacing:.1em; margin-bottom:24px; text-align:center; }
+#modal { background:rgba(6,5,22,0.96); border:1px solid rgba(160,100,255,0.25); border-radius:18px; padding:34px; width:380px; max-width:90vw; }
+#modal h2 { color:#c8aaff; font-size:17px; font-weight:normal; letter-spacing:.12em; margin-bottom:26px; text-align:center; text-transform:uppercase; }
 .field { margin-bottom:18px; }
-.field label { display:block; color:rgba(200,180,255,0.7); font-size:12px; letter-spacing:.08em; margin-bottom:6px; }
-.field input { width:100%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); border-radius:8px; padding:9px 12px; color:#fff; font-size:14px; font-family:'Georgia',serif; outline:none; transition:border-color .2s; }
-.field input:focus { border-color:rgba(160,100,255,0.5); }
-.field input[type=date]::-webkit-calendar-picker-indicator, .field input[type=time]::-webkit-calendar-picker-indicator { filter:invert(1) opacity(.4); }
-.field small { display:block; color:rgba(150,140,200,0.5); font-size:11px; margin-top:4px; }
-#modal-btns { display:flex; gap:10px; margin-top:24px; }
-#modal-btns button { flex:1; padding:10px; border-radius:10px; cursor:pointer; font-family:'Georgia',serif; font-size:13px; border:none; transition:all .2s; }
-#modal-cancel { background:rgba(255,255,255,0.06); color:rgba(255,255,255,0.5); }
-#modal-cancel:hover { background:rgba(255,255,255,0.1); }
-#modal-generate { background:rgba(100,40,200,0.5); color:#d4aaff; border:1px solid rgba(160,100,255,0.4); }
-#modal-generate:hover { background:rgba(120,60,220,0.7); }
+.field label { display:block; color:rgba(190,170,255,0.6); font-size:11px; letter-spacing:.1em; text-transform:uppercase; margin-bottom:7px; }
+.field input { width:100%; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:10px 13px; color:rgba(255,255,255,0.85); font-size:14px; font-family:'Georgia',serif; outline:none; transition:border-color .2s; }
+.field input:focus { border-color:rgba(160,100,255,0.45); background:rgba(255,255,255,0.06); }
+.field input[type=date]::-webkit-calendar-picker-indicator,
+.field input[type=time]::-webkit-calendar-picker-indicator { filter:invert(1) opacity(.3); cursor:pointer; }
+.field small { display:block; color:rgba(140,130,190,0.45); font-size:11px; margin-top:5px; }
+#modal-btns { display:flex; gap:10px; margin-top:26px; }
+#modal-btns button { flex:1; padding:11px; border-radius:10px; cursor:pointer; font-family:'Georgia',serif; font-size:13px; border:none; transition:all .25s; letter-spacing:.04em; }
+#modal-cancel { background:rgba(255,255,255,0.05); color:rgba(255,255,255,0.4); }
+#modal-cancel:hover { background:rgba(255,255,255,0.09); color:rgba(255,255,255,0.6); }
+#modal-generate { background:rgba(100,40,200,0.45); color:#d4aaff; border:1px solid rgba(160,100,255,0.35); }
+#modal-generate:hover { background:rgba(120,60,220,0.65); color:#e8ccff; }
+#canvas-holder canvas { display:block; }
 </style>
 </head>
 <body>
@@ -41,15 +43,15 @@ html, body { width:100%; height:100%; background:#030310; overflow:hidden; displ
 
 <div id="modal-overlay">
   <div id="modal">
-    <h2>Create Your Mandala</h2>
-    <div class="field"><label>NAME</label><input id="f-name" type="text" placeholder="Your name"></div>
-    <div class="field"><label>BIRTH DATE</label><input id="f-date" type="date"></div>
-    <div class="field"><label>BIRTH TIME</label><input id="f-time" type="time" value="12:00"><small>Use local time at birth location</small></div>
-    <div class="field"><label>BIRTH CITY</label><input id="f-city" type="text" placeholder="e.g. Paris, Tokyo, New York"><small>Major cities supported — or enter coords below</small></div>
-    <div class="field"><label>LAT, LON (optional override)</label><input id="f-coords" type="text" placeholder="e.g. 48.8566, 2.3522"><small>Leave blank if city is recognized</small></div>
+    <h2>Your Mandala</h2>
+    <div class="field"><label>Name</label><input id="f-name" type="text" placeholder="Your name"></div>
+    <div class="field"><label>Date of Birth</label><input id="f-date" type="date"></div>
+    <div class="field"><label>Time of Birth</label><input id="f-time" type="time" value="12:00"><small>Local time at your birth location</small></div>
+    <div class="field"><label>Birth City</label><input id="f-city" type="text" placeholder="e.g. London, Tokyo, New York"><small>50+ major cities recognized</small></div>
+    <div class="field"><label>Coordinates override (optional)</label><input id="f-coords" type="text" placeholder="lat, lon — e.g. 51.5074, -0.1278"></div>
     <div id="modal-btns">
       <button id="modal-cancel" onclick="closeModal()">Cancel</button>
-      <button id="modal-generate" onclick="generateProfile()">Generate Mandala</button>
+      <button id="modal-generate" onclick="generateProfile()">Reveal Mandala</button>
     </div>
   </div>
 </div>
@@ -57,514 +59,490 @@ html, body { width:100%; height:100%; background:#030310; overflow:hidden; displ
 <div id="canvas-holder"></div>
 
 <script>
-// ── CITIES ──────────────────────────────────────────────────
+// ─── CITY DATABASE ───────────────────────────────────────────────
 const CITIES = {
-  "new york":     [40.7128,-74.0060,-5], "los angeles":  [34.0522,-118.2437,-8],
-  "chicago":      [41.8781,-87.6298,-6], "miami":        [25.7617,-80.1918,-5],
-  "london":       [51.5074,-0.1278,0],   "paris":        [48.8566,2.3522,1],
-  "berlin":       [52.5200,13.4050,1],   "madrid":       [40.4168,-3.7038,1],
-  "rome":         [41.9028,12.4964,1],   "amsterdam":    [52.3676,4.9041,1],
-  "athens":       [37.9838,23.7275,2],   "istanbul":     [41.0082,28.9784,3],
-  "moscow":       [55.7558,37.6173,3],   "dubai":        [25.2048,55.2708,4],
-  "mumbai":       [19.0760,72.8777,5.5], "delhi":        [28.6139,77.2090,5.5],
-  "tokyo":        [35.6762,139.6503,9],  "beijing":      [39.9042,116.4074,8],
-  "shanghai":     [31.2304,121.4737,8],  "singapore":    [1.3521,103.8198,8],
-  "sydney":       [-33.8688,151.2093,10],"melbourne":    [-37.8136,144.9631,10],
-  "toronto":      [43.6532,-79.3832,-5], "vancouver":    [49.2827,-123.1207,-8],
-  "mexico city":  [19.4326,-99.1332,-6], "sao paulo":    [-23.5505,-46.6333,-3],
-  "buenos aires": [-34.6037,-58.3816,-3],"cairo":        [30.0444,31.2357,2],
-  "lagos":        [6.5244,3.3792,1],     "nairobi":      [-1.2921,36.8219,3],
-  "johannesburg": [-26.2041,28.0473,2],  "san francisco":[37.7749,-122.4194,-8],
-  "seattle":      [47.6062,-122.3321,-8],"boston":       [42.3601,-71.0589,-5],
-  "washington":   [38.9072,-77.0369,-5], "seoul":        [37.5665,126.9780,9],
-  "bangkok":      [13.7563,100.5018,7],  "jakarta":      [-6.2088,106.8456,7],
-  "vienna":       [48.2082,16.3738,1],   "zurich":       [47.3769,8.5417,1],
-  "stockholm":    [59.3293,18.0686,1],   "oslo":         [59.9139,10.7522,1],
-  "copenhagen":   [55.6761,12.5683,1],   "lisbon":       [38.7223,-9.1393,0],
-  "barcelona":    [41.3851,2.1734,1],    "milan":        [45.4654,9.1859,1],
-  "brussels":     [50.8503,4.3517,1],    "warsaw":       [52.2297,21.0122,1],
-  "budapest":     [47.4979,19.0402,1],   "prague":       [50.0755,14.4378,1],
-  "helsinki":     [60.1699,24.9384,2],   "bucharest":    [44.4268,26.1025,2],
-  "kyiv":         [50.4501,30.5234,2],   "riyadh":       [24.6877,46.7219,3],
-  "tehran":       [35.6892,51.3890,3.5], "karachi":      [24.8607,67.0011,5],
-  "dhaka":        [23.8103,90.4125,6],   "rangoon":      [16.8661,96.1951,6.5],
-  "kuala lumpur": [3.1390,101.6869,8],   "manila":       [14.5995,120.9842,8],
-  "taipei":       [25.0320,121.5654,8],  "hong kong":    [22.3193,114.1694,8],
-  "auckland":     [-36.8485,174.7633,12],"lima":         [-12.0464,-77.0428,-5],
-  "bogota":       [4.7110,-74.0721,-5],  "santiago":     [-33.4489,-70.6693,-4],
-  "casablanca":   [33.5731,-7.5898,1],   "tunis":        [36.8065,10.1815,1],
-  "accra":        [5.6037,-0.1870,0],    "addis ababa":  [9.0320,38.7469,3],
+  "new york":[40.7128,-74.006,-5],"los angeles":[34.0522,-118.2437,-8],"chicago":[41.8781,-87.6298,-6],
+  "miami":[25.7617,-80.1918,-5],"houston":[29.7604,-95.3698,-6],"phoenix":[33.4484,-112.074,-7],
+  "seattle":[47.6062,-122.3321,-8],"san francisco":[37.7749,-122.4194,-8],"boston":[42.3601,-71.0589,-5],
+  "washington":[38.9072,-77.0369,-5],"toronto":[43.6532,-79.3832,-5],"vancouver":[49.2827,-123.1207,-8],
+  "mexico city":[19.4326,-99.1332,-6],"london":[51.5074,-0.1278,0],"paris":[48.8566,2.3522,1],
+  "berlin":[52.52,13.405,1],"madrid":[40.4168,-3.7038,1],"rome":[41.9028,12.4964,1],
+  "amsterdam":[52.3676,4.9041,1],"brussels":[50.8503,4.3517,1],"vienna":[48.2082,16.3738,1],
+  "zurich":[47.3769,8.5417,1],"milan":[45.4654,9.1859,1],"barcelona":[41.3851,2.1734,1],
+  "lisbon":[38.7223,-9.1393,0],"athens":[37.9838,23.7275,2],"istanbul":[41.0082,28.9784,3],
+  "stockholm":[59.3293,18.0686,1],"oslo":[59.9139,10.7522,1],"copenhagen":[55.6761,12.5683,1],
+  "helsinki":[60.1699,24.9384,2],"warsaw":[52.2297,21.0122,1],"prague":[50.0755,14.4378,1],
+  "budapest":[47.4979,19.0402,1],"bucharest":[44.4268,26.1025,2],"kyiv":[50.4501,30.5234,2],
+  "moscow":[55.7558,37.6173,3],"dubai":[25.2048,55.2708,4],"riyadh":[24.6877,46.7219,3],
+  "tehran":[35.6892,51.389,3.5],"mumbai":[19.076,72.8777,5.5],"delhi":[28.6139,77.209,5.5],
+  "bangalore":[12.9716,77.5946,5.5],"karachi":[24.8607,67.0011,5],"dhaka":[23.8103,90.4125,6],
+  "bangkok":[13.7563,100.5018,7],"kuala lumpur":[3.139,101.6869,8],"singapore":[1.3521,103.8198,8],
+  "jakarta":[-6.2088,106.8456,7],"manila":[14.5995,120.9842,8],"hong kong":[22.3193,114.1694,8],
+  "taipei":[25.032,121.5654,8],"shanghai":[31.2304,121.4737,8],"beijing":[39.9042,116.4074,8],
+  "tokyo":[35.6762,139.6503,9],"seoul":[37.5665,126.978,9],"osaka":[34.6937,135.5023,9],
+  "sydney":[-33.8688,151.2093,10],"melbourne":[-37.8136,144.9631,10],"auckland":[-36.8485,174.7633,12],
+  "sao paulo":[-23.5505,-46.6333,-3],"rio de janeiro":[-22.9068,-43.1729,-3],"buenos aires":[-34.6037,-58.3816,-3],
+  "lima":[-12.0464,-77.0428,-5],"bogota":[4.711,-74.0721,-5],"santiago":[-33.4489,-70.6693,-4],
+  "cairo":[30.0444,31.2357,2],"casablanca":[33.5731,-7.5898,1],"lagos":[6.5244,3.3792,1],
+  "nairobi":[-1.2921,36.8219,3],"johannesburg":[-26.2041,28.0473,2],"addis ababa":[9.032,38.7469,3],
 };
 
-function lookupCity(cityStr) {
-  const key = cityStr.toLowerCase().trim();
-  for (const [k,v] of Object.entries(CITIES)) {
-    if (key.includes(k) || k.includes(key)) return {lat:v[0],lon:v[1],tz:v[2]};
+function lookupCity(str){
+  const k=str.toLowerCase().trim();
+  for(const [name,v] of Object.entries(CITIES)){
+    if(k.includes(name)||name.includes(k)) return {lat:v[0],lon:v[1],tz:v[2]};
   }
   return null;
 }
 
-// ── PROFILES ─────────────────────────────────────────────────
+// ─── PROFILES ────────────────────────────────────────────────────
 const PROFILES = [
-  { name:"Angelo", year:1981, month:2, day:14, hour:13, min:0, lat:37.9838, lon:23.7275, tz:2 },
-  null, null, null
+  {name:"Angelo",year:1981,month:2,day:14,hour:13,min:0,lat:37.9838,lon:23.7275,tz:2},
+  null,null,null
 ];
-let currentProfile = 0;
-let editingSlot = -1;
+let currentProfile=0, editingSlot=-1;
+for(let i=1;i<=3;i++){try{const s=localStorage.getItem('mp_'+i);if(s)PROFILES[i]=JSON.parse(s);}catch(e){}}
 
-// Load saved profiles from localStorage
-for (let i=1;i<=3;i++){
-  try { const s=localStorage.getItem('mandala_profile_'+i); if(s) PROFILES[i]=JSON.parse(s); } catch(e){}
-}
-
-function openModal(slot) {
-  editingSlot = slot;
-  const p = PROFILES[slot];
-  if (p) {
-    document.getElementById('f-name').value = p.name||'';
-    const d = new Date(Date.UTC(p.year,p.month-1,p.day));
-    document.getElementById('f-date').value = d.toISOString().slice(0,10);
-    document.getElementById('f-time').value = String(p.hour).padStart(2,'0')+':'+String(p.min).padStart(2,'0');
-    document.getElementById('f-city').value = p.cityName||'';
-    document.getElementById('f-coords').value = '';
-  } else {
-    document.getElementById('f-name').value='';
-    document.getElementById('f-date').value='';
-    document.getElementById('f-time').value='12:00';
-    document.getElementById('f-city').value='';
-    document.getElementById('f-coords').value='';
-  }
+function openModal(slot){
+  editingSlot=slot; const pr=PROFILES[slot];
+  document.getElementById('f-name').value=pr?pr.name:'';
+  document.getElementById('f-date').value=pr?`${pr.year}-${String(pr.month).padStart(2,'0')}-${String(pr.day).padStart(2,'0')}` :'';
+  document.getElementById('f-time').value=pr?`${String(pr.hour).padStart(2,'0')}:${String(pr.min).padStart(2,'0')}`:'12:00';
+  document.getElementById('f-city').value=pr?pr.cityName||'':'';
+  document.getElementById('f-coords').value='';
   document.getElementById('modal-overlay').classList.add('show');
 }
-
-function closeModal() { document.getElementById('modal-overlay').classList.remove('show'); }
-
-function generateProfile() {
-  const name = document.getElementById('f-name').value.trim();
-  const dateStr = document.getElementById('f-date').value;
-  const timeStr = document.getElementById('f-time').value || '12:00';
-  const cityStr = document.getElementById('f-city').value.trim();
-  const coordStr = document.getElementById('f-coords').value.trim();
-  if (!name || !dateStr) { alert('Please enter a name and birth date.'); return; }
-  const [year,month,day] = dateStr.split('-').map(Number);
-  const [hour,min] = timeStr.split(':').map(Number);
+function closeModal(){document.getElementById('modal-overlay').classList.remove('show');}
+function generateProfile(){
+  const name=document.getElementById('f-name').value.trim();
+  const dateStr=document.getElementById('f-date').value;
+  if(!name||!dateStr){alert('Please enter your name and birth date.');return;}
+  const [year,month,day]=dateStr.split('-').map(Number);
+  const [hour,min]=(document.getElementById('f-time').value||'12:00').split(':').map(Number);
+  const cityStr=document.getElementById('f-city').value.trim();
+  const coordStr=document.getElementById('f-coords').value.trim();
   let lat=0,lon=0,tz=0,cityName=cityStr;
-  const city = lookupCity(cityStr);
-  if (city) { lat=city.lat; lon=city.lon; tz=city.tz; }
-  else if (coordStr) {
-    const parts = coordStr.split(',').map(s=>parseFloat(s.trim()));
-    if (parts.length>=2) { lat=parts[0]; lon=parts[1]; tz=Math.round(lon/15); }
-  }
-  const profile = {name,year,month,day,hour,min,lat,lon,tz,cityName};
-  PROFILES[editingSlot] = profile;
-  localStorage.setItem('mandala_profile_'+editingSlot, JSON.stringify(profile));
-  updateProfileButtons();
-  selectProfile(editingSlot);
-  closeModal();
+  const city=lookupCity(cityStr);
+  if(city){lat=city.lat;lon=city.lon;tz=city.tz;}
+  else if(coordStr){const p=coordStr.split(',').map(s=>parseFloat(s.trim()));if(p.length>=2){lat=p[0];lon=p[1];tz=Math.round(lon/15);}}
+  const profile={name,year,month,day,hour,min,lat,lon,tz,cityName};
+  PROFILES[editingSlot]=profile;
+  try{localStorage.setItem('mp_'+editingSlot,JSON.stringify(profile));}catch(e){}
+  profileCache[editingSlot]=null;
+  updateProfileButtons(); selectProfile(editingSlot); closeModal();
 }
-
-function selectProfile(idx) {
-  currentProfile = idx;
-  updateProfileButtons();
-}
-
-function updateProfileButtons() {
-  for (let i=0;i<4;i++){
-    const btn = document.getElementById('pb'+i);
-    btn.classList.toggle('active', i===currentProfile);
-    if (i===0) { btn.textContent='Angelo'; btn.onclick=()=>selectProfile(0); }
-    else if (PROFILES[i]) { btn.textContent=PROFILES[i].name; btn.onclick=()=>openModal(i); }
-    else { btn.textContent='+ Profile '+(i+1); btn.onclick=()=>openModal(i); }
+function selectProfile(idx){currentProfile=idx;updateProfileButtons();}
+function updateProfileButtons(){
+  for(let i=0;i<4;i++){
+    const b=document.getElementById('pb'+i);
+    b.classList.toggle('active',i===currentProfile);
+    if(i===0){b.textContent='Angelo';b.onclick=()=>selectProfile(0);}
+    else if(PROFILES[i]){b.textContent=PROFILES[i].name;b.onclick=()=>openModal(i);}
+    else{b.textContent='+ Profile '+(i+1);b.onclick=()=>openModal(i);}
   }
 }
 
-// ── ASTRONOMICAL ENGINE ───────────────────────────────────────
-function julianDay(y,m,d,hUT){
-  if(m<=2){y--;m+=12;} const A=Math.floor(y/100); const B=2-A+Math.floor(A/4);
-  return Math.floor(365.25*(y+4716))+Math.floor(30.6001*(m+1))+d+hUT/24+B-1524.5;
-}
+// ─── ASTRONOMY ───────────────────────────────────────────────────
+function jd(y,m,d,hUT){if(m<=2){y--;m+=12;}const A=Math.floor(y/100),B=2-A+Math.floor(A/4);return Math.floor(365.25*(y+4716))+Math.floor(30.6001*(m+1))+d+hUT/24+B-1524.5;}
 function n360(x){return((x%360)+360)%360;}
-function sunLon(jd){
-  const n=jd-2451545; const L=n360(280.46646+0.9856474*n);
-  const g=n360(357.52911+0.9856003*n)*Math.PI/180;
-  return n360(L+1.914602*Math.sin(g)+0.019993*Math.sin(2*g));
-}
-function moonLon(jd){
-  const T=(jd-2451545)/36525;
-  const L=n360(218.3165+481267.8813*T);
-  const M=n360(357.5291+35999.0503*T)*Math.PI/180;
-  const Mm=n360(134.9634+477198.8676*T)*Math.PI/180;
-  const F=n360(93.2721+483202.0175*T)*Math.PI/180;
-  const D=n360(297.8502+445267.1115*T)*Math.PI/180;
-  return n360(L+6.288*Math.sin(Mm)+1.274*Math.sin(2*D-Mm)+0.658*Math.sin(2*D)
-    +0.214*Math.sin(2*Mm)-0.186*Math.sin(M)-0.114*Math.sin(2*F)
-    +0.059*Math.sin(2*D-2*Mm));
-}
-const PLN={
-  Mercury:{L0:252.25032,dm:4.09235555}, Venus:{L0:181.97971,dm:1.60213034},
-  Mars:{L0:355.45332,dm:0.52402068},    Jupiter:{L0:34.35484,dm:0.08308453},
-  Saturn:{L0:50.07742,dm:0.03344395},   Uranus:{L0:314.05500,dm:0.01172834},
-};
-function planetLon(name,jd){
-  if(name==='Sun') return sunLon(jd);
-  if(name==='Moon') return moonLon(jd);
-  const p=PLN[name]; return n360(p.L0+p.dm*(jd-2451545));
-}
-function aspectScore(diff){
-  const d=Math.min(Math.abs(n360(diff)),360-Math.abs(n360(diff)));
-  if(d<8)   return 0.5;   // conjunction
-  if(Math.abs(d-60)<6)  return 2.0;  // sextile
-  if(Math.abs(d-90)<7)  return -2.5; // square
-  if(Math.abs(d-120)<8) return 3.0;  // trine
-  if(Math.abs(d-150)<5) return -1.0; // quincunx
-  if(Math.abs(d-180)<8) return -2.0; // opposition
-  return 0;
-}
-function getAllPos(jd){
-  const r={};
-  for(const nm of ['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus'])
-    r[nm]=planetLon(nm,jd);
-  return r;
-}
-function calcForecast(natal,today){
-  const AXES=[
-    {planet:'Sun'},{planet:'Moon'},{planet:'Mercury'},{planet:'Venus'},
-    {planet:'Mars'},{planet:'Jupiter'},{planet:'Saturn'},{planet:'Uranus'}
-  ];
+function sunLon(j){const n=j-2451545,L=n360(280.46646+0.9856474*n),g=n360(357.52911+0.9856003*n)*Math.PI/180;return n360(L+1.914602*Math.sin(g)+0.019993*Math.sin(2*g));}
+function moonLon(j){const T=(j-2451545)/36525,L=n360(218.3165+481267.8813*T),M=n360(357.5291+35999.0503*T)*Math.PI/180,Mm=n360(134.9634+477198.8676*T)*Math.PI/180,F=n360(93.2721+483202.0175*T)*Math.PI/180,D=n360(297.8502+445267.1115*T)*Math.PI/180;return n360(L+6.288*Math.sin(Mm)+1.274*Math.sin(2*D-Mm)+0.658*Math.sin(2*D)+0.214*Math.sin(2*Mm)-0.186*Math.sin(M)-0.114*Math.sin(2*F)+0.059*Math.sin(2*D-2*Mm));}
+const PLN={Mercury:{L0:252.25032,dm:4.09235555},Venus:{L0:181.97971,dm:1.60213034},Mars:{L0:355.45332,dm:0.52402068},Jupiter:{L0:34.35484,dm:0.08308453},Saturn:{L0:50.07742,dm:0.03344395},Uranus:{L0:314.055,dm:0.01172834}};
+function pLon(nm,j){if(nm==='Sun')return sunLon(j);if(nm==='Moon')return moonLon(j);const p=PLN[nm];return n360(p.L0+p.dm*(j-2451545));}
+function allPos(j){const r={};for(const nm of['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus'])r[nm]=pLon(nm,j);return r;}
+function aspScore(diff){const d=Math.min(Math.abs(n360(diff)),360-Math.abs(n360(diff)));if(d<8)return 0.5;if(Math.abs(d-60)<6)return 2;if(Math.abs(d-90)<7)return -2.5;if(Math.abs(d-120)<8)return 3;if(Math.abs(d-150)<5)return -1;if(Math.abs(d-180)<8)return -2;return 0;}
+function forecast(natal,today){
   const scores={};
-  for(const ax of AXES){
-    const nPos=natal[ax.planet]; let raw=0;
-    for(const [tn,tl] of Object.entries(today)){
-      const wt=['Jupiter','Saturn','Sun','Moon'].includes(tn)?1.3:1.0;
-      raw+=aspectScore(tl-nPos)*wt;
-    }
-    scores[ax.planet]=Math.max(0.1,Math.min(0.9,0.5+raw/18));
-  }
+  for(const ax of AXES){let raw=0;const np=natal[ax.planet];for(const[tn,tl]of Object.entries(today)){const w=['Jupiter','Saturn','Sun','Moon'].includes(tn)?1.3:1;raw+=aspScore(tl-np)*w;}scores[ax.planet]=Math.max(0.08,Math.min(0.92,0.5+raw/20));}
   return scores;
 }
-function zodiacSign(lon){
-  return ['Aries','Taurus','Gemini','Cancer','Leo','Virgo',
-          'Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'][Math.floor(lon/30)];
-}
-function calcProfileData(prof){
-  if(!prof) return null;
-  const hUT=prof.hour-prof.tz+(prof.min||0)/60;
-  const jd=julianDay(prof.year,prof.month,prof.day,hUT);
-  const pos=getAllPos(jd);
-  return {jd,pos,sunSign:zodiacSign(pos.Sun),moonSign:zodiacSign(pos.Moon)};
-}
+function zodSign(lon){return['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'][Math.floor(lon/30)];}
+function profileCalc(pr){if(!pr)return null;const hUT=pr.hour-pr.tz+(pr.min||0)/60,j0=jd(pr.year,pr.month,pr.day,hUT),pos=allPos(j0);return{pos,sunSign:zodSign(pos.Sun),moonSign:zodSign(pos.Moon)};}
 
-// ── AXES CONFIG ───────────────────────────────────────────────
+// ─── AXES ────────────────────────────────────────────────────────
 const AXES=[
-  {name:'Vitality',  planet:'Sun',     col:[255,210,60]},
-  {name:'Intuition', planet:'Moon',    col:[200,215,255]},
-  {name:'Mind',      planet:'Mercury', col:[0,210,220]},
-  {name:'Love',      planet:'Venus',   col:[255,110,180]},
-  {name:'Drive',     planet:'Mars',    col:[220,50,80]},
-  {name:'Abundance', planet:'Jupiter', col:[80,200,130]},
-  {name:'Structure', planet:'Saturn',  col:[100,140,220]},
-  {name:'Awakening', planet:'Uranus',  col:[160,90,255]},
+  {name:'Vitality', planet:'Sun',     col:[255,210,55]},
+  {name:'Intuition',planet:'Moon',    col:[190,210,255]},
+  {name:'Mind',     planet:'Mercury', col:[0,218,225]},
+  {name:'Love',     planet:'Venus',   col:[255,100,175]},
+  {name:'Drive',    planet:'Mars',    col:[225,48,75]},
+  {name:'Abundance',planet:'Jupiter', col:[75,205,130]},
+  {name:'Structure',planet:'Saturn',  col:[95,140,225]},
+  {name:'Awakening',planet:'Uranus',  col:[155,85,255]},
 ];
 
-// ── P5 SKETCH ─────────────────────────────────────────────────
+// ─── PARTICLE SYSTEMS ────────────────────────────────────────────
+// One pool per axis — particles live in petal-local coords (+Y = outward along axis)
+const pools = Array.from({length:8},()=>[]);
+
+function spawnParticle(r1,r2,w){
+  const frac=0.05+Math.random()*0.9;
+  const y=r1+frac*(r2-r1);
+  const maxX=w*Math.sin(Math.PI*frac)*0.85;
+  const x=(Math.random()*2-1)*maxX;
+  return{x,y,trail:[],seed:Math.random()*1000};
+}
+
+function inPetal(x,y,r1,r2,w){
+  const frac=(y-r1)/(r2-r1);
+  if(frac<0||frac>1)return false;
+  return Math.abs(x)<w*Math.sin(Math.PI*frac)*0.9;
+}
+
+// ─── P5 SKETCH ───────────────────────────────────────────────────
+let profileCache=[null,null,null,null];
+let lastProfileIdx=-1;
+
 new p5(function(p){
-  const SZ=Math.min(window.innerWidth,window.innerHeight,920);
-  let stars=[], t=0, todayJD, todayPos, profileCache=[null,null,null,null];
-  let lastProfile=-1;
+  const SZ=Math.min(window.innerWidth,window.innerHeight,940);
+  let stars=[], t=0, todayJD, todayPos;
 
   p.setup=function(){
     const cnv=p.createCanvas(SZ,SZ); cnv.parent('canvas-holder');
     const now=new Date();
-    todayJD=julianDay(now.getFullYear(),now.getMonth()+1,now.getDate(),now.getUTCHours()+now.getUTCMinutes()/60);
-    todayPos=getAllPos(todayJD);
-    for(let i=0;i<300;i++) stars.push({x:p.random(SZ),y:p.random(SZ),r:p.random(.4,2.2),b:p.random(60,255),ph:p.random(Math.PI*2)});
-    // pre-calculate Angelo
-    profileCache[0]=calcProfileData(PROFILES[0]);
+    todayJD=jd(now.getFullYear(),now.getMonth()+1,now.getDate(),now.getUTCHours()+now.getUTCMinutes()/60);
+    todayPos=allPos(todayJD);
+    for(let i=0;i<320;i++) stars.push({x:p.random(SZ),y:p.random(SZ),r:p.random(0.4,2.1),b:p.random(50,240),ph:p.random(p.TWO_PI)});
+    profileCache[0]=profileCalc(PROFILES[0]);
+    for(let ai=0;ai<8;ai++) for(let j=0;j<15;j++) pools[ai].push(spawnParticle(SZ*0.11,SZ*0.43,SZ*0.082));
   };
 
   p.draw=function(){
-    t+=0.004;
-    // Recalculate when profile changes
-    if(lastProfile!==currentProfile){
-      lastProfile=currentProfile;
-      if(PROFILES[currentProfile] && !profileCache[currentProfile])
-        profileCache[currentProfile]=calcProfileData(PROFILES[currentProfile]);
+    t+=0.005;
+    if(lastProfileIdx!==currentProfile){
+      lastProfileIdx=currentProfile;
+      if(PROFILES[currentProfile]&&!profileCache[currentProfile]) profileCache[currentProfile]=profileCalc(PROFILES[currentProfile]);
     }
     const pd=profileCache[currentProfile];
-    const prof=PROFILES[currentProfile];
-    const scores=pd?calcForecast(pd.pos,todayPos):null;
+    const scores=pd?forecast(pd.pos,todayPos):null;
     const cx=SZ/2,cy=SZ/2;
 
-    p.background(3,3,18);
+    // ── Background ──
+    p.background(2,2,15);
 
-    // Nebula
-    p.drawingContext.globalCompositeOperation='screen';
-    [[70,20,130,cx-100,cy+70,280],[100,30,200,cx+80,cy-90,240],[200,80,160,cx,cy,160]].forEach(([r,g,b,nx,ny,nr])=>{
-      const grad=p.drawingContext.createRadialGradient(nx,ny,0,nx,ny,nr);
-      grad.addColorStop(0,`rgba(${r},${g},${b},0.07)`); grad.addColorStop(1,'rgba(0,0,0,0)');
-      p.drawingContext.fillStyle=grad; p.drawingContext.beginPath();
-      p.drawingContext.arc(nx,ny,nr,0,Math.PI*2); p.drawingContext.fill();
+    // Nebula layers
+    const dctx=p.drawingContext;
+    dctx.globalCompositeOperation='screen';
+    [[65,15,130,cx-110,cy+80,300],[95,25,195,cx+90,cy-95,260],[195,75,155,cx,cy,185]].forEach(([r,g,b,nx,ny,nr])=>{
+      const gr=dctx.createRadialGradient(nx,ny,0,nx,ny,nr);
+      gr.addColorStop(0,`rgba(${r},${g},${b},0.06)`); gr.addColorStop(1,'rgba(0,0,0,0)');
+      dctx.fillStyle=gr; dctx.beginPath(); dctx.arc(nx,ny,nr,0,Math.PI*2); dctx.fill();
     });
-    p.drawingContext.globalCompositeOperation='source-over';
+    dctx.globalCompositeOperation='source-over';
 
     // Stars
+    p.noStroke();
     for(const s of stars){
-      const fl=0.55+0.45*Math.sin(t*8+s.ph);
-      p.fill(255,255,255,s.b*fl); p.noStroke(); p.ellipse(s.x,s.y,s.r);
+      const fl=0.5+0.5*Math.sin(t*7+s.ph);
+      p.fill(255,255,255,s.b*fl); p.ellipse(s.x,s.y,s.r);
     }
-
-    // Corner ornaments
-    drawCorners(p,SZ,t);
 
     p.push(); p.translate(cx,cy);
 
-    const innerR=SZ*0.07, outerR=SZ*0.41;
+    const r1=SZ*0.11, r2=SZ*0.43, pw=SZ*0.082;
 
-    if(!pd){
-      // Placeholder
-      p.noFill(); p.strokeWeight(1);
-      for(let r=innerR;r<outerR;r+=55){
-        const a=128+80*Math.sin(t*1.5+r*0.03);
-        p.stroke(120,90,200,a*0.4); p.ellipse(0,0,r*2);
-      }
-      p.fill(160,140,220,140); p.noStroke(); p.textAlign(p.CENTER,p.CENTER);
-      p.textSize(SZ*0.02); p.text('Click + to add a profile',0,-15);
-      p.textSize(SZ*0.015); p.fill(120,100,180,100); p.text('and reveal your mandala',0,12);
-      p.pop(); drawDateBar(p,SZ,t,prof,pd,scores); return;
-    }
-
-    // Guide circles
+    // ── Faint guide rings ──
     p.noFill();
-    for(let i=1;i<=5;i++){
-      p.stroke(255,255,255,6); p.strokeWeight(0.5);
-      p.ellipse(0,0,(innerR+(outerR-innerR)*(i/5))*2);
+    for(let i=1;i<=4;i++){
+      p.stroke(255,255,255,5); p.strokeWeight(0.5);
+      p.ellipse(0,0,(r1+(r2-r1)*(i/4))*2);
     }
 
-    // Petals — 4 rings × 8 axes
-    for(let ring=0;ring<4;ring++){
-      const ringRot=t*0.08*(ring%2===0?1:-1);
-      const rfrac=(ring+0.5)/4;
-      const r1=innerR+(outerR-innerR)*rfrac*0.75;
-      const petalDepth=(outerR-innerR)*0.22;
-      p.push(); p.rotate(ringRot);
-      for(let ai=0;ai<8;ai++){
-        const ax=AXES[ai];
-        const score=scores?scores[ax.planet]:0.5;
-        const baseAng=(ai/8)*Math.PI*2-Math.PI/2;
-        const breathe=1+0.04*Math.sin(t*1.2+ai*0.8+ring*0.5);
-        const depth=score*petalDepth*breathe;
-        const spread=Math.PI*2/8*0.38;
-        const [cr,cg,cb]=ax.col;
-        const alpha=60+score*160;
-
-        p.drawingContext.shadowBlur=score>0.55?14*score:0;
-        p.drawingContext.shadowColor=`rgba(${cr},${cg},${cb},0.5)`;
-        p.push(); p.rotate(baseAng);
-        // Petal
-        p.fill(cr,cg,cb,alpha); p.noStroke();
-        p.beginShape();
-        p.vertex(0,0);
-        p.bezierVertex(-r1*spread*0.9,r1*0.05, -(r1+depth*0.6)*spread*0.7,r1+depth*0.5, 0,r1+depth);
-        p.bezierVertex((r1+depth*0.6)*spread*0.7,r1+depth*0.5, r1*spread*0.9,r1*0.05, 0,0);
-        p.endShape();
-        // Inner glow petal
-        p.fill(cr,cg,cb,alpha*0.35);
-        p.beginShape();
-        p.vertex(0,0);
-        p.bezierVertex(-r1*spread*0.5,r1*0.03,-r1*spread*0.4,r1+depth*0.35,0,r1+depth*0.55);
-        p.bezierVertex(r1*spread*0.4,r1+depth*0.35,r1*spread*0.5,r1*0.03,0,0);
-        p.endShape();
-        p.pop(); p.drawingContext.shadowBlur=0;
-      }
-      p.pop();
-    }
-
-    // Outer arc indicators per axis
-    const arcR=outerR*1.0;
+    // ── 8 Petals ──
     for(let ai=0;ai<8;ai++){
-      const ax=AXES[ai]; const [cr,cg,cb]=ax.col;
-      const score=scores?scores[ax.planet]:0.5;
-      const baseAng=(ai/8)*Math.PI*2-Math.PI/2;
-      const arcSpan=Math.PI*2/8*0.65*score;
-      p.noFill(); p.stroke(cr,cg,cb,140); p.strokeWeight(1.5);
-      p.arc(0,0,arcR*2,arcR*2,baseAng-arcSpan/2,baseAng+arcSpan/2);
-      // Dot
-      p.drawingContext.shadowBlur=8; p.drawingContext.shadowColor=`rgb(${cr},${cg},${cb})`;
-      p.fill(cr,cg,cb,200); p.noStroke();
-      p.ellipse(Math.cos(baseAng)*arcR,Math.sin(baseAng)*arcR,5.5);
-      p.drawingContext.shadowBlur=0;
+      const ax=AXES[ai];
+      const sc=scores?scores[ax.planet]:0.5;
+      const ang=(ai/8)*p.TWO_PI-p.HALF_PI;
+      const breathe=1+p.map(sc,0,1,0.005,0.035)*Math.sin(t*p.map(sc,0,1,0.8,2.2)+ai*0.9);
+      drawPetal(p,dctx,ai,ang,sc,ax.col,r1,r2,pw,breathe,t);
     }
 
-    // Outer planet ring
-    const orbitR=SZ*0.455;
-    p.noFill(); p.stroke(255,255,255,15); p.strokeWeight(0.5); p.ellipse(0,0,orbitR*2);
-    for(const [nm,col] of [['Sun',[255,210,60]],['Moon',[200,215,255]],['Mercury',[0,210,220]],
-        ['Venus',[255,110,180]],['Mars',[220,50,80]],['Jupiter',[80,200,130]],
-        ['Saturn',[100,140,220]],['Uranus',[160,90,255]]]){
-      const lon=todayPos[nm], ang=(lon/360)*Math.PI*2-Math.PI/2;
-      const px=Math.cos(ang)*orbitR, py=Math.sin(ang)*orbitR;
-      p.drawingContext.shadowBlur=6; p.drawingContext.shadowColor=`rgb(${col[0]},${col[1]},${col[2]})`;
-      p.fill(col[0],col[1],col[2],210); p.noStroke(); p.ellipse(px,py,5);
-      p.drawingContext.shadowBlur=0;
+    // ── Center region ──
+    if(pd) drawCenter(p,dctx,pd,r1,t);
+
+    // ── Outer planet ring ──
+    const orR=SZ*0.468;
+    p.noFill(); p.stroke(255,255,255,12); p.strokeWeight(0.5); p.ellipse(0,0,orR*2);
+    for(const[nm,col]of[['Sun',[255,210,55]],['Moon',[190,210,255]],['Mercury',[0,218,225]],
+        ['Venus',[255,100,175]],['Mars',[225,48,75]],['Jupiter',[75,205,130]],
+        ['Saturn',[95,140,225]],['Uranus',[155,85,255]]]){
+      const lon=todayPos[nm],a=(lon/360)*p.TWO_PI-p.HALF_PI;
+      const px=Math.cos(a)*orR,py=Math.sin(a)*orR;
+      dctx.shadowBlur=7; dctx.shadowColor=`rgb(${col[0]},${col[1]},${col[2]})`;
+      p.fill(col[0],col[1],col[2],200); p.noStroke(); p.ellipse(px,py,5.5);
+      dctx.shadowBlur=0;
     }
 
-    // Axis labels
-    const labelR=outerR*1.14;
+    // ── Axis labels ──
+    const lblR=r2*1.14;
     p.textAlign(p.CENTER,p.CENTER);
     for(let ai=0;ai<8;ai++){
-      const ax=AXES[ai]; const [cr,cg,cb]=ax.col;
-      const score=scores?scores[ax.planet]:0.5;
-      const ang=(ai/8)*Math.PI*2-Math.PI/2;
-      const lx=Math.cos(ang)*labelR, ly=Math.sin(ang)*labelR;
-      p.fill(cr,cg,cb,170); p.noStroke(); p.textSize(SZ*0.016);
+      const ax=AXES[ai],[cr,cg,cb]=ax.col;
+      const sc=scores?scores[ax.planet]:0.5;
+      const ang=(ai/8)*p.TWO_PI-p.HALF_PI;
+      const lx=Math.cos(ang)*lblR,ly=Math.sin(ang)*lblR;
+      p.fill(cr,cg,cb,165); p.noStroke(); p.textSize(SZ*0.0165);
       p.text(ax.name,lx,ly);
-      p.textSize(SZ*0.013); p.fill(cr,cg,cb,120);
-      p.text((Math.round(score*100))+'%',lx,ly+SZ*0.022);
+      p.textSize(SZ*0.013); p.fill(cr,cg,cb,p.map(sc,0,1,50,130));
+      p.text(Math.round(sc*100)+'%',lx,ly+SZ*0.024);
     }
 
-    // Center sigil
-    drawCenterGlow(p,innerR,pd);
-    drawSigil(p,pd.sunSign,innerR*0.85,pd);
-
     p.pop();
-    drawDateBar(p,SZ,t,prof,pd,scores);
-  };
-});
 
-function drawCorners(p,SZ,t){
-  const sz=SZ*0.09; const cols=[[0,210,220],[160,90,255],[255,110,180],[80,200,130]];
-  const positions=[[sz*0.6,sz*0.6],[SZ-sz*0.6,sz*0.6],[sz*0.6,SZ-sz*0.6],[SZ-sz*0.6,SZ-sz*0.6]];
-  positions.forEach(([cx,cy],i)=>{
-    const [cr,cg,cb]=cols[i];
-    p.push(); p.translate(cx,cy);
-    p.noFill(); p.stroke(cr,cg,cb,50); p.strokeWeight(0.8);
-    for(let r=sz*0.25;r<=sz*0.9;r+=sz*0.22) p.ellipse(0,0,r*2);
-    const rot=t*0.2*(i%2===0?1:-1);
-    for(let j=0;j<6;j++){
-      const a=rot+(j/6)*Math.PI*2;
-      p.stroke(cr,cg,cb,40+30*Math.sin(t+j));
-      p.line(Math.cos(a)*sz*0.25,Math.sin(a)*sz*0.25,Math.cos(a)*sz*0.8,Math.sin(a)*sz*0.8);
+    // ── Corner ornaments ──
+    drawCorners(p,dctx,SZ,t);
+
+    // ── Info bar ──
+    drawInfo(p,SZ,pd,PROFILES[currentProfile]);
+  };
+
+  // ── PETAL DRAW ──────────────────────────────────────────────────
+  function drawPetal(p,ctx,ai,ang,sc,col,r1,r2,pw,breathe,t){
+    const[cr,cg,cb]=col;
+    const pool=pools[ai];
+    const petalMid=r1+(r2-r1)*0.42;
+
+    p.push();
+    p.rotate(ang); // petal now points along +Y
+
+    // === Clipped interior ===
+    ctx.save();
+
+    // Petal clip path (in current rotated space)
+    ctx.beginPath();
+    ctx.moveTo(0,r1);
+    ctx.bezierCurveTo(-pw*0.85,r1+(r2-r1)*0.28,-pw*1.02,petalMid,0,r2);
+    ctx.bezierCurveTo(pw*1.02,petalMid,pw*0.85,r1+(r2-r1)*0.28,0,r1);
+    ctx.closePath();
+    ctx.clip();
+
+    // Base fill — richer for high score
+    const baseA=p.map(sc,0,1,0.025,0.13);
+    const gBase=ctx.createLinearGradient(0,r1,0,r2);
+    gBase.addColorStop(0,`rgba(${cr},${cg},${cb},${baseA*0.2})`);
+    gBase.addColorStop(0.35,`rgba(${cr},${cg},${cb},${baseA})`);
+    gBase.addColorStop(0.7,`rgba(${cr},${cg},${cb},${baseA*0.8})`);
+    gBase.addColorStop(1,`rgba(${cr},${cg},${cb},${baseA*0.25})`);
+    ctx.fillStyle=gBase;
+    ctx.fillRect(-pw*1.1,r1,pw*2.2,r2-r1);
+
+    // ── Flow texture lines (noise-driven short segments) ──
+    const ns=p.map(sc,0,1,0.006,0.022);
+    const lineCount=Math.floor(p.map(sc,0,1,6,120));
+    const lineLen=p.map(sc,0,1,3,22);
+    const lineAlpha=p.map(sc,0,1,5,50);
+    p.strokeWeight(0.6);
+    for(let i=0;i<lineCount;i++){
+      const frac=p.random(0.04,0.96);
+      const ly=r1+frac*(r2-r1);
+      const maxLx=pw*Math.sin(Math.PI*frac)*0.86;
+      const lx=p.random(-maxLx,maxLx);
+      const tOff=t*p.map(sc,0,1,0.25,1.1)+i*0.07+ai*0.4;
+      const noiseVal=p.noise(lx*ns,ly*ns,tOff);
+      const a=noiseVal*p.TWO_PI*2.5;
+      const bA=lineAlpha*(0.4+0.6*p.noise(lx*ns*0.5,ly*ns*0.5,tOff*0.3+10));
+      p.stroke(cr,cg,cb,bA);
+      p.line(lx,ly,lx+Math.cos(a)*lineLen,ly+Math.sin(a)*lineLen);
     }
-    p.fill(cr,cg,cb,100); p.noStroke(); p.ellipse(0,0,3);
+
+    // ── Particle trails ──
+    const targetCount=Math.floor(p.map(sc,0,1,3,90));
+    while(pool.length<targetCount) pool.push(spawnParticle(r1,r2,pw));
+    while(pool.length>targetCount+5) pool.pop();
+
+    const speed=p.map(sc,0,1,0.18,2.6);
+    const pns=p.map(sc,0,1,0.007,0.016);
+    const trailMax=Math.floor(p.map(sc,0,1,3,32));
+    const headAlpha=p.map(sc,0,1,25,255);
+    const trailAlpha=p.map(sc,0,1,8,140);
+    const breathPulse=0.8+0.2*Math.sin(t*p.map(sc,0,1,0.8,2.0)+ai*1.1);
+
+    p.noFill();
+    for(const par of pool){
+      const tOff=t*0.4+par.seed;
+      const na=p.noise(par.x*pns,par.y*pns,tOff)*p.TWO_PI*2.2;
+      par.x+=Math.cos(na)*speed;
+      par.y+=Math.sin(na)*speed;
+      // Respawn if outside petal
+      if(!inPetal(par.x,par.y,r1,r2,pw)){
+        const f2=0.08+Math.random()*0.84;
+        par.y=r1+f2*(r2-r1);
+        const mx=pw*Math.sin(Math.PI*f2)*0.82;
+        par.x=(Math.random()*2-1)*mx;
+        par.trail=[];
+      }
+      par.trail.push({x:par.x,y:par.y});
+      if(par.trail.length>trailMax) par.trail.shift();
+      if(par.trail.length<2) continue;
+      for(let i=1;i<par.trail.length;i++){
+        const frac=i/par.trail.length;
+        p.stroke(cr,cg,cb,trailAlpha*frac*breathPulse);
+        p.strokeWeight(p.map(frac,0,1,0.5,1.6));
+        p.line(par.trail[i-1].x,par.trail[i-1].y,par.trail[i].x,par.trail[i].y);
+      }
+      p.fill(cr,cg,cb,headAlpha*breathPulse); p.noStroke();
+      p.ellipse(par.x,par.y,p.map(sc,0,1,1,2.8));
+    }
+
+    // Inner luminosity bloom
+    if(sc>0.25){
+      const bR=p.map(sc,0.25,1,15,65)*breathe;
+      const bloomY=r1+(r2-r1)*0.32;
+      const gBloom=ctx.createRadialGradient(0,bloomY,0,0,bloomY,bR*2.5);
+      gBloom.addColorStop(0,`rgba(${cr},${cg},${cb},${sc*0.18})`);
+      gBloom.addColorStop(0.5,`rgba(${cr},${cg},${cb},${sc*0.06})`);
+      gBloom.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=gBloom; ctx.fillRect(-pw,r1,pw*2,r2-r1);
+    }
+
+    ctx.restore();
+
+    // === Petal outline (outside clip) ===
+    const outA=p.map(sc,0,1,18,110);
+    dctx.shadowBlur=p.map(sc,0.4,1,0,18); dctx.shadowColor=`rgba(${cr},${cg},${cb},0.45)`;
+    p.noFill(); p.stroke(cr,cg,cb,outA); p.strokeWeight(0.9);
+    p.beginShape();
+    p.vertex(0,r1);
+    p.bezierVertex(-pw*0.85,r1+(r2-r1)*0.28,-pw*1.02,petalMid,0,r2);
+    p.bezierVertex(pw*1.02,petalMid,pw*0.85,r1+(r2-r1)*0.28,0,r1);
+    p.endShape(p.CLOSE);
+    dctx.shadowBlur=0;
+
     p.pop();
-  });
-}
+  }
 
-function drawCenterGlow(p,innerR,pd){
-  if(!pd) return;
-  const sign=pd.sunSign;
-  const signCols={
-    Aries:[220,80,60],Taurus:[100,180,80],Gemini:[220,200,60],Cancer:[160,200,220],
-    Leo:[255,180,40],Virgo:[150,200,120],Libra:[200,160,255],Scorpio:[180,40,80],
-    Sagittarius:[220,130,50],Capricorn:[140,160,200],Aquarius:[60,200,220],Pisces:[140,120,255]
-  };
-  const [sr,sg,sb]=signCols[sign]||[180,180,220];
-  p.drawingContext.globalCompositeOperation='screen';
-  const g=p.drawingContext.createRadialGradient(0,0,0,0,0,innerR*2.2);
-  g.addColorStop(0,`rgba(${sr},${sg},${sb},0.35)`); g.addColorStop(1,'rgba(0,0,0,0)');
-  p.drawingContext.fillStyle=g; p.drawingContext.beginPath();
-  p.drawingContext.arc(0,0,innerR*2.2,0,Math.PI*2); p.drawingContext.fill();
-  p.drawingContext.globalCompositeOperation='source-over';
-  p.noFill(); p.stroke(sr,sg,sb,80); p.strokeWeight(1); p.ellipse(0,0,innerR*2);
-}
+  // ── CENTER ──────────────────────────────────────────────────────
+  function drawCenter(p,ctx,pd,r1,t){
+    const signCols={Aries:[220,80,60],Taurus:[100,180,80],Gemini:[220,200,60],Cancer:[160,200,220],Leo:[255,180,40],Virgo:[150,200,120],Libra:[200,160,255],Scorpio:[180,40,80],Sagittarius:[220,130,50],Capricorn:[140,160,200],Aquarius:[60,205,225],Pisces:[140,120,255]};
+    const[sr,sg,sb]=signCols[pd.sunSign]||[180,180,220];
+    const cr=r1*0.85;
 
-function drawSigil(p,sign,sz,pd){
-  const signCols={
-    Aries:[220,80,60],Taurus:[100,180,80],Gemini:[220,200,60],Cancer:[160,200,220],
-    Leo:[255,180,40],Virgo:[150,200,120],Libra:[200,160,255],Scorpio:[180,40,80],
-    Sagittarius:[220,130,50],Capricorn:[140,160,200],Aquarius:[60,200,220],Pisces:[140,120,255]
-  };
-  const [sr,sg,sb]=signCols[sign]||[180,180,220];
-  p.drawingContext.shadowBlur=12; p.drawingContext.shadowColor=`rgb(${sr},${sg},${sb})`;
-  p.stroke(sr,sg,sb,200); p.strokeWeight(sz*0.045); p.noFill();
-  const s=sz;
-  switch(sign){
-    case 'Aquarius':
-      for(let row=-1;row<=1;row+=2){
-        p.beginShape();
-        for(let i=0;i<=24;i++){
-          const px=p.map(i,0,24,-s*.65,s*.65);
-          const py=row*s*.22+Math.sin(i*Math.PI*2/6)*s*.13;
-          p.vertex(px,py);
+    // Center glow
+    ctx.globalCompositeOperation='screen';
+    const gr=ctx.createRadialGradient(0,0,0,0,0,r1*2.4);
+    gr.addColorStop(0,`rgba(${sr},${sg},${sb},0.4)`); gr.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=gr; ctx.beginPath(); ctx.arc(0,0,r1*2.4,0,Math.PI*2); ctx.fill();
+    ctx.globalCompositeOperation='source-over';
+
+    p.noFill(); p.stroke(sr,sg,sb,70); p.strokeWeight(0.8); p.ellipse(0,0,r1*1.9);
+    p.stroke(sr,sg,sb,35); p.strokeWeight(0.5); p.ellipse(0,0,r1*2.4);
+
+    // Sigil
+    dctx.shadowBlur=14; dctx.shadowColor=`rgba(${sr},${sg},${sb},0.9)`;
+    p.stroke(sr,sg,sb,210); p.strokeWeight(cr*0.042); p.noFill();
+    drawSigil(p,pd.sunSign,cr);
+    dctx.shadowBlur=0;
+  }
+
+  // ── ZODIAC SIGILS ───────────────────────────────────────────────
+  function drawSigil(p,sign,s){
+    switch(sign){
+      case 'Aquarius':
+        for(let row=-1;row<=1;row+=2){
+          p.beginShape();
+          for(let i=0;i<=30;i++){
+            const px=p.map(i,0,30,-s*.68,s*.68);
+            const py=row*s*.24+Math.sin(i/30*Math.PI*2*3)*s*.13;
+            p.vertex(px,py);
+          }
+          p.endShape();
         }
-        p.endShape();
-      }
-      p.stroke(sr,sg,sb,70); p.strokeWeight(sz*0.025);
-      for(let i=0;i<8;i++){
-        const a=(i/8)*Math.PI*2; const r1=s*.75,r2=s*.95;
-        p.line(Math.cos(a)*r1,Math.sin(a)*r1,Math.cos(a)*r2,Math.sin(a)*r2);
-      }
-      break;
-    case 'Aries':
-      p.arc(0,-s*.1,s*.9,s*.7,0,Math.PI);
-      p.arc(-s*.32,s*.12,s*.38,s*.38,Math.PI*1.5,Math.PI*.5);
-      p.arc(s*.32,s*.12,s*.38,s*.38,Math.PI*.5,Math.PI*1.5+Math.PI);
-      break;
-    case 'Taurus':
-      p.ellipse(0,s*.1,s*.8,s*.65);
-      p.arc(0,-s*.25,s*.6,s*.4,Math.PI,0);
-      break;
-    case 'Gemini':
-      p.line(-s*.35,-s*.4,-s*.35,s*.4); p.line(s*.35,-s*.4,s*.35,s*.4);
-      p.line(-s*.35,-s*.4,s*.35,-s*.4); p.line(-s*.35,0,s*.35,0); p.line(-s*.35,s*.4,s*.35,s*.4);
-      break;
-    case 'Cancer':
-      p.arc(-s*.22,0,s*.55,s*.55,Math.PI*.1,Math.PI*1.1);
-      p.arc(s*.22,0,s*.55,s*.55,Math.PI*1.1,Math.PI*.1+Math.PI*2);
-      break;
-    case 'Leo':
-      p.arc(0,s*.05,s*.6,s*.55,Math.PI*.15,Math.PI*.85);
-      p.arc(s*.05,-s*.2,s*.75,s*.55,0,Math.PI);
-      p.bezier(s*.38,s*.2,s*.75,s*.1,s*.8,-s*.35,s*.5,-s*.45);
-      break;
-    case 'Virgo':
-      p.line(-s*.38,-s*.35,-s*.38,s*.38); p.line(s*.38,-s*.35,s*.38,s*.38);
-      p.bezier(-s*.38,-s*.15,-s*.1,-s*.55,s*.1,-s*.15,s*.1,s*.38);
-      p.arc(s*.38,s*.1,s*.22,s*.45,-Math.PI/2,Math.PI/2);
-      break;
-    case 'Libra':
-      p.line(-s*.45,s*.1,s*.45,s*.1); p.line(0,s*.1,0,s*.35); p.line(-s*.45,s*.35,s*.45,s*.35);
-      p.arc(0,-s*.05,s*.6,s*.4,Math.PI,0);
-      break;
-    case 'Scorpio':
-      p.line(-s*.4,-s*.3,-s*.4,s*.2);
-      p.bezier(-s*.4,0,-s*.1,-s*.45,s*.1,0,s*.1,s*.2);
-      p.bezier(s*.1,0,s*.35,-s*.45,s*.45,0,s*.45,s*.2);
-      p.bezier(s*.45,s*.2,s*.6,s*.3,s*.6,0,s*.4,-s*.05);
-      break;
-    case 'Sagittarius':
-      p.line(-s*.55,s*.55,s*.55,-s*.55);
-      p.line(s*.55,-s*.55,s*.15,-s*.55); p.line(s*.55,-s*.55,s*.55,-s*.15);
-      break;
-    case 'Capricorn':
-      p.bezier(-s*.35,-s*.4,-s*.35,s*.25,0,s*.35,0,s*.35);
-      p.bezier(0,s*.35,s*.5,s*.35,s*.5,0,s*.35,-s*.2);
-      p.bezier(s*.35,-s*.2,s*.2,-s*.5,s*.5,-s*.5,s*.5,-s*.3);
-      break;
-    case 'Pisces':
-      p.arc(0,-s*.22,s*.6,s*.35,0,Math.PI,p.OPEN);
-      p.arc(0,s*.22,s*.6,s*.35,Math.PI,0,p.OPEN);
-      p.line(-s*.35,0,s*.35,0);
-      break;
-    default:
-      p.ellipse(0,0,s*1.2); p.line(0,-s*.7,0,s*.7); p.line(-s*.7,0,s*.7,0);
+        p.strokeWeight(s*0.018);
+        for(let i=0;i<8;i++){const a=i/8*p.TWO_PI;p.line(Math.cos(a)*s*.8,Math.sin(a)*s*.8,Math.cos(a)*s*1.0,Math.sin(a)*s*1.0);}
+        break;
+      case 'Aries':
+        p.arc(0,-s*.08,s*.9,s*.7,0,p.PI);
+        p.arc(-s*.32,s*.12,s*.38,s*.38,p.PI*1.5,p.HALF_PI);
+        p.arc(s*.32,s*.12,s*.38,s*.38,p.HALF_PI,p.PI*1.5+p.TWO_PI);
+        break;
+      case 'Taurus':
+        p.ellipse(0,s*.12,s*.82,s*.64);
+        p.arc(0,-s*.22,s*.62,s*.42,p.PI,0);
+        break;
+      case 'Gemini':
+        p.line(-s*.36,-s*.42,-s*.36,s*.42); p.line(s*.36,-s*.42,s*.36,s*.42);
+        p.line(-s*.36,-s*.42,s*.36,-s*.42); p.line(-s*.36,0,s*.36,0); p.line(-s*.36,s*.42,s*.36,s*.42);
+        break;
+      case 'Cancer':
+        p.arc(-s*.22,0,s*.55,s*.55,p.PI*.08,p.PI*1.08);
+        p.arc(s*.22,0,s*.55,s*.55,p.PI*1.08,p.PI*.08+p.TWO_PI);
+        break;
+      case 'Leo':
+        p.arc(0,s*.08,s*.62,s*.56,p.PI*.18,p.PI*.82);
+        p.arc(s*.06,-s*.18,s*.76,s*.54,0,-p.PI);
+        p.bezier(s*.38,s*.22,s*.78,s*.08,s*.8,-s*.36,s*.5,-s*.46);
+        break;
+      case 'Virgo':
+        p.line(-s*.38,-s*.36,-s*.38,s*.36); p.line(s*.38,-s*.36,s*.38,s*.36);
+        p.bezier(-s*.38,-s*.12,-s*.1,-s*.55,s*.12,-s*.12,s*.12,s*.36);
+        p.arc(s*.38,s*.08,s*.22,s*.46,-p.HALF_PI,p.HALF_PI);
+        break;
+      case 'Libra':
+        p.line(-s*.46,s*.1,s*.46,s*.1); p.line(0,s*.1,0,s*.34); p.line(-s*.46,s*.34,s*.46,s*.34);
+        p.arc(0,-s*.06,s*.62,s*.42,p.PI,0);
+        break;
+      case 'Scorpio':
+        p.line(-s*.42,-s*.3,-s*.42,s*.2);
+        p.bezier(-s*.42,s*.0,-s*.12,-s*.44,s*.12,0,s*.12,s*.2);
+        p.bezier(s*.12,0,s*.36,-s*.44,s*.46,0,s*.46,s*.2);
+        p.bezier(s*.46,s*.2,s*.62,s*.32,s*.62,0,s*.42,-s*.08);
+        break;
+      case 'Sagittarius':
+        p.line(-s*.58,s*.56,s*.58,-s*.56);
+        p.line(s*.58,-s*.56,s*.18,-s*.56); p.line(s*.58,-s*.56,s*.58,-s*.18);
+        break;
+      case 'Capricorn':
+        p.bezier(-s*.36,-s*.4,-s*.36,s*.24,0,s*.36,0,s*.36);
+        p.bezier(0,s*.36,s*.52,s*.36,s*.52,0,s*.36,-s*.22);
+        p.bezier(s*.36,-s*.22,s*.22,-s*.5,s*.52,-s*.5,s*.5,-s*.28);
+        break;
+      case 'Pisces':
+        p.arc(0,-s*.22,s*.62,s*.36,0,p.PI,p.OPEN);
+        p.arc(0,s*.22,s*.62,s*.36,p.PI,0,p.OPEN);
+        p.line(-s*.36,0,s*.36,0);
+        break;
+      default:
+        p.ellipse(0,0,s*1.2); p.line(0,-s*.72,0,s*.72); p.line(-s*.72,0,s*.72,0);
+    }
   }
-  p.drawingContext.shadowBlur=0;
-}
 
-function drawDateBar(p,SZ,t,prof,pd,scores){
-  const now=new Date();
-  const ds=now.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
-  p.textAlign(p.LEFT,p.TOP); p.textSize(SZ*0.013);
-  p.fill(255,255,255,70); p.noStroke();
-  p.text(prof?prof.name:'—', SZ*0.045, SZ*0.05);
-  if(pd){
-    p.textSize(SZ*0.012); p.fill(180,160,255,55);
-    p.text('☀ '+pd.sunSign+'   ☽ '+pd.moonSign, SZ*0.045, SZ*0.068);
+  // ── CORNER ORNAMENTS ────────────────────────────────────────────
+  function drawCorners(p,ctx,SZ,t){
+    const sz=SZ*0.088;
+    const pts=[[sz*.6,sz*.6],[SZ-sz*.6,sz*.6],[sz*.6,SZ-sz*.6],[SZ-sz*.6,SZ-sz*.6]];
+    const cols=[[0,218,225],[155,85,255],[255,100,175],[75,205,130]];
+    pts.forEach(([cx,cy],i)=>{
+      const[cr,cg,cb]=cols[i];
+      p.push(); p.translate(cx,cy);
+      p.noFill();
+      for(let r=sz*.22;r<=sz*.88;r+=sz*.22){
+        p.stroke(cr,cg,cb,40); p.strokeWeight(.7); p.ellipse(0,0,r*2);
+      }
+      const rot=t*.18*(i%2===0?1:-1);
+      for(let j=0;j<6;j++){
+        const a=rot+j/6*p.TWO_PI;
+        p.stroke(cr,cg,cb,28+22*Math.sin(t+j*1.2));
+        p.strokeWeight(.7);
+        p.line(Math.cos(a)*sz*.22,Math.sin(a)*sz*.22,Math.cos(a)*sz*.82,Math.sin(a)*sz*.82);
+      }
+      p.fill(cr,cg,cb,90); p.noStroke(); p.ellipse(0,0,3.5);
+      p.pop();
+    });
   }
-  p.textAlign(p.RIGHT,p.TOP); p.fill(180,180,220,50); p.textSize(SZ*0.012);
-  p.text(ds, SZ*0.955, SZ*0.05);
-}
+
+  // ── INFO BAR ────────────────────────────────────────────────────
+  function drawInfo(p,SZ,pd,prof){
+    const now=new Date();
+    const ds=now.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+    p.noStroke(); p.textAlign(p.LEFT,p.TOP);
+    p.fill(255,255,255,65); p.textSize(SZ*.016);
+    p.text(prof?prof.name:'—',SZ*.045,SZ*.05);
+    if(pd){p.fill(180,160,255,45); p.textSize(SZ*.012); p.text('☀ '+pd.sunSign+'   ☽ '+pd.moonSign,SZ*.045,SZ*.068);}
+    p.textAlign(p.RIGHT,p.TOP); p.fill(170,170,210,42); p.textSize(SZ*.012);
+    p.text(ds,SZ*.955,SZ*.05);
+  }
+
+});
 </script>
 </body>
 </html>

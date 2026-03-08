@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Astral Mandala</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.4/p5.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{background:#01010a;overflow:hidden;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Georgia',serif;}
+#pb{position:fixed;top:16px;left:50%;transform:translateX(-50%);display:flex;gap:10px;z-index:100;}
+.pb{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.09);color:rgba(255,255,255,0.45);padding:7px 18px;border-radius:20px;cursor:pointer;font-family:'Georgia',serif;font-size:12px;letter-spacing:.06em;transition:all .3s;white-space:nowrap;}
+.pb:hover{background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.8);}
+.pb.on{background:rgba(90,30,160,0.35);border-color:rgba(150,90,255,0.55);color:#d0aeff;}
+#mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.78);z-index:200;backdrop-filter:blur(8px);align-items:center;justify-content:center;}
+#mo.show{display:flex;}
+#md{background:rgba(5,4,20,0.97);border:1px solid rgba(150,90,255,0.22);border-radius:18px;padding:34px;width:380px;max-width:90vw;}
+#md h2{color:#c0aaff;font-size:17px;font-weight:normal;letter-spacing:.12em;margin-bottom:26px;text-align:center;text-transform:uppercase;}
+.fi{margin-bottom:18px;}
+.fi label{display:block;color:rgba(180,160,255,0.55);font-size:11px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:7px;}
+.fi input{width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.09);border-radius:8px;padding:10px 13px;color:rgba(255,255,255,0.82);font-size:14px;font-family:'Georgia',serif;outline:none;transition:border-color .2s;}
+.fi input:focus{border-color:rgba(150,90,255,0.4);}
+.fi input[type=date]::-webkit-calendar-picker-indicator,.fi input[type=time]::-webkit-calendar-picker-indicator{filter:invert(1) opacity(.3);cursor:pointer;}
+.fi small{display:block;color:rgba(130,120,190,0.4);font-size:11px;margin-top:5px;}
+#mdb{display:flex;gap:10px;margin-top:26px;}
+#mdb button{flex:1;padding:11px;border-radius:10px;cursor:pointer;font-family:'Georgia',serif;font-size:13px;border:none;transition:all .25s;letter-spacing:.04em;}
+#mc{background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.38);}
+#mc:hover{background:rgba(255,255,255,0.09);}
+#mg{background:rgba(90,30,180,0.45);color:#d0aeff;border:1px solid rgba(150,90,255,0.3);}
+#mg:hover{background:rgba(110,50,200,0.65);color:#e8d0ff;}
+</style>
+</head>
+<body>
+<div id="pb">
+  <button class="pb on" id="b0" onclick="selP(0)">Angelo</button>
+  <button class="pb" id="b1" onclick="openM(1)">+ Profile 2</button>
+  <button class="pb" id="b2" onclick="openM(2)">+ Profile 3</button>
+  <button class="pb" id="b3" onclick="openM(3)">+ Profile 4</button>
+</div>
+<div id="mo">
+  <div id="md">
+    <h2>Your Mandala</h2>
+    <div class="fi"><label>Name</label><input id="fn" type="text" placeholder="Your name"></div>
+    <div class="fi"><label>Birth Date</label><input id="fd" type="date"></div>
+    <div class="fi"><label>Birth Time</label><input id="ft" type="time" value="12:00"><small>Local time at birth location</small></div>
+    <div class="fi"><label>Birth City</label><input id="fc" type="text" placeholder="e.g. Paris, Tokyo, New York"><small>50+ major cities recognized</small></div>
+    <div class="fi"><label>Coordinates (optional override)</label><input id="fco" type="text" placeholder="lat, lon — e.g. 51.5074, -0.1278"></div>
+    <div id="mdb">
+      <button id="mc" onclick="closeM()">Cancel</button>
+      <button id="mg" onclick="genP()">Reveal Mandala</button>
+    </div>
+  </div>
+</div>
+<div id="ch"></div>
+
+<script>
+// ─── CITIES ────────────────────────────────────────────────────────
+const C={"new york":[40.71,-74.01,-5],"los angeles":[34.05,-118.24,-8],"chicago":[41.88,-87.63,-6],"miami":[25.76,-80.19,-5],"houston":[29.76,-95.37,-6],"seattle":[47.61,-122.33,-8],"san francisco":[37.77,-122.42,-8],"boston":[42.36,-71.06,-5],"washington":[38.91,-77.04,-5],"toronto":[43.65,-79.38,-5],"vancouver":[49.28,-123.12,-8],"mexico city":[19.43,-99.13,-6],"london":[51.51,-0.13,0],"paris":[48.86,2.35,1],"berlin":[52.52,13.41,1],"madrid":[40.42,-3.70,1],"rome":[41.90,12.50,1],"amsterdam":[52.37,4.90,1],"brussels":[50.85,4.35,1],"vienna":[48.21,16.37,1],"zurich":[47.38,8.54,1],"milan":[45.47,9.19,1],"barcelona":[41.39,2.17,1],"lisbon":[38.72,-9.14,0],"athens":[37.98,23.73,2],"istanbul":[41.01,28.98,3],"stockholm":[59.33,18.07,1],"oslo":[59.91,10.75,1],"copenhagen":[55.68,12.57,1],"helsinki":[60.17,24.94,2],"warsaw":[52.23,21.01,1],"prague":[50.08,14.44,1],"budapest":[47.50,19.04,1],"bucharest":[44.43,26.10,2],"kyiv":[50.45,30.52,2],"moscow":[55.76,37.62,3],"dubai":[25.20,55.27,4],"riyadh":[24.69,46.72,3],"tehran":[35.69,51.39,3.5],"mumbai":[19.08,72.88,5.5],"delhi":[28.61,77.21,5.5],"bangalore":[12.97,77.59,5.5],"karachi":[24.86,67.01,5],"dhaka":[23.81,90.41,6],"bangkok":[13.76,100.50,7],"kuala lumpur":[3.14,101.69,8],"singapore":[1.35,103.82,8],"jakarta":[-6.21,106.85,7],"manila":[14.60,120.98,8],"hong kong":[22.32,114.17,8],"taipei":[25.03,121.57,8],"shanghai":[31.23,121.47,8],"beijing":[39.90,116.41,8],"tokyo":[35.68,139.65,9],"seoul":[37.57,126.98,9],"sydney":[-33.87,151.21,10],"melbourne":[-37.81,144.96,10],"auckland":[-36.85,174.76,12],"sao paulo":[-23.55,-46.63,-3],"rio de janeiro":[-22.91,-43.17,-3],"buenos aires":[-34.60,-58.38,-3],"lima":[-12.05,-77.04,-5],"bogota":[4.71,-74.07,-5],"santiago":[-33.45,-70.67,-4],"cairo":[30.04,31.24,2],"casablanca":[33.57,-7.59,1],"lagos":[6.52,3.38,1],"nairobi":[-1.29,36.82,3],"johannesburg":[-26.20,28.05,2]};
+function lookupCity(s){const k=s.toLowerCase().trim();for(const[n,v]of Object.entries(C))if(k.includes(n)||n.includes(k))return{lat:v[0],lon:v[1],tz:v[2]};return null;}
+
+// ─── PROFILES ──────────────────────────────────────────────────────
+const PR=[{name:"Angelo",year:1981,month:2,day:14,hour:13,min:0,lat:37.98,lon:23.73,tz:2},null,null,null];
+let curP=0,editS=-1;
+for(let i=1;i<=3;i++){try{const s=localStorage.getItem('mp'+i);if(s)PR[i]=JSON.parse(s);}catch(e){}}
+function openM(s){editS=s;const p=PR[s];document.getElementById('fn').value=p?p.name:'';document.getElementById('fd').value=p?`${p.year}-${String(p.month).padStart(2,'0')}-${String(p.day).padStart(2,'0')}`:'';document.getElementById('ft').value=p?`${String(p.hour).padStart(2,'0')}:${String(p.min||0).padStart(2,'0')}`:'12:00';document.getElementById('fc').value=p?p.cityName||'':'';document.getElementById('fco').value='';document.getElementById('mo').classList.add('show');}
+function closeM(){document.getElementById('mo').classList.remove('show');}
+function genP(){const nm=document.getElementById('fn').value.trim(),ds=document.getElementById('fd').value;if(!nm||!ds){alert('Name and birth date required.');return;}const[y,mo,d]=ds.split('-').map(Number),[h,mi]=(document.getElementById('ft').value||'12:00').split(':').map(Number),cs=document.getElementById('fc').value.trim(),cos=document.getElementById('fco').value.trim();let lat=0,lon=0,tz=0,cn=cs;const ct=lookupCity(cs);if(ct){lat=ct.lat;lon=ct.lon;tz=ct.tz;}else if(cos){const p=cos.split(',').map(Number);if(p.length>=2){lat=p[0];lon=p[1];tz=Math.round(lon/15);}}PR[editS]={name:nm,year:y,month:mo,day:d,hour:h,min:mi,lat,lon,tz,cityName:cn};try{localStorage.setItem('mp'+editS,JSON.stringify(PR[editS]));}catch(e){}pCache[editS]=null;updBtns();selP(editS);closeM();}
+function selP(i){curP=i;updBtns();}
+function updBtns(){for(let i=0;i<4;i++){const b=document.getElementById('b'+i);b.classList.toggle('on',i===curP);if(i===0){b.textContent='Angelo';b.onclick=()=>selP(0);}else if(PR[i]){b.textContent=PR[i].name;b.onclick=()=>openM(i);}else{b.textContent='+ Profile '+(i+1);b.onclick=()=>openM(i);}}}
+
+// ─── ASTRONOMY ─────────────────────────────────────────────────────
+function jd(y,m,d,h){if(m<=2){y--;m+=12;}const A=Math.floor(y/100),B=2-A+Math.floor(A/4);return Math.floor(365.25*(y+4716))+Math.floor(30.6001*(m+1))+d+h/24+B-1524.5;}
+function n360(x){return((x%360)+360)%360;}
+function sLon(j){const n=j-2451545,L=n360(280.46646+0.9856474*n),g=n360(357.52911+0.9856003*n)*Math.PI/180;return n360(L+1.914602*Math.sin(g)+0.019993*Math.sin(2*g));}
+function mLon(j){const T=(j-2451545)/36525,L=n360(218.3165+481267.8813*T),M=n360(357.5291+35999.0503*T)*Math.PI/180,Mm=n360(134.9634+477198.8676*T)*Math.PI/180,F=n360(93.2721+483202.0175*T)*Math.PI/180,D=n360(297.8502+445267.1115*T)*Math.PI/180;return n360(L+6.288*Math.sin(Mm)+1.274*Math.sin(2*D-Mm)+0.658*Math.sin(2*D)+0.214*Math.sin(2*Mm)-0.186*Math.sin(M)-0.114*Math.sin(2*F)+0.059*Math.sin(2*D-2*Mm));}
+const PL={Mercury:{L0:252.25032,dm:4.09235555},Venus:{L0:181.97971,dm:1.60213034},Mars:{L0:355.45332,dm:0.52402068},Jupiter:{L0:34.35484,dm:0.08308453},Saturn:{L0:50.07742,dm:0.03344395},Uranus:{L0:314.055,dm:0.01172834}};
+function plLon(nm,j){if(nm==='Sun')return sLon(j);if(nm==='Moon')return mLon(j);const p=PL[nm];return n360(p.L0+p.dm*(j-2451545));}
+function allPos(j){const r={};for(const nm of['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus'])r[nm]=plLon(nm,j);return r;}
+function aspSc(diff){const d=Math.min(Math.abs(n360(diff)),360-Math.abs(n360(diff)));if(d<8)return 0.5;if(Math.abs(d-60)<6)return 2;if(Math.abs(d-90)<7)return-2.5;if(Math.abs(d-120)<8)return 3;if(Math.abs(d-150)<5)return-1;if(Math.abs(d-180)<8)return-2;return 0;}
+function fcst(natal,today){const sc={};for(const ax of AX){let raw=0;const np=natal[ax.pl];for(const[tn,tl]of Object.entries(today)){const w=['Jupiter','Saturn','Sun','Moon'].includes(tn)?1.3:1;raw+=aspSc(tl-np)*w;}sc[ax.pl]=Math.max(0.08,Math.min(0.92,0.5+raw/20));}return sc;}
+function zodSgn(lon){return['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'][Math.floor(lon/30)];}
+function calcP(pr){if(!pr)return null;const h=pr.hour-pr.tz+(pr.min||0)/60,j0=jd(pr.year,pr.month,pr.day,h),pos=allPos(j0);return{pos,sun:zodSgn(pos.Sun),moon:zodSgn(pos.Moon)};}
+
+// ─── AXES (hue in HSB 0-360) ────────────────────────────────────────
+const AX=[
+  {name:'Vitality', pl:'Sun',     hue:46,  sat:95},
+  {name:'Intuition',pl:'Moon',    hue:214, sat:35},
+  {name:'Mind',     pl:'Mercury', hue:182, sat:100},
+  {name:'Love',     pl:'Venus',   hue:328, sat:95},
+  {name:'Drive',    pl:'Mars',    hue:2,   sat:100},
+  {name:'Abundance',pl:'Jupiter', hue:148, sat:80},
+  {name:'Structure',pl:'Saturn',  hue:218, sat:65},
+  {name:'Awakening',pl:'Uranus',  hue:275, sat:100},
+];
+
+// Sign hue map
+const SH={Aries:2,Taurus:148,Gemini:55,Cancer:200,Leo:46,Virgo:148,Libra:275,Scorpio:2,Sagittarius:30,Capricorn:214,Aquarius:182,Pisces:250};
+
+// ─── PARTICLE POOLS ─────────────────────────────────────────────────
+// Particles stored in world coords (centered at canvas center)
+const pools=Array.from({length:8},()=>[]);
+let R1,R2,PW; // set in setup
+
+function mkPar(ai){
+  const sc=(ai/8)*Math.PI*2-Math.PI/2; // sector center angle
+  const fr=0.05+Math.random()*0.9;
+  const r=R1+fr*(R2-R1);
+  const hw=PW*Math.sin(Math.PI*fr)*0.82;
+  const maxT=Math.asin(Math.min(hw/r,0.999));
+  const th=sc+(Math.random()*2-1)*maxT;
+  return{x:Math.cos(th)*r,y:Math.sin(th)*r,vx:0,vy:0,trail:[],seed:Math.random()*800,dh:(Math.random()-.5)*12};
+}
+
+function inPetal(x,y,ai){
+  const sc=(ai/8)*Math.PI*2-Math.PI/2;
+  const r=Math.sqrt(x*x+y*y);
+  const fr=(r-R1)/(R2-R1);
+  if(fr<0||fr>1)return false;
+  const hw=PW*Math.sin(Math.PI*fr)*0.90;
+  const th=Math.atan2(y,x);
+  return Math.abs(r*Math.sin(th-sc))<hw;
+}
+
+// ─── P5 SKETCH ─────────────────────────────────────────────────────
+let pCache=[null,null,null,null];
+let lastP=-1;
+
+new p5(function(p){
+  let SZ,CX,CY,t=0,todayJD,todayPos,ctx;
+
+  p.setup=function(){
+    SZ=Math.min(window.innerWidth,window.innerHeight,920);
+    CX=SZ/2;CY=SZ/2;
+    R1=SZ*.095;R2=SZ*.435;PW=SZ*.088;
+    const cnv=p.createCanvas(SZ,SZ);
+    cnv.parent('ch');
+    p.colorMode(p.HSB,360,100,100,255);
+    ctx=p.drawingContext;
+    const now=new Date();
+    todayJD=jd(now.getFullYear(),now.getMonth()+1,now.getDate(),now.getUTCHours()+now.getUTCMinutes()/60);
+    todayPos=allPos(todayJD);
+    pCache[0]=calcP(PR[0]);
+    for(let ai=0;ai<8;ai++)for(let i=0;i<20;i++)pools[ai].push(mkPar(ai));
+  };
+
+  p.draw=function(){
+    t+=0.005;
+    if(lastP!==curP){lastP=curP;if(PR[curP]&&!pCache[curP])pCache[curP]=calcP(PR[curP]);}
+    const pd=pCache[curP];
+    const sc=pd?fcst(pd.pos,todayPos):null;
+
+    // ── PERSISTENCE FADE (long exposure effect) ──
+    p.blendMode(p.BLEND);
+    p.noStroke();
+    p.fill(232,18,5,22); // very dark navy fade
+    p.rect(0,0,SZ,SZ);
+
+    // ── NEBULA AMBIENT ──
+    ctx.globalCompositeOperation='screen';
+    [[30,12,85,CX-85,CY+60,290],[255,35,105,CX+75,CY-85,250],[170,55,95,CX,CY,175]].forEach(([r,g,b,nx,ny,nr])=>{
+      const gr=ctx.createRadialGradient(nx,ny,0,nx,ny,nr);
+      gr.addColorStop(0,`rgba(${r},${g},${b},0.048)`);gr.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=gr;ctx.beginPath();ctx.arc(nx,ny,nr,0,Math.PI*2);ctx.fill();
+    });
+    ctx.globalCompositeOperation='source-over';
+
+    // ── STRUCTURAL RINGS & SPOKES ──
+    p.blendMode(p.BLEND);
+    p.push();p.translate(CX,CY);
+    p.noFill();
+    for(let i=1;i<=4;i++){const r=R1+(R2-R1)*i/4;p.stroke(220,22,20,24);p.strokeWeight(0.4);p.ellipse(0,0,r*2);}
+    for(let ai=0;ai<8;ai++){const a=(ai/8)*Math.PI*2-Math.PI/2;p.stroke(220,18,16,18);p.strokeWeight(0.3);p.line(Math.cos(a)*R1,Math.sin(a)*R1,Math.cos(a)*R2,Math.sin(a)*R2);}
+
+    if(!pd){
+      // Placeholder
+      p.fill(270,40,55,80);p.noStroke();p.textAlign(p.CENTER,p.CENTER);p.textSize(SZ*.018);
+      p.text('Add a profile above',0,-14);p.textSize(SZ*.013);p.fill(270,25,42,65);p.text('to reveal your mandala',0,12);
+      p.pop();drawInfo(p,SZ,null,null);return;
+    }
+
+    // ── PETAL BASE FILLS (very dark colored presence) ──
+    p.blendMode(p.BLEND);
+    const pm=R1+(R2-R1)*.42;
+    for(let ai=0;ai<8;ai++){
+      const ax=AX[ai],s=sc?sc[ax.pl]:.5;
+      const ang=(ai/8)*p.TWO_PI-p.HALF_PI;
+      const bri=p.map(s,0,1,6,20);
+      const alp=Math.floor(p.map(s,0,1,10,30));
+      p.push();p.rotate(ang);
+      p.fill(ax.hue,p.map(s,0,1,50,85),bri,alp);p.noStroke();
+      p.beginShape();p.vertex(0,R1);
+      p.bezierVertex(-PW*.88,R1+(R2-R1)*.28,-PW*1.04,pm,0,R2);
+      p.bezierVertex(PW*1.04,pm,PW*.88,R1+(R2-R1)*.28,0,R1);
+      p.endShape(p.CLOSE);
+      p.pop();
+    }
+
+    // ── AURORA PARTICLES (additive blend — THIS IS THE LIGHT) ──
+    p.blendMode(p.ADD);
+    for(let ai=0;ai<8;ai++){
+      const ax=AX[ai],s=sc?sc[ax.pl]:.5;
+      drawAurora(p,ai,s,ax.hue,ax.sat,t);
+    }
+
+    // ── PETAL SPINES (luminous axis lines) ──
+    p.blendMode(p.ADD);
+    for(let ai=0;ai<8;ai++){
+      const ax=AX[ai],s=sc?sc[ax.pl]:.5;
+      const ang=(ai/8)*p.TWO_PI-p.HALF_PI;
+      const a=Math.floor(p.map(s,0,1,8,80));
+      ctx.shadowBlur=p.map(s,0,1,2,14);ctx.shadowColor=`hsl(${ax.hue},100%,60%)`;
+      p.stroke(ax.hue,p.map(s,0,1,30,60),p.map(s,0,1,18,70),a);p.strokeWeight(p.map(s,0,1,.4,1.6));
+      p.line(Math.cos(ang)*R1,Math.sin(ang)*R1,Math.cos(ang)*R2,Math.sin(ang)*R2);
+      ctx.shadowBlur=0;
+    }
+
+    // ── CENTER GLOW ──
+    p.blendMode(p.ADD);
+    const sHue=SH[pd.sun]||270;
+    const avgSc=sc?Object.values(sc).reduce((a,b)=>a+b,0)/8:.5;
+    ctx.globalCompositeOperation='screen';
+    const cg=ctx.createRadialGradient(0,0,0,0,0,R1*1.9);
+    cg.addColorStop(0,`hsla(${sHue},60%,65%,${avgSc*.38})`);
+    cg.addColorStop(0.45,`hsla(${sHue},80%,45%,${avgSc*.12})`);
+    cg.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=cg;ctx.beginPath();ctx.arc(0,0,R1*1.9,0,Math.PI*2);ctx.fill();
+    ctx.globalCompositeOperation='source-over';
+
+    // ── OUTER SCORE ARCS ──
+    p.blendMode(p.ADD);
+    for(let ai=0;ai<8;ai++){
+      const ax=AX[ai],s=sc?sc[ax.pl]:.5;
+      const ang=(ai/8)*p.TWO_PI-p.HALF_PI;
+      const span=(p.TWO_PI/8)*.72*s;
+      const a=Math.floor(p.map(s,0,1,8,90));
+      p.noFill();p.stroke(ax.hue,65,p.map(s,0,1,18,68),a);p.strokeWeight(1.1);
+      p.arc(0,0,R2*2.06,R2*2.06,ang-span/2,ang+span/2);
+      ctx.shadowBlur=6;ctx.shadowColor=`hsl(${ax.hue},100%,60%)`;
+      p.fill(ax.hue,60,90,Math.floor(a*1.4));p.noStroke();
+      p.ellipse(Math.cos(ang)*(R2*1.03),Math.sin(ang)*(R2*1.03),4.5);
+      ctx.shadowBlur=0;
+    }
+
+    // ── PETAL OUTLINES (blend, over the aurora) ──
+    p.blendMode(p.BLEND);
+    for(let ai=0;ai<8;ai++){
+      const ax=AX[ai],s=sc?sc[ax.pl]:.5;
+      const ang=(ai/8)*p.TWO_PI-p.HALF_PI;
+      const a=Math.floor(p.map(s,0,1,18,88));
+      ctx.shadowBlur=p.map(s,.45,1,0,11);ctx.shadowColor=`hsl(${ax.hue},100%,55%)`;
+      p.push();p.rotate(ang);
+      p.noFill();p.stroke(ax.hue,60,p.map(s,0,1,28,68),a);p.strokeWeight(.7+s*.9);
+      p.beginShape();p.vertex(0,R1);
+      p.bezierVertex(-PW*.88,R1+(R2-R1)*.28,-PW*1.04,pm,0,R2);
+      p.bezierVertex(PW*1.04,pm,PW*.88,R1+(R2-R1)*.28,0,R1);
+      p.endShape(p.CLOSE);
+      p.pop();ctx.shadowBlur=0;
+    }
+
+    // ── OUTER PLANET RING ──
+    p.blendMode(p.BLEND);
+    const orR=R2*1.08;
+    p.noFill();p.stroke(215,22,26,32);p.strokeWeight(.4);p.ellipse(0,0,orR*2);
+    for(const[nm,h]of[['Sun',46],['Moon',214],['Mercury',182],['Venus',328],['Mars',2],['Jupiter',148],['Saturn',218],['Uranus',275]]){
+      const lon=todayPos[nm],a=(lon/360)*p.TWO_PI-p.HALF_PI;
+      const px=Math.cos(a)*orR,py=Math.sin(a)*orR;
+      ctx.shadowBlur=5;ctx.shadowColor=`hsl(${h},100%,65%)`;
+      p.fill(h,70,82,185);p.noStroke();p.ellipse(px,py,5.5);
+      ctx.shadowBlur=0;
+    }
+
+    // ── CENTER SIGIL ──
+    p.blendMode(p.BLEND);
+    ctx.shadowBlur=13;ctx.shadowColor=`hsl(${sHue},100%,75%)`;
+    p.stroke(sHue,32,90,195);p.strokeWeight(R1*.042);p.noFill();
+    drawSigil(p,pd.sun,R1*.78);
+    ctx.shadowBlur=0;
+
+    p.pop(); // end translate
+
+    // ── LABELS ──
+    p.blendMode(p.BLEND);
+    if(sc){
+      p.textAlign(p.CENTER,p.CENTER);p.noStroke();
+      for(let ai=0;ai<8;ai++){
+        const ax=AX[ai],s=sc[ax.pl];
+        const ang=(ai/8)*p.TWO_PI-p.HALF_PI;
+        const lx=CX+Math.cos(ang)*(R2*1.14),ly=CY+Math.sin(ang)*(R2*1.14);
+        const bri=p.map(s,0,1,38,74);
+        p.fill(ax.hue,50,bri,Math.floor(p.map(s,0,1,95,195)));
+        p.textSize(SZ*.016);p.text(ax.name,lx,ly);
+        p.fill(ax.hue,38,bri*.85,Math.floor(p.map(s,0,1,65,140)));
+        p.textSize(SZ*.0125);p.text(Math.round(s*100)+'%',lx,ly+SZ*.023);
+      }
+    }
+
+    // ── CORNERS ──
+    drawCorners(p,ctx,SZ,t);
+    drawInfo(p,SZ,pd,PR[curP]);
+  };
+
+  // ── AURORA PARTICLE ENGINE ──────────────────────────────────────
+  function drawAurora(p,ai,sc,hue,sat,t){
+    const pool=pools[ai];
+    const target=Math.floor(p.map(sc,0,1,5,105));
+    while(pool.length<target)pool.push(mkPar(ai));
+    while(pool.length>target+6)pool.pop();
+
+    const sAng=(ai/8)*p.TWO_PI-p.HALF_PI; // sector axis angle
+    const spd=p.map(sc,0,1,.1,1.55);
+    const ns=p.map(sc,0,1,.004,.013);
+    const ts=p.map(sc,0,1,.1,.58);
+    const tLen=Math.floor(p.map(sc,0,1,4,42));
+    const trA=p.map(sc,0,1,5,145);
+    const hdA=p.map(sc,0,1,18,230);
+    const bPulse=.78+.22*Math.sin(t*p.map(sc,0,1,.7,2.1)+ai*1.0);
+
+    p.noFill();
+    for(const par of pool){
+      // Flow force (Perlin noise-based)
+      const fA=p.noise(par.x*ns,par.y*ns,t*ts+par.seed*.01)*p.TWO_PI*4;
+      // Gentle radial bias (stays in petal radially)
+      const r=Math.sqrt(par.x*par.x+par.y*par.y);
+      const fr=(r-R1)/(R2-R1);
+      const rA=Math.atan2(par.y,par.x);
+      const rb=fr<.5?.06:-.03;
+      par.vx+=Math.cos(fA)*spd*.13+Math.cos(rA)*rb*spd;
+      par.vy+=Math.sin(fA)*spd*.13+Math.sin(rA)*rb*spd;
+      par.vx*=.86;par.vy*=.86;
+      par.x+=par.vx;par.y+=par.vy;
+
+      // Containment (polar petal bounds, no canvas clipping needed)
+      if(!inPetal(par.x,par.y,ai)){
+        const fr2=.06+Math.random()*.88;
+        const r2=R1+fr2*(R2-R1);
+        const hw=PW*Math.sin(Math.PI*fr2)*.8;
+        const mt=Math.asin(Math.min(hw/r2,.999));
+        const nt=sAng+(Math.random()*2-1)*mt;
+        par.x=Math.cos(nt)*r2;par.y=Math.sin(nt)*r2;
+        par.vx=0;par.vy=0;par.trail=[];
+        continue;
+      }
+
+      par.trail.push({x:par.x,y:par.y});
+      if(par.trail.length>tLen)par.trail.shift();
+      if(par.trail.length<2)continue;
+
+      // Draw trail (brightness increases toward head, quadratic fade)
+      for(let i=1;i<par.trail.length;i++){
+        const fr=i/par.trail.length;
+        const f2=fr*fr;
+        const bri=p.map(f2,0,1,8,62);
+        const a=Math.floor(trA*f2*bPulse);
+        const h=(hue+par.dh*fr*.4+360)%360;
+        const sw=p.map(fr,0,1,.35,1.5+sc*1.1);
+        p.stroke(h,p.map(fr,0,1,sat*.4,sat),bri,a);
+        p.strokeWeight(sw);
+        p.line(par.trail[i-1].x,par.trail[i-1].y,par.trail[i].x,par.trail[i].y);
+      }
+      // Bright head
+      const hH=(hue+par.dh*.2+360)%360;
+      p.fill(hH,25,96,Math.floor(hdA*bPulse));p.noStroke();
+      p.ellipse(par.x,par.y,1.4+sc*2.4,1.4+sc*2.4);
+    }
+  }
+
+  // ── SIGILS ──────────────────────────────────────────────────────
+  function drawSigil(p,sign,s){
+    switch(sign){
+      case'Aquarius':
+        for(let r=-1;r<=1;r+=2){p.beginShape();for(let i=0;i<=32;i++){p.vertex(p.map(i,0,32,-s*.68,s*.68),r*s*.24+Math.sin(i/32*p.TWO_PI*3)*s*.13);}p.endShape();}
+        p.strokeWeight(s*.018);for(let i=0;i<8;i++){const a=i/8*p.TWO_PI;p.line(Math.cos(a)*s*.8,Math.sin(a)*s*.8,Math.cos(a)*s,Math.sin(a)*s);}break;
+      case'Aries':p.arc(0,-s*.08,s*.9,s*.7,0,p.PI);p.arc(-s*.32,s*.12,s*.38,s*.38,p.PI*1.5,p.HALF_PI);p.arc(s*.32,s*.12,s*.38,s*.38,p.HALF_PI,p.PI*1.5+p.TWO_PI);break;
+      case'Taurus':p.ellipse(0,s*.12,s*.82,s*.64);p.arc(0,-s*.22,s*.62,s*.42,p.PI,0);break;
+      case'Gemini':p.line(-s*.36,-s*.42,-s*.36,s*.42);p.line(s*.36,-s*.42,s*.36,s*.42);p.line(-s*.36,-s*.42,s*.36,-s*.42);p.line(-s*.36,0,s*.36,0);p.line(-s*.36,s*.42,s*.36,s*.42);break;
+      case'Cancer':p.arc(-s*.22,0,s*.55,s*.55,p.PI*.08,p.PI*1.08);p.arc(s*.22,0,s*.55,s*.55,p.PI*1.08,p.PI*.08+p.TWO_PI);break;
+      case'Leo':p.arc(0,s*.08,s*.62,s*.56,p.PI*.18,p.PI*.82);p.arc(s*.06,-s*.18,s*.76,s*.54,0,-p.PI);p.bezier(s*.38,s*.22,s*.78,s*.08,s*.8,-s*.36,s*.5,-s*.46);break;
+      case'Virgo':p.line(-s*.38,-s*.36,-s*.38,s*.36);p.line(s*.38,-s*.36,s*.38,s*.36);p.bezier(-s*.38,-s*.12,-s*.1,-s*.55,s*.12,-s*.12,s*.12,s*.36);p.arc(s*.38,s*.08,s*.22,s*.46,-p.HALF_PI,p.HALF_PI);break;
+      case'Libra':p.line(-s*.46,s*.1,s*.46,s*.1);p.line(0,s*.1,0,s*.34);p.line(-s*.46,s*.34,s*.46,s*.34);p.arc(0,-s*.06,s*.62,s*.42,p.PI,0);break;
+      case'Scorpio':p.line(-s*.42,-s*.3,-s*.42,s*.2);p.bezier(-s*.42,0,-s*.12,-s*.44,s*.12,0,s*.12,s*.2);p.bezier(s*.12,0,s*.36,-s*.44,s*.46,0,s*.46,s*.2);p.bezier(s*.46,s*.2,s*.62,s*.32,s*.62,0,s*.42,-s*.08);break;
+      case'Sagittarius':p.line(-s*.58,s*.56,s*.58,-s*.56);p.line(s*.58,-s*.56,s*.18,-s*.56);p.line(s*.58,-s*.56,s*.58,-s*.18);break;
+      case'Capricorn':p.bezier(-s*.36,-s*.4,-s*.36,s*.24,0,s*.36,0,s*.36);p.bezier(0,s*.36,s*.52,s*.36,s*.52,0,s*.36,-s*.22);p.bezier(s*.36,-s*.22,s*.22,-s*.5,s*.52,-s*.5,s*.5,-s*.28);break;
+      case'Pisces':p.arc(0,-s*.22,s*.62,s*.36,0,p.PI,p.OPEN);p.arc(0,s*.22,s*.62,s*.36,p.PI,0,p.OPEN);p.line(-s*.36,0,s*.36,0);break;
+      default:p.ellipse(0,0,s*1.2);p.line(0,-s*.72,0,s*.72);p.line(-s*.72,0,s*.72,0);
+    }
+  }
+
+  // ── CORNER ORNAMENTS ───────────────────────────────────────────
+  function drawCorners(p,ctx,SZ,t){
+    const sz=SZ*.085;
+    const pts=[[sz*.58,sz*.58],[SZ-sz*.58,sz*.58],[sz*.58,SZ-sz*.58],[SZ-sz*.58,SZ-sz*.58]];
+    const hues=[182,275,328,148];
+    pts.forEach(([cx,cy],i)=>{
+      const h=hues[i];
+      p.push();p.translate(cx,cy);p.blendMode(p.BLEND);
+      p.noFill();
+      for(let r=sz*.2;r<=sz*.85;r+=sz*.22){p.stroke(h,30,22,24);p.strokeWeight(.6);p.ellipse(0,0,r*2);}
+      const rot=t*.18*(i%2===0?1:-1);
+      for(let j=0;j<6;j++){const a=rot+j/6*p.TWO_PI;p.stroke(h,35,26+18*Math.sin(t+j*1.2),22);p.strokeWeight(.6);p.line(Math.cos(a)*sz*.2,Math.sin(a)*sz*.2,Math.cos(a)*sz*.82,Math.sin(a)*sz*.82);}
+      p.fill(h,40,60,70);p.noStroke();p.ellipse(0,0,3.5);
+      p.pop();
+    });
+  }
+
+  // ── INFO ────────────────────────────────────────────────────────
+  function drawInfo(p,SZ,pd,prof){
+    p.blendMode(p.BLEND);
+    const now=new Date();
+    const ds=now.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+    p.noStroke();p.textAlign(p.LEFT,p.TOP);
+    p.fill(220,22,58,68);p.textSize(SZ*.016);p.text(prof?prof.name:'—',SZ*.042,SZ*.048);
+    if(pd){p.fill(230,20,44,46);p.textSize(SZ*.012);p.text('☀ '+pd.sun+'   ☽ '+pd.moon,SZ*.042,SZ*.066);}
+    p.textAlign(p.RIGHT,p.TOP);p.fill(220,18,42,42);p.textSize(SZ*.012);p.text(ds,SZ*.958,SZ*.048);
+  }
+});
+</script>
+</body>
+</html>

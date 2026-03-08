@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neon Invader</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 100%; height: 100%;
+    background: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  canvas {
+    display: block;
+    image-rendering: pixelated;
+  }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+const GRID = [
+  [0,0,1,0,0,0,0,0,1,0,0],
+  [0,0,0,1,0,0,0,1,0,0,0],
+  [0,0,1,1,1,1,1,1,1,0,0],
+  [0,1,1,0,1,1,1,0,1,1,0],
+  [1,1,1,1,1,1,1,1,1,1,1],
+  [1,0,1,1,1,1,1,1,1,0,1],
+  [1,0,1,0,0,0,0,0,1,0,1],
+  [0,0,0,1,1,0,1,1,0,0,0],
+];
+
+const COLS = 11;
+const ROWS = 8;
+
+// Neon palette: hue values in degrees
+const BASE_HUES = [185, 300, 120, 60]; // cyan, magenta, green, yellow
+
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+
+let W, H, cellSize, offsetX, offsetY;
+
+function resize() {
+  W = window.innerWidth;
+  H = window.innerHeight;
+  canvas.width = W;
+  canvas.height = H;
+
+  // Fill ~80% of the smaller dimension
+  const maxW = W * 0.82;
+  const maxH = H * 0.82;
+  cellSize = Math.floor(Math.min(maxW / COLS, maxH / ROWS));
+
+  offsetX = Math.floor((W - cellSize * COLS) / 2);
+  offsetY = Math.floor((H - cellSize * ROWS) / 2);
+}
+
+window.addEventListener('resize', resize);
+resize();
+
+function hslString(h, s, l, a) {
+  a = a !== undefined ? a : 1;
+  return `hsla(${h},${s}%,${l}%,${a})`;
+}
+
+// Assign a palette hue to each pixel deterministically
+function pixelHue(col, row, timeHueShift) {
+  // Use a mix of position-based assignment for visual interest
+  const idx = (col * 3 + row * 7) % BASE_HUES.length;
+  return (BASE_HUES[idx] + timeHueShift) % 360;
+}
+
+function drawPixel(x, y, size, hue, pulse) {
+  const pad = size * 0.08;
+  const rx = x + pad;
+  const ry = y + pad;
+  const rw = size - pad * 2;
+  const rh = size - pad * 2;
+  const radius = size * 0.18;
+
+  // Lightness modulated by pulse (0.7 .. 1.0)
+  const baseLightness = 55 + pulse * 20; // 55–75
+  const brightLightness = 85 + pulse * 15; // 85–100
+
+  // Outer glow (large, soft)
+  ctx.shadowBlur = size * 1.6;
+  ctx.shadowColor = hslString(hue, 100, 60, 0.7);
+  ctx.fillStyle = hslString(hue, 100, baseLightness);
+  roundRect(ctx, rx, ry, rw, rh, radius);
+  ctx.fill();
+
+  // Inner bright core
+  ctx.shadowBlur = size * 0.5;
+  ctx.shadowColor = hslString(hue, 100, 90, 1);
+  ctx.fillStyle = hslString(hue, 100, brightLightness);
+  const corepad = rw * 0.22;
+  roundRect(ctx, rx + corepad, ry + corepad, rw - corepad * 2, rh - corepad * 2, radius * 0.5);
+  ctx.fill();
+
+  ctx.shadowBlur = 0;
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  if (w < 2 * r) r = w / 2;
+  if (h < 2 * r) r = h / 2;
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+function drawScanlines() {
+  const lineH = 3;
+  const gap = 6;
+  ctx.fillStyle = 'rgba(0,0,0,0.18)';
+  for (let y = 0; y < H; y += gap + lineH) {
+    ctx.fillRect(0, y, W, lineH);
+  }
+}
+
+function draw(ts) {
+  requestAnimationFrame(draw);
+
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, W, H);
+
+  // Pulse: sine wave, 3-second period → value in [0, 1]
+  const pulse = (Math.sin((ts / 3000) * Math.PI * 2) + 1) / 2;
+
+  // Hue shift: 10-second period → full 360° rotation
+  const timeHueShift = ((ts / 10000) % 1) * 360;
+
+  for (let row = 0; row < ROWS; row++) {
+    for (let col = 0; col < COLS; col++) {
+      if (!GRID[row][col]) continue;
+      const x = offsetX + col * cellSize;
+      const y = offsetY + row * cellSize;
+      const hue = pixelHue(col, row, timeHueShift);
+      drawPixel(x, y, cellSize, hue, pulse);
+    }
+  }
+
+  // CRT scanline overlay
+  drawScanlines();
+}
+
+requestAnimationFrame(draw);
+</script>
+</body>
+</html>

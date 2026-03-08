@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Plasma Invader — chuck.neoteric.art</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      background: #0a0a0a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+    canvas { display: block; }
+    .back {
+      position: fixed;
+      top: 20px;
+      left: 24px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.28);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .back:hover { color: rgba(255,255,255,0.7); }
+  </style>
+</head>
+<body>
+  <a class="back" href="index.html">← index</a>
+  <canvas id="c"></canvas>
+
+  <script>
+    const GRID = [
+      [0,0,1,0,0,0,0,0,1,0,0],
+      [0,0,0,1,0,0,0,1,0,0,0],
+      [0,0,1,1,1,1,1,1,1,0,0],
+      [0,1,1,0,1,1,1,0,1,1,0],
+      [1,1,1,1,1,1,1,1,1,1,1],
+      [1,0,1,1,1,1,1,1,1,0,1],
+      [1,0,1,0,0,0,0,0,1,0,1],
+      [0,0,0,1,1,0,1,1,0,0,0],
+    ];
+
+    const COLS = GRID[0].length; // 11
+    const ROWS = GRID.length;    // 8
+
+    const W = 800, H = 600;
+    const canvas = document.getElementById('c');
+    canvas.width = W;
+    canvas.height = H;
+    const ctx = canvas.getContext('2d');
+
+    // Grid pixel dimensions
+    const CELL = 36;
+    const GW = COLS * CELL; // 396
+    const GH = ROWS * CELL; // 288
+    const OX = Math.floor((W - GW) / 2);
+    const OY = Math.floor((H - GH) / 2);
+    const CX = OX + GW / 2;
+    const CY = OY + GH / 2;
+
+    // ── Metaballs — orbit tightly within/around the grid area ─────────────
+    const blobs = [
+      { ax: 180, ay: 120, fx: 0.23, fy: 0.17, px: 0.00, py: 1.10, hue: 300 }, // magenta
+      { ax: 140, ay: 100, fx: 0.31, fy: 0.29, px: 2.40, py: 0.80, hue: 180 }, // cyan
+      { ax: 160, ay: 110, fx: 0.19, fy: 0.37, px: 1.20, py: 3.50, hue: 55  }, // yellow
+      { ax: 150, ay: 130, fx: 0.41, fy: 0.23, px: 4.10, py: 0.50, hue: 330 }, // hot pink
+      { ax: 170, ay: 90,  fx: 0.27, fy: 0.43, px: 0.70, py: 2.30, hue: 270 }, // violet
+    ];
+    const BLOB_R = 160; // influence radius
+
+    // Pre-build ON cell list
+    const onCells = [];
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        if (GRID[r][c]) onCells.push({ row: r, col: c, px: OX + c * CELL, py: OY + r * CELL });
+      }
+    }
+
+    function blobPos(b, t) {
+      return {
+        x: CX + b.ax * Math.sin(b.fx * t + b.px),
+        y: CY + b.ay * Math.cos(b.fy * t + b.py),
+      };
+    }
+
+    // HSL to RGB (all 0–255)
+    function hsl(h, s, l) {
+      s /= 100; l /= 100;
+      const k = n => (n + h / 30) % 12;
+      const a = s * Math.min(l, 1 - l);
+      const f = n => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+      return [Math.round(f(0)*255), Math.round(f(8)*255), Math.round(f(4)*255)];
+    }
+
+    // ── Glow canvas ───────────────────────────────────────────────────────
+    const glowCanvas = document.createElement('canvas');
+    glowCanvas.width = W;
+    glowCanvas.height = H;
+    const gctx = glowCanvas.getContext('2d');
+
+    // Pre-draw static glow shapes (refreshed each frame with color)
+    function drawGlow(t) {
+      gctx.clearRect(0, 0, W, H);
+      const h = (t * 40) % 360;
+      gctx.save();
+      gctx.shadowBlur = 28;
+      gctx.shadowColor = `hsla(${h}, 100%, 65%, 0.7)`;
+      for (const cell of onCells) {
+        gctx.fillStyle = `hsla(${h}, 100%, 60%, 0.04)`;
+        gctx.shadowColor = `hsla(${(h + 60) % 360}, 100%, 65%, 0.5)`;
+        gctx.fillRect(cell.px, cell.py, CELL, CELL);
+      }
+      gctx.restore();
+    }
+
+    // ── Main render loop ──────────────────────────────────────────────────
+    let t = 0;
+    const STEP = 0.008;
+
+    function draw() {
+      t += STEP;
+
+      // Background
+      ctx.fillStyle = '#0a0a0a';
+      ctx.fillRect(0, 0, W, H);
+
+      // Compute blob positions
+      const positions = blobs.map(b => blobPos(b, t));
+
+      // Pixel-level plasma inside ON cells
+      // Use imageData for speed
+      const imgData = ctx.createImageData(W, H);
+      const data = imgData.data;
+
+      for (const cell of onCells) {
+        for (let dy = 0; dy < CELL; dy++) {
+          for (let dx = 0; dx < CELL; dx++) {
+            const px = cell.px + dx;
+            const py = cell.py + dy;
+            if (px < 0 || py < 0 || px >= W || py >= H) continue;
+
+            // Metaball field at this pixel
+            let totalW = 0;
+            let hueSum = 0;
+            let maxContrib = 0;
+
+            for (let i = 0; i < positions.length; i++) {
+              const pos = positions[i];
+              const ddx = px - pos.x;
+              const ddy = py - pos.y;
+              const dist = Math.sqrt(ddx * ddx + ddy * ddy);
+              const contrib = BLOB_R / (dist + BLOB_R * 0.15);
+              totalW += contrib;
+              // Weight hue by this blob's contribution
+              hueSum += blobs[i].hue * contrib;
+              if (contrib > maxContrib) maxContrib = contrib;
+            }
+
+            // Dominant hue
+            const h = (hueSum / totalW + t * 30) % 360;
+
+            // Saturation always 100, lightness based on field strength
+            // totalW ranges roughly from ~0.3 to ~5+ when blobs nearby
+            const fieldNorm = Math.min(1, totalW / (blobs.length * 1.5));
+
+            // Pulsing wave overlay for plasma ripple effect
+            const wave = Math.sin(
+              (px - CX) * 0.04 + (py - CY) * 0.04 + t * 2.5
+            ) * 0.12;
+
+            const lightness = Math.min(85, Math.max(28, 35 + fieldNorm * 45 + wave * 20));
+            const saturation = 95 + wave * 5;
+
+            // Extra color noise / plasma shimmer
+            const shimmer = Math.sin(px * 0.07 + t * 3.1) * Math.cos(py * 0.07 + t * 2.3) * 8;
+            const finalHue = (h + shimmer + 360) % 360;
+
+            const [r, g, b] = hsl(finalHue, saturation, lightness);
+
+            const idx = (py * W + px) * 4;
+            data[idx]     = r;
+            data[idx + 1] = g;
+            data[idx + 2] = b;
+            data[idx + 3] = 255;
+          }
+        }
+      }
+
+      ctx.putImageData(imgData, 0, 0);
+
+      // Outer glow overlay
+      drawGlow(t);
+      ctx.drawImage(glowCanvas, 0, 0);
+
+      // Edge highlight — cycle hue with time
+      ctx.save();
+      const eh = (t * 60) % 360;
+      ctx.shadowBlur = 20;
+      ctx.shadowColor = `hsla(${eh}, 100%, 70%, 0.8)`;
+      ctx.strokeStyle = `hsla(${eh}, 100%, 75%, 0.25)`;
+      ctx.lineWidth = 1;
+      for (const cell of onCells) {
+        ctx.strokeRect(cell.px + 0.5, cell.py + 0.5, CELL - 1, CELL - 1);
+      }
+      ctx.restore();
+
+      requestAnimationFrame(draw);
+    }
+
+    draw();
+  </script>
+</body>
+</html>

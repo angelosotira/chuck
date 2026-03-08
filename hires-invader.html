@@ -6,8 +6,8 @@
 <title>High Res Invader</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
-html,body{background:#000;overflow:hidden;width:100%;height:100%;display:flex;align-items:center;justify-content:center;}
-#glc{display:block;image-rendering:pixelated;}
+html,body{background:#000;overflow:hidden;width:100%;height:100%;}
+canvas{display:block;position:absolute;top:0;left:0;}
 #ac{display:none;}
 </style>
 </head>
@@ -16,362 +16,282 @@ html,body{background:#000;overflow:hidden;width:100%;height:100%;display:flex;al
 <canvas id="glc"></canvas>
 <script>
 // ─── NOISE ─────────────────────────────────────────────────────────────────
-const _P=(()=>{const p=new Uint8Array(512);const s=[...Array(256)].map((_,i)=>i);for(let i=255;i>0;i--){const j=Math.floor(Math.random()*(i+1));[s[i],s[j]]=[s[j],s[i]];}for(let i=0;i<512;i++)p[i]=s[i&255];const f=t=>t*t*t*(t*(t*6-15)+10);const g=(h,x,y)=>{const u=h<8?x:y,v=h<4?y:h===12||h===14?x:0;return((h&1)?-u:u)+((h&2)?-v:v)};return(x,y)=>{const X=Math.floor(x)&255,Y=Math.floor(y)&255;x-=Math.floor(x);y-=Math.floor(y);const u=f(x),v=f(y),A=_P&&_P.data?0:p[X]+Y;const _=p;const AA=_[_[X]+Y],AB=_[_[X]+Y+1],BA=_[_[X+1]+Y],BB=_[_[X+1]+Y+1];return((t,a,b)=>a+(b-a)*t)(v,((t,a,b)=>a+(b-a)*t)(u,g(_[AA],x,y),g(_[BA],x-1,y)),((t,a,b)=>a+(b-a)*t)(u,g(_[AB],x,y-1),g(_[BB],x-1,y-1)))*0.5+0.5;};})();
-// simpler noise wrapper
-function noise2(x,y){return _P(x,y);}
+const noise=(()=>{
+  const p=new Uint8Array(512);
+  const s=Array.from({length:256},(_,i)=>i);
+  for(let i=255;i>0;i--){const j=0|Math.random()*(i+1);[s[i],s[j]]=[s[j],s[i]];}
+  for(let i=0;i<512;i++)p[i]=s[i&255];
+  const f=t=>t*t*t*(t*(t*6-15)+10);
+  const d=(h,x,y)=>{const u=h<8?x:y,v=h<4?y:h===12||h===14?x:0;return((h&1)?-u:u)+((h&2)?-v:v);};
+  return(x,y)=>{
+    const X=Math.floor(x)&255,Y=Math.floor(y)&255,xf=x-Math.floor(x),yf=y-Math.floor(y);
+    const u=f(xf),v=f(yf),A=p[X]+Y,B=p[X+1]+Y;
+    const lerp=(t,a,b)=>a+(b-a)*t;
+    return lerp(v,lerp(u,d(p[A],xf,yf),d(p[B],xf-1,yf)),lerp(u,d(p[A+1],xf,yf-1),d(p[B+1],xf-1,yf-1)))*0.5+0.5;
+  };
+})();
 
-// ─── BASE INVADER BITMAP (22×16, hand-crafted high detail) ─────────────────
-// Each row: 22 chars, X = on, . = off
-// Mirrors to full 44×16, then scaled up
-const BASE_HALF = [
-  '......X...........',  // row 0  — antenna tip
-  '.....XX...........',  // row 1  — antenna
-  '....XXX...........',  // row 2  — antenna base
-  '..XXXXXXXXX.......',  // row 3  — head
-  '.XXXXXXXXXXX......',  // row 4  — head wide
-  'XXXXXXXXXXXXX.....',  // row 5  — body start
-  'XX.XXXXXXXXX......',  // row 6  — eye left + body
-  'XXXXXXXXXXXXX.....',  // row 7  — body
-  'XXXXXXXXXXXXX.....',  // row 8  — body
-  'XX..XXXXXXX.......',  // row 9  — notch
-  'XXXXXXXXXXXXX.....',  // row 10 — body
-  '.XX..XXXXXXX......',  // row 11 — inner detail
-  '.XXXXXXXXXXX......',  // row 12 — lower body
-  '...XX.....XX......',  // row 13 — legs
-  '..XX.......XX.....',  // row 14 — feet
-  '.XX.........XX....',  // row 15 — feet spread
+// ─── CLASSIC SPACE INVADER — exact type-2 (squid), 11×8 ────────────────────
+// Source: the original Taito arcade pixel art
+const BASE = [
+  [0,0,1,0,0,0,0,0,1,0,0],
+  [0,0,0,1,0,0,0,1,0,0,0],
+  [0,0,1,1,1,1,1,1,1,0,0],
+  [0,1,1,0,1,1,1,0,1,1,0],
+  [1,1,1,1,1,1,1,1,1,1,1],
+  [1,0,1,1,1,1,1,1,1,0,1],
+  [1,0,1,0,0,0,0,0,1,0,1],
+  [0,0,0,1,1,0,1,1,0,0,0],
 ];
+const IW=11, IH=8;
 
-// Build full symmetric grid by mirroring each row
-function buildInvader(){
-  return BASE_HALF.map(row=>{
-    const left=row.split('').map(c=>c==='X'?1:0);
-    const right=[...left].reverse();
-    // Full row = left + right
-    const full=[...left,...right];
-    return full;
-  });
-}
-const INV_BASE=buildInvader();
-const INV_W=INV_BASE[0].length; // 36
-const INV_H=INV_BASE.length;    // 16
-
-// Precompute border map (cells adjacent to empty are "border")
-function buildBorderMap(grid){
-  const H=grid.length,W=grid[0].length;
-  const b=Array.from({length:H},()=>new Array(W).fill(false));
-  for(let r=0;r<H;r++) for(let c=0;c<W;c++){
-    if(!grid[r][c])continue;
-    for(const[dr,dc]of[[-1,0],[1,0],[0,-1],[0,1]]){
-      const nr=r+dr,nc=c+dc;
-      if(nr<0||nr>=H||nc<0||nc>=W||!grid[nr][nc]){b[r][c]=true;break;}
-    }
+// Precompute: is this pixel on the border (adjacent to empty)?
+const IBRD = BASE.map((row,r)=>row.map((v,c)=>{
+  if(!v) return false;
+  for(const [dr,dc] of [[-1,0],[1,0],[0,-1],[0,1]]){
+    const nr=r+dr, nc=c+dc;
+    if(nr<0||nr>=IH||nc<0||nc>=IW||!BASE[nr][nc]) return true;
   }
-  return b;
-}
-const INV_BORDER=buildBorderMap(INV_BASE);
-
-// Eye region check
-function isEye(row,col){
-  // Eyes are at roughly row 6, cols 2-3 and mirrored
-  const W=INV_W;
-  return(row===6&&(col<=3||col>=W-4));
-}
+  return false;
+}));
 
 // ─── CHARACTER SETS ────────────────────────────────────────────────────────
-const CHARS_DENSE  =['@','#','$','%','&','M','W','B','8','0'];
-const CHARS_MED    =['*','+','=','~','<','>','?','!','|','/','\\'];
-const CHARS_SPARSE =[';',':','.',',','`',"'",' '];
-const CHARS_EYE    =['O','0','Q','@','#','G','6','C','(','D'];
-const CHARS_BG     =[' ',' ',' ',' ',' ','.','.','·','+','*','x'];
+const C_DENSE  = '@#$%&WM80B';
+const C_MED    = '*+=><|\\/?~';
+const C_SPARSE = ';:.,`\' ';
+const C_EYE    = '0OQoGC8@D#';
 
-function pickChar(arr,n){return arr[Math.abs(Math.floor(n*arr.length))%arr.length];}
-
-// ─── ASCII RENDERER ────────────────────────────────────────────────────────
-const FONT_PX=11;
-const FONT=`${FONT_PX}px "Courier New",monospace`;
-const CW=FONT_PX*0.601; // char cell width
-const CH=FONT_PX;       // char cell height
-
-let GW,GH; // grid cols, rows
-let SX,SY; // scale: chars per invader pixel
-let OX,OY; // invader origin in grid
-
-const ac=document.getElementById('ac');
-const glc=document.getElementById('glc');
-const ctx2=ac.getContext('2d');
-
-// 2D grid state
-let grid=[];  // each cell: {bright, char, active}
-let stars=[];
-
-function initGrid(){
-  GW=Math.floor(window.innerWidth/CW);
-  GH=Math.floor(window.innerHeight/CH);
-  ac.width=GW*CW; ac.height=GH*CH;
-  glc.width=GW*CW; glc.height=GH*CH;
-
-  // Scale so invader fills ~72% of width, ~68% of height
-  SX=Math.max(3,Math.floor(GW*0.72/INV_W));
-  SY=Math.max(2,Math.floor(GH*0.68/INV_H));
-  // Center invader
-  OX=Math.floor((GW-INV_W*SX)/2);
-  OY=Math.floor((GH-INV_H*SY)/2)+Math.floor(GH*0.04);
-
-  // Build grid
-  grid=[];
-  for(let r=0;r<GH;r++){
-    grid[r]=[];
-    for(let c=0;c<GW;c++) grid[r][c]={bright:0,ch:' ',active:false,zone:0};
-  }
-
-  // Mark invader cells
-  for(let ir=0;ir<INV_H;ir++){
-    for(let ic=0;ic<INV_W;ic++){
-      if(!INV_BASE[ir][ic])continue;
-      const isBorder=INV_BORDER[ir][ic];
-      const isEyeCell=isEye(ir,ic);
-      const zone=isEyeCell?3:isBorder?2:1;
-      for(let sr=0;sr<SY;sr++) for(let sc=0;sc<SX;sc++){
-        const gr=OY+ir*SY+sr;
-        const gc=OX+ic*SX+sc;
-        if(gr>=0&&gr<GH&&gc>=0&&gc<GW){
-          grid[gr][gc].active=true;
-          grid[gr][gc].zone=zone;
-        }
-      }
-    }
-  }
-
-  // Background stars (sparse, stable positions)
-  stars=[];
-  for(let i=0;i<Math.floor(GW*GH*0.008);i++){
-    const r=Math.floor(Math.random()*GH);
-    const c=Math.floor(Math.random()*GW);
-    if(!grid[r][c].active) stars.push({r,c,phase:Math.random()*Math.PI*2,speed:0.4+Math.random()*0.8});
-  }
+function pickC(str, n){
+  return str[Math.floor(((n%1)+1)*str.length) % str.length];
 }
 
-function renderASCII(t){
-  ctx2.fillStyle='#000';
-  ctx2.fillRect(0,0,ac.width,ac.height);
-  ctx2.font=FONT;
-  ctx2.textBaseline='top';
+// ─── SIZING ────────────────────────────────────────────────────────────────
+const ac  = document.getElementById('ac');
+const glc = document.getElementById('glc');
+const ctx = ac.getContext('2d');
+let W, H, FPX, CW, CH, GW, GH, SX, SY, OX, OY, stars = [];
 
-  // Draw background stars
-  const bA=(0.12+0.06*Math.sin(t*0.5));
-  ctx2.fillStyle=`rgba(255,255,255,${bA})`;
+function setup(){
+  W = window.innerWidth; H = window.innerHeight;
+  // Scale: SX chars wide × SY chars tall per invader pixel.
+  // Monospace CW ≈ 0.601×FPX, CH = FPX.
+  // For square pixels: SX×CW = SY×CH → SX/SY = CH/CW ≈ 1.665
+  // Use SX=5, SY=3 (5×0.601=3.005 ≈ 3 ✓)
+  SX=5; SY=3;
+  // Compute font size to fill ~78% of screen width
+  const fW = W * 0.78 / (IW * SX * 0.601);
+  const fH = H * 0.72 / (IH * SY);
+  FPX = Math.max(10, Math.floor(Math.min(fW, fH)));
+  CW = FPX * 0.601; CH = FPX;
+  GW = Math.floor(W / CW); GH = Math.floor(H / CH);
+  ac.width  = glc.width  = Math.floor(GW * CW);
+  ac.height = glc.height = Math.floor(GH * CH);
+  // Center invader vertically with slight upward offset
+  OX = Math.floor((GW - IW*SX) / 2);
+  OY = Math.floor((GH - IH*SY) / 2) + Math.floor(GH * 0.04);
+  // Starfield
+  stars = [];
+  for(let i=0; i < GW*GH*0.006; i++)
+    stars.push({r:0|Math.random()*GH, c:0|Math.random()*GW,
+                ph:Math.random()*Math.PI*2, sp:0.3+Math.random()*1.2});
+  ctx.textBaseline = 'top';
+  gl.viewport(0, 0, ac.width, ac.height);
+  gl.uniform2f(uPx, 1/ac.width, 1/ac.height);
+}
+
+// ─── ASCII RENDER ──────────────────────────────────────────────────────────
+function renderASCII(t){
+  const fnt = `${FPX}px "Courier New",monospace`;
+  ctx.font = fnt;
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, ac.width, ac.height);
+
+  // Starfield
   for(const s of stars){
-    const bright=0.4+0.6*Math.sin(s.phase+t*s.speed);
-    if(bright>0.55){
-      const ch=bright>0.8?'*':bright>0.65?'+':'.';
-      ctx2.fillStyle=`rgba(255,255,255,${bright*0.35})`;
-      ctx2.fillText(ch,s.c*CW,s.r*CH);
+    const b = 0.28 + 0.32*Math.sin(s.ph + t*s.sp);
+    if(b > 0.35){
+      ctx.fillStyle = `rgba(255,255,255,${b})`;
+      ctx.fillText(b>0.58?'*':b>0.46?'+':'.', s.c*CW, s.r*CH);
     }
   }
 
-  // Animate frame for invader (two-frame alternate like original game)
-  const frame=Math.floor(t*1.2)%2;
+  // Invader — animate 2 frames like the original game
+  const frame = Math.floor(t * 1.4) % 2;
 
-  // Draw invader cells
-  for(let ir=0;ir<INV_H;ir++){
-    for(let ic=0;ic<INV_W;ic++){
-      if(!INV_BASE[ir][ic])continue;
-      const zone=isEye(ir,ic)?3:INV_BORDER[ir][ic]?2:1;
+  for(let ir=0; ir<IH; ir++){
+    for(let ic=0; ic<IW; ic++){
+      if(!BASE[ir][ic]) continue;
+      const isBorder = IBRD[ir][ic];
 
-      for(let sr=0;sr<SY;sr++){
-        for(let sc=0;sc<SX;sc++){
-          const gr=OY+ir*SY+sr;
-          const gc=OX+ic*SX+sc;
-          if(gr<0||gr>=GH||gc<0||gc>=GW)continue;
+      // Alternate-frame legs (bottom row kicks outward)
+      const legKick = (ir===IH-1) ? (frame===0 ? -0.5 : 0.5) : 0;
 
-          // Noise drives char selection
-          const nx=gc*0.07;
-          const ny=gr*0.07;
-          const n=noise2(nx+t*0.18,ny+t*0.14);
-          const n2=noise2(nx*2.3+50+t*0.25,ny*2.3+50);
+      for(let sr=0; sr<SY; sr++){
+        for(let sc=0; sc<SX; sc++){
+          const gc = OX + ic*SX + sc;
+          const gr = OY + ir*SY + sr;
+          if(gc<0||gc>=GW||gr<0||gr>=GH) continue;
 
-          let ch,bright;
+          const nx = gc*0.07, ny = gr*0.07;
+          const n  = noise(nx + t*0.22, ny + t*0.18);
+          const n2 = noise(nx*2.5 + 80 + t*0.30, ny*2.5 + 80);
+          // Scanning highlight band moves down the body
+          const scanV = Math.sin(gr*0.30 - t*3.2) * 0.5 + 0.5;
 
-          if(zone===3){
-            // Eye — very bright, pulsing
-            const eyePulse=0.7+0.3*Math.sin(t*3.1+ic*0.8);
-            ch=CHARS_EYE[Math.floor((n+t*0.3)%1*CHARS_EYE.length+CHARS_EYE.length)%CHARS_EYE.length];
-            bright=0.85+0.15*eyePulse;
-          } else if(zone===2){
-            // Border — dense, glowing
-            const scanPulse=0.5+0.5*Math.sin(t*1.4+gc*0.15);
-            const idx=Math.floor((n+frame*0.5)*CHARS_DENSE.length)%CHARS_DENSE.length;
-            ch=CHARS_DENSE[idx];
-            bright=0.72+0.28*scanPulse;
+          let ch, bright;
+
+          if(isBorder){
+            // Dense glowing border characters
+            const idx = Math.floor((n + frame*0.5 + legKick + 100)*C_DENSE.length) % C_DENSE.length;
+            ch = C_DENSE[idx];
+            bright = 0.72 + 0.28*scanV;
           } else {
-            // Interior — animated texture
-            const depth=(sr/SY+sc/SX)*0.5; // 0=edge,1=deep
-            const deepN=noise2(nx*3+t*0.3,ny*3+t*0.22);
-            if(deepN>0.55){
-              ch=CHARS_DENSE[Math.floor(n*CHARS_DENSE.length)%CHARS_DENSE.length];
-              bright=0.55+0.3*n2;
-            } else if(deepN>0.3){
-              ch=CHARS_MED[Math.floor(n*CHARS_MED.length)%CHARS_MED.length];
-              bright=0.35+0.25*n2;
+            // Interior — noise-driven density creates texture
+            const dn = noise(nx*3.2 + t*0.35, ny*3.2 + t*0.29);
+            if(dn > 0.58){
+              ch = pickC(C_DENSE, n + t*0.2);
+              bright = 0.50 + 0.30*n2;
+            } else if(dn > 0.36){
+              ch = pickC(C_MED, n + t*0.15);
+              bright = 0.28 + 0.24*n2;
             } else {
-              ch=CHARS_SPARSE[Math.floor(n*CHARS_SPARSE.length)%CHARS_SPARSE.length];
-              bright=0.15+0.2*n2;
+              ch = pickC(C_SPARSE, n + t*0.1);
+              bright = 0.08 + 0.16*n2;
             }
-            // Scan wave (bright stripe moving across the body)
-            const scan=Math.sin(gr*0.22-t*2.8)*0.5+0.5;
-            bright+=scan*0.28;
-            bright=Math.min(1,bright);
+            bright += scanV * 0.22;
+            bright = Math.min(1, bright);
           }
 
-          // Render to 2D canvas as white (brightness only — color is applied by WebGL)
-          const b=Math.min(1,bright);
-          ctx2.fillStyle=`rgba(255,255,255,${b})`;
-          ctx2.fillText(ch,gc*CW,gr*CH);
+          ctx.fillStyle = `rgba(255,255,255,${Math.max(0, Math.min(1, bright))})`;
+          ctx.fillText(ch, gc*CW, gr*CH);
         }
       }
     }
   }
 
-  // Title bar — "HIGH RES INVADER" in large glowing text at top
-  ctx2.font=`bold ${Math.floor(CH*1.8)}px "Courier New",monospace`;
-  const title='[ HIGH RES INVADER ]';
-  ctx2.fillStyle='rgba(255,255,255,0.75)';
-  const tw=ctx2.measureText(title).width;
-  ctx2.fillText(title,(ac.width-tw)/2,CH*0.4);
-  ctx2.font=FONT;
+  // ── HUD ──────────────────────────────────────────────────────────────────
+  const hudF = `bold ${Math.floor(FPX*1.9)}px "Courier New",monospace`;
+  ctx.font = hudF;
+  const ttl = '[ HIGH RES INVADER ]';
+  const tw = ctx.measureText(ttl).width;
+  ctx.fillStyle = 'rgba(255,255,255,0.85)';
+  ctx.fillText(ttl, (ac.width-tw)/2, CH*0.28);
 
-  // Score / credit text
-  const scoreVal=String(Math.floor(t*137.3)%999990).padStart(6,'0');
-  ctx2.fillStyle='rgba(255,255,255,0.4)';
-  ctx2.font=`${FONT_PX}px "Courier New",monospace`;
-  ctx2.fillText(`SCORE< ${scoreVal}`,CW*2,CH*0.5);
-  ctx2.fillText('CREDIT  00',ac.width-CW*14,CH*0.5);
+  ctx.font = fnt;
+  const sc = String(Math.floor(t*193.7)%9999990).padStart(7,'0');
+  ctx.fillStyle = 'rgba(255,255,255,0.40)';
+  ctx.fillText(`SCORE< ${sc}`, CW*2, CH*0.38);
+  ctx.fillText('HI-SCORE  9999999', ac.width/2 - CW*9, CH*0.38);
+  ctx.fillText('CREDIT 00', ac.width - CW*11, CH*0.38);
 
-  // Bottom scanline decoration
-  const bottomY=GH-2;
-  ctx2.fillStyle='rgba(255,255,255,0.25)';
-  let lineStr='';
-  for(let i=0;i<GW;i++) lineStr+=Math.random()<0.12?'_':'-';
-  ctx2.fillText(lineStr,0,bottomY*CH);
+  // Floor rule
+  ctx.fillStyle = 'rgba(255,255,255,0.16)';
+  ctx.fillText(Array(GW+1).join('-'), 0, (GH-1.8)*CH);
 
-  // Particles / debris around invader
-  const nPar=8;
-  for(let p=0;p<nPar;p++){
-    const phase=t*0.6+p/nPar*Math.PI*2;
-    const orR=INV_W*SX*0.6+noise2(p*3.1,t*0.12)*SX*2;
-    const cx2=OX+INV_W*SX*0.5+Math.cos(phase)*orR;
-    const cy2=OY+INV_H*SY*0.5+Math.sin(phase*0.7)*orR*0.5;
-    const pc=Math.floor(cx2/CW),pr=Math.floor(cy2/CH);
-    if(pc>=0&&pc<GW&&pr>=0&&pr<GH&&!grid[pr][pc].active){
-      const pch=['·','*','+','x','.'][p%5];
-      ctx2.fillStyle=`rgba(255,255,255,${0.2+0.2*Math.sin(phase*3)})`;
-      ctx2.fillText(pch,pc*CW,pr*CH);
+  // Orbiting debris
+  const cx0 = OX + IW*SX*0.5, cy0 = OY + IH*SY*0.5;
+  for(let pi=0; pi<10; pi++){
+    const ph = t*(0.32+pi*0.10) + pi/10*Math.PI*2;
+    const orR = IW*SX*(0.62 + 0.08*Math.sin(t*0.6+pi));
+    const px = cx0 + Math.cos(ph)*orR;
+    const py = cy0 + Math.sin(ph*0.6)*orR*0.36;
+    const bc = 0|px/CW, br = 0|py/CH;
+    if(bc>=0&&bc<GW&&br>=0&&br<GH){
+      ctx.fillStyle = `rgba(255,255,255,${0.10+0.20*Math.sin(ph*3)})`;
+      ctx.fillText('·+*x.'[pi%5], bc*CW, br*CH);
     }
   }
 }
 
 // ─── WEBGL ─────────────────────────────────────────────────────────────────
-const gl=glc.getContext('webgl',{antialias:false,alpha:false});
+const gl = glc.getContext('webgl', {antialias:false,alpha:false});
 
-const VS=`
-attribute vec2 pos;
-varying vec2 vUv;
-void main(){vUv=pos*.5+.5;vUv.y=1.-vUv.y;gl_Position=vec4(pos,0,1);}
-`;
-
-const FS=`
+const VS = `attribute vec2 a;varying vec2 v;void main(){v=a*.5+.5;v.y=1.-v.y;gl_Position=vec4(a,0,1);}`;
+const FS = `
 precision highp float;
-varying vec2 vUv;
-uniform sampler2D u_ascii;
+varying vec2 v;
+uniform sampler2D u_t;
 uniform float u_time;
 uniform vec2 u_px;
-
-vec3 hsv2rgb(vec3 c){
+vec3 hsv(float h,float s,float b){
   vec4 K=vec4(1.,2./3.,1./3.,3.);
-  vec3 p=abs(fract(c.xxx+K.xyz)*6.-K.www);
-  return c.z*mix(K.xxx,clamp(p-K.xxx,0.,1.),c.y);
+  return b*mix(K.xxx,clamp(abs(fract(h+K.xyz)*6.-K.www)-K.xxx,0.,1.)*s+K.xxx*(1.-s),1.);
 }
-
 void main(){
-  float t=u_time;
-  vec2 uv=vUv;
-
-  // Chromatic aberration — slight RGB offset
-  float ca=0.0012;
-  float rCh=texture2D(u_ascii,uv+vec2( ca, 0.)).r;
-  float gCh=texture2D(u_ascii,uv              ).r;
-  float bCh=texture2D(u_ascii,uv+vec2(-ca, 0.)).r;
-  float bright=(rCh+gCh+bCh)/3.;
-
-  // Flowing color — hue based on position + time + wave
-  float hue=uv.x*0.7+uv.y*0.28+t*0.18+0.12*sin(uv.y*14.+t*2.2);
-  hue=fract(hue);
-  float sat=0.88+0.12*sin(t*0.8+uv.x*3.);
-  vec3 col=hsv2rgb(vec3(hue,sat,1.));
-
-  // Colored output for the ASCII layer
-  vec3 asciiCol=col*vec3(rCh,gCh,bCh);
-
-  // Bloom — weighted samples in a cross pattern
-  vec3 bloom=vec3(0.);
-  float bw=0.;
-  for(int x=-3;x<=3;x++){
-    for(int y=-3;y<=3;y++){
-      float dist=float(x*x+y*y);
-      float w=exp(-dist*0.28);
-      vec2 off=vec2(float(x),float(y))*u_px;
-      float s=texture2D(u_ascii,uv+off).r;
-      float bHue=fract(hue+float(x)*0.015+float(y)*0.008);
-      bloom+=hsv2rgb(vec3(bHue,0.9,1.))*s*w;
-      bw+=w;
-    }
+  float t = u_time;
+  // Chromatic aberration
+  vec2 ca = u_px * 2.6;
+  float rC = texture2D(u_t, v + vec2( ca.x,  ca.y*0.4)).r;
+  float gC = texture2D(u_t, v + vec2(-ca.x*0.3, 0.)).r;
+  float bC = texture2D(u_t, v + vec2(-ca.x*0.7, -ca.y*0.5)).r;
+  // Flowing hue
+  float hue = v.x*0.55 + v.y*0.22 + t*0.20
+            + 0.10*sin(v.y*18.+t*2.5)
+            + 0.06*cos(v.x*24.+t*1.8);
+  hue = fract(hue);
+  float sat = 0.93 + 0.07*sin(t*0.9 + v.x*5.);
+  vec3 ascii = vec3(
+    hsv(fract(hue      ), sat, rC).r,
+    hsv(fract(hue+0.10 ), sat, gC).g,
+    hsv(fract(hue-0.08 ), sat, bC).b
+  );
+  // Tight bloom
+  vec3 b1 = vec3(0.); float w1 = 0.;
+  for(int x=-3;x<=3;x++) for(int y=-3;y<=3;y++){
+    float d = float(x*x+y*y); float w = exp(-d*0.24);
+    float s = texture2D(u_t, v+vec2(float(x),float(y))*u_px*1.4).r;
+    b1 += hsv(fract(hue+float(x)*0.013), 0.90, s) * w; w1 += w;
   }
-  bloom/=bw;
-
-  // Combine: base + bloom
-  vec3 combined=asciiCol+bloom*0.72;
-
-  // Scanline (subtle CRT feel)
-  float scanline=0.88+0.12*sin(uv.y*float(${Math.floor(window.innerHeight/11)})*3.14159);
-  combined*=scanline;
-
+  b1 /= w1;
+  // Wide halo
+  vec3 b2 = vec3(0.); float w2 = 0.;
+  for(int x=-7;x<=7;x+=2) for(int y=-7;y<=7;y+=2){
+    float d = float(x*x+y*y); float w = exp(-d*0.04);
+    float s = texture2D(u_t, v+vec2(float(x),float(y))*u_px*2.0).r;
+    b2 += hsv(fract(hue+float(x)*0.006-0.10), 0.76, s) * w; w2 += w;
+  }
+  b2 /= w2;
+  vec3 col = ascii + b1*0.78 + b2*0.40;
+  // CRT scanline
+  col *= 0.83 + 0.17*sin(v.y*float(${Math.round(window.innerHeight/10.0)})*3.14159);
+  // Phosphor green in dark areas
+  float lum = dot(col, vec3(0.299,0.587,0.114));
+  col += vec3(0.,0.05,0.) * max(0., 0.05-lum);
   // Vignette
-  vec2 ctr=vUv-.5;
-  float vig=1.-dot(ctr,ctr)*2.2;
-  vig=clamp(vig,0.,1.);
-  combined*=vig;
+  vec2 cv = v-.5;
+  col *= clamp(1.-dot(cv,cv)*2.6, 0., 1.);
+  // Pulse
+  col *= 0.87 + 0.13*sin(t*1.25);
+  // Gamma
+  col = pow(max(col, vec3(0.)), vec3(0.80));
+  gl_FragColor = vec4(col, 1.);
+}`;
 
-  // Phosphor green tint at very low brightness
-  float phosphor=smoothstep(0.,.03,bright)*0.12;
-  combined+=vec3(0.,phosphor,0.);
-
-  gl_FragColor=vec4(combined,1.);
+function mkS(src,t){
+  const s=gl.createShader(t);
+  gl.shaderSource(s,src);gl.compileShader(s);
+  if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))console.error(gl.getShaderInfoLog(s));
+  return s;
 }
-`;
-
-function mkShader(src,type){const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))console.error(gl.getShaderInfoLog(s));return s;}
-const prog=gl.createProgram();
-gl.attachShader(prog,mkShader(VS,gl.VERTEX_SHADER));
-gl.attachShader(prog,mkShader(FS,gl.FRAGMENT_SHADER));
+const prog = gl.createProgram();
+gl.attachShader(prog, mkS(VS, gl.VERTEX_SHADER));
+gl.attachShader(prog, mkS(FS, gl.FRAGMENT_SHADER));
 gl.linkProgram(prog);
-if(!gl.getProgramParameter(prog,gl.LINK_STATUS))console.error(gl.getProgramInfoLog(prog));
+if(!gl.getProgramParameter(prog, gl.LINK_STATUS)) console.error(gl.getProgramInfoLog(prog));
 gl.useProgram(prog);
 
-const buf=gl.createBuffer();
-gl.bindBuffer(gl.ARRAY_BUFFER,buf);
-gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
-const aPos=gl.getAttribLocation(prog,'pos');
-gl.enableVertexAttribArray(aPos);
-gl.vertexAttribPointer(aPos,2,gl.FLOAT,false,0,0);
+const vbuf = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, vbuf);
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,1,-1,-1,1,1,1]), gl.STATIC_DRAW);
+const aLoc = gl.getAttribLocation(prog,'a');
+gl.enableVertexAttribArray(aLoc);
+gl.vertexAttribPointer(aLoc, 2, gl.FLOAT, false, 0, 0);
+const uT    = gl.getUniformLocation(prog,'u_t');
+const uTime = gl.getUniformLocation(prog,'u_time');
+const uPx   = gl.getUniformLocation(prog,'u_px');
 
-const uAscii=gl.getUniformLocation(prog,'u_ascii');
-const uTime=gl.getUniformLocation(prog,'u_time');
-const uPx=gl.getUniformLocation(prog,'u_px');
-
-// Create texture from ascii canvas
-const tex=gl.createTexture();
-gl.bindTexture(gl.TEXTURE_2D,tex);
+const tex = gl.createTexture();
+gl.bindTexture(gl.TEXTURE_2D, tex);
 gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);
 gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
 gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);
@@ -379,29 +299,19 @@ gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
 
 // ─── LOOP ──────────────────────────────────────────────────────────────────
 function loop(ms){
-  const t=ms*0.001;
-  const W=ac.width,H=ac.height;
-
-  // 1. Render ASCII to hidden canvas
+  const t = ms * 0.001;
   renderASCII(t);
-
-  // 2. Upload ascii canvas as texture
-  gl.bindTexture(gl.TEXTURE_2D,tex);
-  gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,ac);
-
-  // 3. WebGL pass
-  gl.viewport(0,0,W,H);
-  gl.uniform1i(uAscii,0);
-  gl.uniform1f(uTime,t);
-  gl.uniform2f(uPx,1/W,1/H);
-  gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
-
+  gl.viewport(0, 0, ac.width, ac.height);
+  gl.bindTexture(gl.TEXTURE_2D, tex);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, ac);
+  gl.uniform1i(uT, 0);
+  gl.uniform1f(uTime, t);
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
   requestAnimationFrame(loop);
 }
 
-// ─── INIT ──────────────────────────────────────────────────────────────────
-window.addEventListener('resize',()=>{initGrid();});
-initGrid();
+window.addEventListener('resize', setup);
+setup();
 requestAnimationFrame(loop);
 </script>
 </body>

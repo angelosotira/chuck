@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wireframe Invader</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 100%; height: 100%;
+    background: #000;
+    overflow: hidden;
+  }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+// Classic space invader pixel grid (same as invader-neon.html)
+const GRID = [
+  [0,0,1,0,0,0,0,0,1,0,0],
+  [0,0,0,1,0,0,0,1,0,0,0],
+  [0,0,1,1,1,1,1,1,1,0,0],
+  [0,1,1,0,1,1,1,0,1,1,0],
+  [1,1,1,1,1,1,1,1,1,1,1],
+  [1,0,1,1,1,1,1,1,1,0,1],
+  [1,0,1,0,0,0,0,0,1,0,1],
+  [0,0,0,1,1,0,1,1,0,0,0],
+];
+
+const COLS = 11;
+const ROWS = 8;
+const EXTRUDE = 0.55; // Z depth of extrusion
+
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+let W, H;
+
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resize);
+resize();
+
+// Build wireframe edges with deduplication
+// Each ON cell becomes a box: 8 vertices, 12 edges
+function buildGeometry() {
+  const edgeSet = new Map();
+
+  function vertKey(v) {
+    // Round to avoid float noise, then key
+    return v.map(n => Math.round(n * 1000)).join(',');
+  }
+
+  function addEdge(v0, v1) {
+    const k0 = vertKey(v0);
+    const k1 = vertKey(v1);
+    const key = k0 < k1 ? k0 + '|' + k1 : k1 + '|' + k0;
+    if (!edgeSet.has(key)) {
+      edgeSet.set(key, [v0, v1]);
+    }
+  }
+
+  for (let row = 0; row < ROWS; row++) {
+    for (let col = 0; col < COLS; col++) {
+      if (!GRID[row][col]) continue;
+
+      // Center the shape at origin
+      const x0 = col - COLS / 2;
+      const x1 = x0 + 1;
+      const y0 = row - ROWS / 2;
+      const y1 = y0 + 1;
+      const z0 = -EXTRUDE / 2;
+      const z1 =  EXTRUDE / 2;
+
+      // 8 corners of this voxel
+      const v = [
+        [x0, y0, z0], [x1, y0, z0], [x1, y1, z0], [x0, y1, z0], // back face
+        [x0, y0, z1], [x1, y0, z1], [x1, y1, z1], [x0, y1, z1], // front face
+      ];
+
+      // 12 edges of a box
+      // Back face
+      addEdge(v[0], v[1]); addEdge(v[1], v[2]);
+      addEdge(v[2], v[3]); addEdge(v[3], v[0]);
+      // Front face
+      addEdge(v[4], v[5]); addEdge(v[5], v[6]);
+      addEdge(v[6], v[7]); addEdge(v[7], v[4]);
+      // Connecting edges
+      addEdge(v[0], v[4]); addEdge(v[1], v[5]);
+      addEdge(v[2], v[6]); addEdge(v[3], v[7]);
+    }
+  }
+
+  return Array.from(edgeSet.values());
+}
+
+const edges = buildGeometry();
+
+// 3D rotation & perspective projection
+function project(vx, vy, vz, cosX, sinX, cosY, sinY, scale, cx, cy) {
+  // Rotate Y axis
+  const rx = vx * cosY + vz * sinY;
+  const rz0 = -vx * sinY + vz * cosY;
+
+  // Rotate X axis
+  const ry = vy * cosX - rz0 * sinX;
+  const rz = vy * sinX + rz0 * cosX;
+
+  // Perspective
+  const fov = 7;
+  const p = fov / (fov + rz);
+
+  return {
+    sx: cx + rx * scale * p,
+    sy: cy + ry * scale * p,
+    z: rz,
+  };
+}
+
+// Subtle grid scanline overlay
+function drawScanlines() {
+  ctx.save();
+  ctx.fillStyle = 'rgba(0, 40, 60, 0.06)';
+  const lineH = 2;
+  const gap = 5;
+  for (let y = 0; y < H; y += lineH + gap) {
+    ctx.fillRect(0, y, W, lineH);
+  }
+  ctx.restore();
+}
+
+let startTime = null;
+
+function draw(ts) {
+  requestAnimationFrame(draw);
+  if (!startTime) startTime = ts;
+  const elapsed = ts - startTime;
+
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, W, H);
+
+  // Slow Y rotation; subtle X wobble
+  const rotY = elapsed * 0.00045;
+  const rotX = 0.18 + Math.sin(elapsed * 0.00018) * 0.07;
+
+  const cosX = Math.cos(rotX), sinX = Math.sin(rotX);
+  const cosY = Math.cos(rotY), sinY = Math.sin(rotY);
+
+  // Scale: fit the 11×8 grid nicely, fill ~72% of shorter axis
+  const scale = Math.min(W, H) * 0.072;
+  const cx = W / 2;
+  const cy = H / 2;
+
+  // Project all edges and sort by average depth (painter's algorithm)
+  const projected = edges.map(([v0, v1]) => {
+    const p0 = project(v0[0], v0[1], v0[2], cosX, sinX, cosY, sinY, scale, cx, cy);
+    const p1 = project(v1[0], v1[1], v1[2], cosX, sinX, cosY, sinY, scale, cx, cy);
+    return { p0, p1, avgZ: (p0.z + p1.z) * 0.5 };
+  });
+
+  // Sort back-to-front so glow layers don't fight weirdly
+  projected.sort((a, b) => a.avgZ - b.avgZ);
+
+  // Glow pulse
+  const pulse = (Math.sin(elapsed * 0.0012) + 1) * 0.5;
+
+  // Shadow glow on context
+  ctx.shadowBlur = 12 + pulse * 6;
+  ctx.shadowColor = 'rgba(0, 220, 255, 0.8)';
+  ctx.lineCap = 'round';
+
+  for (const { p0, p1, avgZ } of projected) {
+    // Depth-based brightness: closer edges slightly brighter
+    const depthFactor = Math.max(0, Math.min(1, (avgZ + 1.5) / 3));
+    const alpha = 0.35 + depthFactor * 0.65;
+
+    // 1. Outer soft glow
+    ctx.beginPath();
+    ctx.moveTo(p0.sx, p0.sy);
+    ctx.lineTo(p1.sx, p1.sy);
+    ctx.strokeStyle = `rgba(0, 200, 255, ${alpha * 0.18})`;
+    ctx.lineWidth = 5.5;
+    ctx.stroke();
+
+    // 2. Mid glow
+    ctx.beginPath();
+    ctx.moveTo(p0.sx, p0.sy);
+    ctx.lineTo(p1.sx, p1.sy);
+    ctx.strokeStyle = `rgba(30, 230, 255, ${alpha * 0.45})`;
+    ctx.lineWidth = 2.0;
+    ctx.stroke();
+
+    // 3. Bright core
+    ctx.beginPath();
+    ctx.moveTo(p0.sx, p0.sy);
+    ctx.lineTo(p1.sx, p1.sy);
+    ctx.strokeStyle = `rgba(200, 250, 255, ${alpha * 0.95})`;
+    ctx.lineWidth = 0.75;
+    ctx.stroke();
+  }
+
+  ctx.shadowBlur = 0;
+
+  // Faint holographic scanlines
+  drawScanlines();
+
+  // Corner HUD text — holographic aesthetic
+  ctx.save();
+  ctx.font = '10px monospace';
+  ctx.fillStyle = 'rgba(0, 200, 255, 0.25)';
+  ctx.fillText('SCAN //  3D', 18, H - 18);
+  ctx.fillText('WIREFRAME', W - 88, H - 18);
+  ctx.restore();
+}
+
+requestAnimationFrame(draw);
+</script>
+</body>
+</html>

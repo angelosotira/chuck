@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Nebula Weather Map</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;height:100%;background:#000005;overflow:hidden;}
+canvas{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);}
+#back{
+  position:fixed;top:20px;left:24px;z-index:10;
+  font:11px Georgia,serif;letter-spacing:.12em;text-transform:uppercase;
+  color:rgba(255,255,255,0.12);text-decoration:none;
+  transition:color .4s;
+}
+#back:hover{color:rgba(255,255,255,0.45);}
+</style>
+</head>
+<body>
+<a id="back" href="nebula-config.html">← configure</a>
+<canvas id="c"></canvas>
+
+<script>
+// ─── URL PARAMS ───────────────────────────────────────────────────────────
+const P = new URLSearchParams(location.search);
+const BIRTH_STR = P.get('birth') || '1981-02-14';
+const TIME_STR  = P.get('time') || '';
+const LAT       = parseFloat(P.get('lat') || '34.05');
+const LON       = parseFloat(P.get('lon') || '-118.24');
+
+// ─── EPHEMERIS ────────────────────────────────────────────────────────────
+function jd(y,m,d,h=12){if(m<=2){y--;m+=12;}const A=Math.floor(y/100),B=2-A+Math.floor(A/4);return Math.floor(365.25*(y+4716))+Math.floor(30.6001*(m+1))+d+h/24+B-1524.5;}
+function n360(x){return((x%360)+360)%360;}
+function sLon(j){const n=j-2451545,L=n360(280.46646+0.9856474*n),g=n360(357.52911+0.9856003*n)*Math.PI/180;return n360(L+1.914602*Math.sin(g)+0.019993*Math.sin(2*g));}
+function mLon(j){const T=(j-2451545)/36525,L=n360(218.3165+481267.8813*T),M=n360(357.5291+35999.0503*T)*Math.PI/180,Mm=n360(134.9634+477198.8676*T)*Math.PI/180,F=n360(93.2721+483202.0175*T)*Math.PI/180,D=n360(297.8502+445267.1115*T)*Math.PI/180;return n360(L+6.288*Math.sin(Mm)+1.274*Math.sin(2*D-Mm)+0.658*Math.sin(2*D)+0.214*Math.sin(2*Mm)-0.186*Math.sin(M)-0.114*Math.sin(2*F)+0.059*Math.sin(2*D-2*Mm));}
+const PL={Mercury:{L0:252.25032,dm:4.09235555},Venus:{L0:181.97971,dm:1.60213034},Mars:{L0:355.45332,dm:0.52402068},Jupiter:{L0:34.35484,dm:0.08308453},Saturn:{L0:50.07742,dm:0.03344395},Uranus:{L0:314.055,dm:0.01172834}};
+function plLon(nm,j){if(nm==='Sun')return sLon(j);if(nm==='Moon')return mLon(j);const p=PL[nm];return n360(p.L0+p.dm*(j-2451545));}
+function allPos(j){const r={};for(const nm of['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus'])r[nm]=plLon(nm,j);return r;}
+function aspScore(diff){const d=Math.min(Math.abs(n360(diff)),360-Math.abs(n360(diff)));if(d<8)return 0.5;if(Math.abs(d-60)<6)return 2;if(Math.abs(d-90)<7)return-2.5;if(Math.abs(d-120)<8)return 3;if(Math.abs(d-150)<5)return-1;if(Math.abs(d-180)<8)return-2;return 0;}
+
+// ─── PARSE BIRTH ──────────────────────────────────────────────────────────
+function parseBirth(){
+  const [y,mo,d]=BIRTH_STR.split('-').map(Number);
+  let h=12;
+  if(TIME_STR){const[hh,mm]=TIME_STR.split(':').map(Number);const tzOff=LON/15;h=hh-tzOff+(mm||0)/60;}
+  return jd(y,mo,d,h);
+}
+
+// ─── COMPUTE SCORES ───────────────────────────────────────────────────────
+const AXES=[
+  {name:'Sun',     pl:'Sun',     hex:'#FFB347',rgb:[1.00,0.70,0.28]},
+  {name:'Moon',    pl:'Moon',    hex:'#B0C4DE',rgb:[0.69,0.77,0.87]},
+  {name:'Mercury', pl:'Mercury', hex:'#00E5FF',rgb:[0.00,0.90,1.00]},
+  {name:'Venus',   pl:'Venus',   hex:'#FF69B4',rgb:[1.00,0.41,0.71]},
+  {name:'Mars',    pl:'Mars',    hex:'#DC143C',rgb:[0.86,0.08,0.24]},
+  {name:'Jupiter', pl:'Jupiter', hex:'#50C878',rgb:[0.31,0.78,0.47]},
+  {name:'Saturn',  pl:'Saturn',  hex:'#4B0082',rgb:[0.29,0.00,0.51]},
+  {name:'Uranus',  pl:'Uranus',  hex:'#9400D3',rgb:[0.58,0.00,0.83]},
+];
+
+const NATAL_JD = parseBirth();
+const natal    = allPos(NATAL_JD);
+const now      = new Date();
+const today_JD = jd(now.getFullYear(), now.getMonth()+1, now.getDate(), 12);
+const transit  = allPos(today_JD);
+
+function computeScores(){
+  const sc={};
+  for(const ax of AXES){
+    let raw=0;
+    const np=natal[ax.pl];
+    for(const[tn,tl]of Object.entries(transit)){
+      const w=['Jupiter','Saturn','Sun','Moon'].includes(tn)?1.4:1;
+      raw+=aspScore(tl-np)*w;
+    }
+    sc[ax.pl]=Math.max(0.05,Math.min(0.97,0.5+raw/22));
+  }
+  return sc;
+}
+const SCORES = computeScores();
+
+// ─── CANVAS SETUP ─────────────────────────────────────────────────────────
+const canvas = document.getElementById('c');
+const ctx    = canvas.getContext('2d');
+let SIZE = 0;
+
+function resize(){
+  SIZE = Math.min(window.innerWidth, window.innerHeight);
+  canvas.width = SIZE;
+  canvas.height = SIZE;
+  initStars();
+}
+
+// ─── NEBULA CLOUD CENTERS (in 0–1 normalized coords) ─────────────────────
+// Arranged in a loose organic ring
+const CLOUD_CENTERS = [
+  [0.50, 0.22],  // Sun – top center
+  [0.74, 0.30],  // Moon – upper right
+  [0.82, 0.54],  // Mercury – right
+  [0.70, 0.76],  // Venus – lower right
+  [0.48, 0.82],  // Mars – bottom center
+  [0.26, 0.74],  // Jupiter – lower left
+  [0.18, 0.50],  // Saturn – left
+  [0.28, 0.27],  // Uranus – upper left
+];
+
+// ─── SIMPLEX-LIKE NOISE (lightweight) ────────────────────────────────────
+// Simple smooth noise via sin/cos combinations
+function noise2(x, y, t) {
+  return (
+    Math.sin(x * 3.1 + t * 0.7) * Math.cos(y * 2.8 - t * 0.5) * 0.5 +
+    Math.sin(x * 1.7 - t * 0.3) * Math.cos(y * 4.1 + t * 0.6) * 0.3 +
+    Math.sin(x * 5.3 + y * 2.2 + t * 0.4) * 0.2
+  );
+}
+
+// ─── STARS ────────────────────────────────────────────────────────────────
+const NUM_STARS = 1000;
+let stars = [];
+
+function initStars(){
+  stars = [];
+  for(let i=0;i<NUM_STARS;i++){
+    stars.push({
+      x:  Math.random(),
+      y:  Math.random(),
+      bx: Math.random(), // base x for noise
+      by: Math.random(), // base y for noise
+      r:  0.5 + Math.random() * 2.0,
+      op: 0.1 + Math.random() * 0.75,
+      speed: 0.3 + Math.random() * 0.7,
+      phase: Math.random() * Math.PI * 2,
+    });
+  }
+}
+
+// ─── STAR COLOR FROM NEAREST CLOUD ───────────────────────────────────────
+function getStarColor(sx, sy, scores){
+  let nearest = -1, nearestD = Infinity;
+  for(let i=0;i<8;i++){
+    const [cx,cy]=CLOUD_CENTERS[i];
+    const d=Math.hypot(sx-cx, sy-cy);
+    if(d<nearestD){nearestD=d;nearest=i;}
+  }
+  const ax = AXES[nearest];
+  const sc = scores[ax.pl];
+  const maxR = 0.28 * sc;
+  if(nearestD < maxR && sc > 0.55){
+    const blend = Math.max(0, 1 - nearestD/maxR) * ((sc-0.55)/0.45);
+    const [r,g,b] = ax.rgb;
+    return `rgba(${Math.round(r*255)},${Math.round(g*255)},${Math.round(b*255)},${blend*0.8})`;
+  }
+  return null;
+}
+
+// ─── DRAW NEBULA CLOUDS ───────────────────────────────────────────────────
+function drawClouds(scores, t){
+  for(let i=0;i<8;i++){
+    const ax   = AXES[i];
+    const sc   = scores[ax.pl];
+    const [cx,cy] = CLOUD_CENTERS[i];
+    const px   = cx * SIZE;
+    const py   = cy * SIZE;
+
+    // Base radius scales with score: 0.05→0.28 of SIZE
+    const maxR  = SIZE * (0.05 + sc * 0.23);
+    const alpha = 0.06 + sc * 0.28;
+
+    // Outer soft halo
+    for(let layer=3;layer>=0;layer--){
+      const layerR = maxR * (1 - layer * 0.18);
+      const layerA = alpha * (0.25 + layer * 0.22) * (sc > 0.5 ? 1 : sc * 2);
+
+      // Slightly wobble center with time
+      const wobX = px + Math.sin(t * 0.4 + i * 1.3) * SIZE * 0.012;
+      const wobY = py + Math.cos(t * 0.35 + i * 0.9) * SIZE * 0.010;
+
+      const [r,g,b] = ax.rgb;
+      const grad = ctx.createRadialGradient(wobX, wobY, 0, wobX, wobY, layerR);
+      grad.addColorStop(0, `rgba(${Math.round(r*255)},${Math.round(g*255)},${Math.round(b*255)},${layerA})`);
+      grad.addColorStop(0.4, `rgba(${Math.round(r*255)},${Math.round(g*255)},${Math.round(b*255)},${layerA*0.5})`);
+      grad.addColorStop(1, `rgba(${Math.round(r*255)},${Math.round(g*255)},${Math.round(b*255)},0)`);
+
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(wobX, wobY, layerR, 0, Math.PI*2);
+      ctx.fill();
+    }
+
+    // Dense inner core for high-score clouds
+    if(sc > 0.6){
+      const coreR = maxR * 0.22 * ((sc-0.6)/0.4);
+      const coreA = 0.15 * ((sc-0.6)/0.4);
+      const [r,g,b] = ax.rgb;
+      const coreGrad = ctx.createRadialGradient(px, py, 0, px, py, coreR);
+      coreGrad.addColorStop(0, `rgba(${Math.round(r*255+50)},${Math.round(g*255+50)},${Math.round(b*255+50)},${coreA})`);
+      coreGrad.addColorStop(1, `rgba(${Math.round(r*255)},${Math.round(g*255)},${Math.round(b*255)},0)`);
+      ctx.fillStyle = coreGrad;
+      ctx.beginPath();
+      ctx.arc(px, py, coreR, 0, Math.PI*2);
+      ctx.fill();
+    }
+  }
+}
+
+// ─── DRAW STARS ───────────────────────────────────────────────────────────
+function drawStars(t){
+  for(const s of stars){
+    // Drift position via smooth noise field
+    const driftScale = 0.018;
+    const nx = noise2(s.bx * 4, s.by * 4, t * 0.04 * s.speed + s.phase) * driftScale;
+    const ny = noise2(s.bx * 4 + 100, s.by * 4 + 100, t * 0.04 * s.speed + s.phase) * driftScale;
+    const sx = (s.x + nx + 1) % 1;
+    const sy = (s.y + ny + 1) % 1;
+
+    const px = sx * SIZE;
+    const py = sy * SIZE;
+
+    // Twinkle
+    const twinkle = 0.7 + 0.3 * Math.sin(t * 1.1 * s.speed + s.phase * 3.7);
+    const op = s.op * twinkle;
+
+    // Color tint from nearest cloud
+    const tint = getStarColor(sx, sy, SCORES);
+
+    if(tint){
+      ctx.fillStyle = tint;
+      ctx.beginPath();
+      ctx.arc(px, py, s.r * 0.9, 0, Math.PI*2);
+      ctx.fill();
+    }
+
+    // White star base
+    ctx.fillStyle = `rgba(255,255,255,${op})`;
+    ctx.beginPath();
+    ctx.arc(px, py, s.r * (tint ? 0.5 : 1), 0, Math.PI*2);
+    ctx.fill();
+  }
+}
+
+// ─── RENDER LOOP ──────────────────────────────────────────────────────────
+let startTime = Date.now();
+
+function render(){
+  const t = (Date.now() - startTime) / 1000;
+
+  // Deep black bg
+  ctx.fillStyle = '#000005';
+  ctx.fillRect(0, 0, SIZE, SIZE);
+
+  // Draw clouds first (additive blending feel)
+  ctx.globalCompositeOperation = 'screen';
+  drawClouds(SCORES, t);
+  ctx.globalCompositeOperation = 'source-over';
+
+  // Stars on top
+  drawStars(t);
+
+  requestAnimationFrame(render);
+}
+
+window.addEventListener('resize', resize);
+resize();
+render();
+</script>
+</body>
+</html>

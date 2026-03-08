@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>About — Nebula Weather Map</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+html{background:#000005;}
+body{
+  background:#000005;color:#fff;
+  font-family:Georgia,serif;
+  min-height:100vh;
+  padding:72px 24px 100px;
+}
+
+.wrap{max-width:580px;margin:0 auto;}
+
+.back-link{
+  font-family:'Courier New',monospace;
+  font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;
+  color:rgba(255,255,255,0.18);text-decoration:none;
+  display:inline-block;margin-bottom:56px;
+}
+.back-link:hover{color:rgba(255,255,255,0.48);}
+
+.eyebrow{
+  font-family:'Courier New',monospace;
+  font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;
+  color:rgba(255,255,255,0.2);margin-bottom:18px;
+}
+
+h1{
+  font-size:clamp(1.4rem,4vw,2rem);
+  font-weight:normal;line-height:1.3;
+  letter-spacing:.04em;
+  color:rgba(255,255,255,0.92);
+  margin-bottom:36px;
+}
+
+.lead{
+  font-size:1.05rem;line-height:1.85;
+  color:rgba(220,215,255,0.62);
+  margin-bottom:40px;
+  border-left:2px solid rgba(160,80,255,0.2);
+  padding-left:22px;
+}
+
+p{
+  font-size:.92rem;line-height:1.95;
+  color:rgba(200,195,240,0.5);
+  margin-bottom:26px;
+}
+
+h2{
+  font-size:.72rem;font-weight:normal;
+  letter-spacing:.22em;text-transform:uppercase;
+  color:rgba(255,255,255,0.32);
+  margin-bottom:24px;margin-top:52px;
+}
+
+.axes-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+  margin-bottom:40px;
+}
+@media(max-width:420px){.axes-grid{grid-template-columns:1fr;}}
+
+.axis-item{
+  display:flex;align-items:flex-start;gap:12px;
+  padding:14px 16px;
+  border:1px solid rgba(255,255,255,0.04);
+  border-radius:9px;
+}
+.axis-dot{
+  width:9px;height:9px;border-radius:50%;
+  flex-shrink:0;margin-top:5px;
+}
+.axis-label{font-size:.78rem;line-height:1.6;color:rgba(200,195,240,0.55);}
+.axis-label strong{display:block;font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,0.42);font-weight:normal;margin-bottom:2px;}
+
+.reading-note{
+  border:1px solid rgba(255,255,255,0.05);
+  border-radius:10px;padding:22px 24px;
+  margin:40px 0;
+  background:rgba(255,255,255,0.012);
+}
+.reading-note p{color:rgba(200,195,240,0.45);margin-bottom:0;font-size:.86rem;}
+
+.cta{margin-top:56px;}
+.cta a{
+  display:inline-block;
+  padding:12px 28px;
+  border:1px solid rgba(160,80,255,0.25);
+  border-radius:8px;
+  color:rgba(190,150,255,0.8);
+  text-decoration:none;
+  font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;
+  transition:all .3s;
+}
+.cta a:hover{
+  background:rgba(100,40,200,0.3);
+  border-color:rgba(180,100,255,0.4);
+  color:rgba(210,180,255,0.95);
+}
+
+footer{
+  margin-top:72px;
+  font-family:'Courier New',monospace;
+  font-size:.58rem;letter-spacing:.1em;
+  color:rgba(255,255,255,0.1);
+  text-transform:uppercase;
+}
+footer a{color:inherit;text-decoration:none;}
+footer a:hover{color:rgba(255,255,255,0.3);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back-link" href="/">← All Works</a>
+
+  <p class="eyebrow">Chuck Neoteric · 2026</p>
+  <h1>Nebula Weather Map</h1>
+
+  <p class="lead">
+    A living portrait of planetary energy, rendered as a nebula. Every time you open it, it has already changed.
+  </p>
+
+  <p>
+    The night sky has always been a clock. Ancient astronomers — Babylonian, Greek, Arabic, Chinese — mapped the planets not as mystical forces but as measurable phenomena: objects moving through space on predictable paths, crossing specific positions relative to where they were when you were born. The Nebula Weather Map is built on those same measurements.
+  </p>
+
+  <p>
+    Using Jean Meeus's astronomical algorithms — the same formulas that power modern ephemeris software — the work calculates where each of eight planets sits today, relative to their positions on your birth date. The angular relationships between then and now (conjunctions, trines, squares, oppositions) produce a score for each axis. Those scores become the nebula you see: its density, its brightness, its spread.
+  </p>
+
+  <p>
+    The result is not prediction. It's a portrait — a snapshot of where today's sky intersects your own. Dense, luminous clouds mean strong activation. Faint wisps mean quiet. The nebula doesn't tell you what will happen; it shows you what's in motion.
+  </p>
+
+  <h2>The Eight Axes</h2>
+
+  <div class="axes-grid">
+    <div class="axis-item">
+      <div class="axis-dot" style="background:#FFB347;box-shadow:0 0 6px #FFB34766;"></div>
+      <div class="axis-label"><strong>☀ Sun — Vitality</strong>Identity, self-expression, the will to be seen and felt.</div>
+    </div>
+    <div class="axis-item">
+      <div class="axis-dot" style="background:#B0C4DE;box-shadow:0 0 6px #B0C4DE66;"></div>
+      <div class="axis-label"><strong>🌙 Moon — Intuition</strong>Emotional landscape, inner knowing, the tidal rhythm of feeling.</div>
+    </div>
+    <div class="axis-item">
+      <div class="axis-dot" style="background:#00E5FF;box-shadow:0 0 6px #00E5FF66;"></div>
+      <div class="axis-label"><strong>☿ Mercury — Mind</strong>Thinking, communication, perception, the movement of ideas.</div>
+    </div>
+    <div class="axis-item">
+      <div class="axis-dot" style="background:#FF69B4;box-shadow:0 0 6px #FF69B466;"></div>
+      <div class="axis-label"><strong>♀ Venus — Love</strong>Attraction, beauty, pleasure, the quality of connection.</div>
+    </div>
+    <div class="axis-item">
+      <div class="axis-dot" style="background:#DC143C;box-shadow:0 0 6px #DC143C66;"></div>
+      <div class="axis-label"><strong>♂ Mars — Drive</strong>Ambition, action, friction, the energy that moves through resistance.</div>
+    </div>
+    <div class="axis-item">
+      <div class="axis-dot" style="background:#50C878;box-shadow:0 0 6px #50C87866;"></div>
+      <div class="axis-label"><strong>♃ Jupiter — Abundance</strong>Growth, opportunity, the widening of what's possible.</div>
+    </div>
+    <div class="axis-item">
+      <div class="axis-dot" style="background:#7B4FB2;box-shadow:0 0 6px #7B4FB266;"></div>
+      <div class="axis-label"><strong>♄ Saturn — Structure</strong>Discipline, long-term consequence, the work that earns its keep.</div>
+    </div>
+    <div class="axis-item">
+      <div class="axis-dot" style="background:#9400D3;box-shadow:0 0 6px #9400D366;"></div>
+      <div class="axis-label"><strong>⛢ Uranus — Awakening</strong>Disruption, breakthrough, the electricity that precedes transformation.</div>
+    </div>
+  </div>
+
+  <h2>How to Read It</h2>
+
+  <p>
+    Each color corresponds to one axis. The density and size of a color cloud reflects that axis's score for today: a large, bright cloud means strong activation; a faint wisp means the axis is quiet. There's no hierarchy — high energy is not inherently better, and low energy is not inherently bad. It's weather. You work with it.
+  </p>
+
+  <p>
+    Stars inside high-score regions are tinted with that axis's color. The overall balance of the nebula — whether it pools in one direction, spreads evenly, or clusters in unexpected corners — is its own kind of information.
+  </p>
+
+  <p>
+    The nebula drifts very slowly. It breathes. It is not still, but it is not loud. Time your attention to it.
+  </p>
+
+  <div class="reading-note">
+    <p>For a written interpretation of today's energy across all eight axes, visit the <a href="nebula-reading.html" style="color:rgba(180,140,255,0.7);text-decoration:none;">Daily Reading</a>. For the pure visual with no text, the <a href="nebula-config.html" style="color:rgba(180,140,255,0.7);text-decoration:none;">Nebula Art</a> is the work itself.</p>
+  </div>
+
+  <div class="cta">
+    <a href="nebula-config.html">Configure Your Nebula →</a>
+  </div>
+
+  <footer>
+    <p><a href="/">chuck.neoteric.art</a> &nbsp;·&nbsp; Astronomy calculations after Jean Meeus, <em>Astronomical Algorithms</em></p>
+  </footer>
+</div>
+</body>
+</html>

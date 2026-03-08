@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Constellation Invader</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #010208; overflow: hidden; width: 100vw; height: 100vh; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+
+// Resize
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+// Classic Space Invader pixel grid (11x8)
+const GRID = [
+  [0,0,1,0,0,0,0,0,1,0,0],
+  [0,0,0,1,0,0,0,1,0,0,0],
+  [0,0,1,1,1,1,1,1,1,0,0],
+  [0,1,1,0,1,1,1,0,1,1,0],
+  [1,1,1,1,1,1,1,1,1,1,1],
+  [1,0,1,1,1,1,1,1,1,0,1],
+  [1,0,1,0,0,0,0,0,1,0,1],
+  [0,0,0,1,1,0,1,1,0,0,0],
+];
+const ROWS = GRID.length;
+const COLS = GRID[0].length;
+
+// Build star nodes
+const CELL = 48; // spacing between grid cells in px
+const nodes = [];
+for (let r = 0; r < ROWS; r++) {
+  for (let c = 0; c < COLS; c++) {
+    if (GRID[r][c] === 1) {
+      nodes.push({
+        col: c,
+        row: r,
+        // local coords relative to grid center
+        lx: (c - (COLS - 1) / 2) * CELL,
+        ly: (r - (ROWS - 1) / 2) * CELL,
+        // twinkle params
+        phase: Math.random() * Math.PI * 2,
+        speed: 0.5 + Math.random() * 1.5,
+        baseRadius: 1.5 + Math.random() * 2.0,
+      });
+    }
+  }
+}
+
+// Build edges (horizontal & vertical neighbors only)
+const edges = [];
+for (let i = 0; i < nodes.length; i++) {
+  for (let j = i + 1; j < nodes.length; j++) {
+    const dr = Math.abs(nodes[i].row - nodes[j].row);
+    const dc = Math.abs(nodes[i].col - nodes[j].col);
+    if ((dr === 1 && dc === 0) || (dr === 0 && dc === 1)) {
+      edges.push([i, j]);
+    }
+  }
+}
+
+// Background star field (static positions, but opacity varies)
+const BG_STARS = [];
+for (let i = 0; i < 280; i++) {
+  BG_STARS.push({
+    x: Math.random(),
+    y: Math.random(),
+    r: 0.3 + Math.random() * 1.0,
+    baseOpacity: 0.1 + Math.random() * 0.7,
+    phase: Math.random() * Math.PI * 2,
+    speed: 0.2 + Math.random() * 0.8,
+  });
+}
+
+// Shooting stars
+const shootingStars = [];
+let nextShootingStarTime = 3000 + Math.random() * 8000;
+
+function spawnShootingStar(now) {
+  const angle = -0.2 + Math.random() * 0.4 - 0.1; // slight downward angle
+  const startX = Math.random() * canvas.width;
+  const startY = Math.random() * canvas.height * 0.5;
+  shootingStars.push({
+    x: startX,
+    y: startY,
+    vx: 6 + Math.random() * 6,
+    vy: 1 + Math.random() * 3,
+    length: 80 + Math.random() * 120,
+    life: 1.0,
+    decay: 0.015 + Math.random() * 0.02,
+  });
+}
+
+// Rotation: ~0.3 rpm = 0.3 * 2π / 60 rad/sec = 0.03141 rad/sec
+const RPM = 0.3;
+const RAD_PER_MS = (RPM * 2 * Math.PI) / 60000;
+
+let lastTime = null;
+let rotation = 0;
+let elapsed = 0;
+
+function draw(ts) {
+  if (lastTime === null) lastTime = ts;
+  const dt = ts - lastTime;
+  lastTime = ts;
+  elapsed += dt;
+
+  rotation += RAD_PER_MS * dt;
+
+  const W = canvas.width;
+  const H = canvas.height;
+  const cx = W / 2;
+  const cy = H / 2;
+
+  // Clear
+  ctx.fillStyle = '#010208';
+  ctx.fillRect(0, 0, W, H);
+
+  // Draw background stars
+  for (const s of BG_STARS) {
+    const osc = 0.5 + 0.5 * Math.sin(elapsed * 0.001 * s.speed + s.phase);
+    const opacity = s.baseOpacity * (0.6 + 0.4 * osc);
+    ctx.beginPath();
+    ctx.arc(s.x * W, s.y * H, s.r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(255,255,255,${opacity})`;
+    ctx.fill();
+  }
+
+  // Shooting stars
+  // Check spawn
+  if (elapsed >= nextShootingStarTime) {
+    spawnShootingStar(elapsed);
+    nextShootingStarTime = elapsed + 5000 + Math.random() * 12000;
+  }
+  for (let i = shootingStars.length - 1; i >= 0; i--) {
+    const ss = shootingStars[i];
+    ss.x += ss.vx;
+    ss.y += ss.vy;
+    ss.life -= ss.decay;
+    if (ss.life <= 0 || ss.x > W + 200 || ss.y > H + 200) {
+      shootingStars.splice(i, 1);
+      continue;
+    }
+    const tailX = ss.x - (ss.vx / Math.hypot(ss.vx, ss.vy)) * ss.length;
+    const tailY = ss.y - (ss.vy / Math.hypot(ss.vx, ss.vy)) * ss.length;
+    const grad = ctx.createLinearGradient(tailX, tailY, ss.x, ss.y);
+    grad.addColorStop(0, `rgba(255,255,255,0)`);
+    grad.addColorStop(1, `rgba(255,255,255,${ss.life * 0.9})`);
+    ctx.beginPath();
+    ctx.moveTo(tailX, tailY);
+    ctx.lineTo(ss.x, ss.y);
+    ctx.strokeStyle = grad;
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+  }
+
+  // Compute rotated screen positions for each node
+  const cos = Math.cos(rotation);
+  const sin = Math.sin(rotation);
+  const screenPos = nodes.map(n => ({
+    x: cx + n.lx * cos - n.ly * sin,
+    y: cy + n.lx * sin + n.ly * cos,
+  }));
+
+  // Line pulse
+  const linePulse = 0.5 + 0.5 * Math.sin(elapsed * 0.0005);
+
+  // Draw constellation lines
+  for (const [i, j] of edges) {
+    const a = screenPos[i];
+    const b = screenPos[j];
+    const opacity = (0.15 + 0.1 * linePulse);
+    ctx.beginPath();
+    ctx.moveTo(a.x, a.y);
+    ctx.lineTo(b.x, b.y);
+    ctx.strokeStyle = `rgba(150,180,255,${opacity})`;
+    ctx.lineWidth = 0.3 + Math.random() * 0.1;
+    ctx.stroke();
+  }
+
+  // Draw stars
+  for (let i = 0; i < nodes.length; i++) {
+    const n = nodes[i];
+    const pos = screenPos[i];
+    const twinkle = 0.5 + 0.5 * Math.sin(elapsed * 0.001 * n.speed + n.phase);
+    const r = n.baseRadius * (0.7 + 0.3 * twinkle);
+    const brightness = 0.7 + 0.3 * twinkle;
+
+    // Glow halo
+    const glowR = r * 5;
+    const glow = ctx.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, glowR);
+    glow.addColorStop(0, `rgba(180,210,255,${0.4 * brightness})`);
+    glow.addColorStop(0.4, `rgba(120,160,255,${0.15 * brightness})`);
+    glow.addColorStop(1, `rgba(80,120,255,0)`);
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y, glowR, 0, Math.PI * 2);
+    ctx.fillStyle = glow;
+    ctx.fill();
+
+    // White core
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y, r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(255,255,255,${0.85 + 0.15 * brightness})`;
+    ctx.shadowColor = 'rgba(180,210,255,0.9)';
+    ctx.shadowBlur = 8 + 6 * twinkle;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  }
+
+  requestAnimationFrame(draw);
+}
+
+requestAnimationFrame(draw);
+</script>
+</body>
+</html>

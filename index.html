@@ -8,332 +8,204 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --wall: #1a1714;
-      --wall-light: #221f1b;
-      --frame-outer: #2e2820;
-      --frame-inner: #3d3428;
-      --mat: #f5f0e8;
-      --text: #e8e2d8;
-      --muted: #6b6158;
-      --accent: #c8a96e;
-      --placard: #1e1b17;
+      --bg: #000;
+      --text: #fff;
+      --muted: rgba(255,255,255,0.38);
+      --gap: 2px;
       --mono: 'Courier New', monospace;
       --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     }
 
     html, body {
-      min-height: 100%;
-    }
-
-    body {
-      background-color: var(--wall);
-      background-image:
-        radial-gradient(ellipse 80% 60% at 50% 0%, rgba(255,240,200,0.045) 0%, transparent 70%),
-        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      background: var(--bg);
       color: var(--text);
       font-family: var(--sans);
       min-height: 100vh;
     }
 
-    /* ── Header ── */
-    header {
+    /* ── Nav ── */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 28px 40px 24px;
-      border-bottom: 1px solid rgba(255,255,255,0.05);
+      padding: 22px 28px;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.72) 0%, transparent 100%);
+      pointer-events: none;
     }
 
-    header h1 {
-      font-family: var(--mono);
-      font-size: 0.78rem;
-      font-weight: normal;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: var(--accent);
+    nav a, nav span {
+      pointer-events: auto;
     }
 
-    header nav {
+    .nav-logo {
       font-family: var(--mono);
       font-size: 0.68rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text);
+      text-decoration: none;
+      opacity: 0.9;
+    }
+
+    .nav-count {
+      font-family: var(--mono);
+      font-size: 0.62rem;
       color: var(--muted);
-      letter-spacing: 0.08em;
+      letter-spacing: 0.1em;
     }
 
-    /* ── Wall ── */
-    .wall {
-      padding: 60px 40px 100px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 48px;
-      align-items: flex-end;
-      justify-content: center;
+    /* ── Grid ── */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--gap);
+    }
+
+    @media (max-width: 860px) {
+      .grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 520px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+
+    /* ── Card ── */
+    .card {
       position: relative;
-    }
-
-    /* Baseboard */
-    .wall::after {
-      content: '';
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 6px;
-      background: linear-gradient(to top, #0d0b09, transparent);
-      pointer-events: none;
-    }
-
-    /* ── Hanging Wire ── */
-    .artwork-wrap {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      cursor: pointer;
-      transition: transform 0.3s cubic-bezier(.22,.68,0,1.2);
-    }
-
-    .artwork-wrap:hover {
-      transform: translateY(-6px);
-    }
-
-    .wire {
-      width: 1px;
-      height: 20px;
-      background: linear-gradient(to bottom, transparent, rgba(180,160,120,0.35));
-      margin-bottom: 0;
-    }
-
-    /* ── Frame ── */
-    .frame {
-      position: relative;
-      padding: 10px;
-      background:
-        linear-gradient(145deg, #3e3428 0%, #2a2318 40%, #1e1a12 60%, #2e2820 100%);
-      box-shadow:
-        0 2px 0 rgba(255,240,180,0.06) inset,
-        0 -1px 0 rgba(0,0,0,0.5) inset,
-        1px 0 0 rgba(255,240,180,0.04) inset,
-        -1px 0 0 rgba(0,0,0,0.4) inset,
-        0 20px 60px rgba(0,0,0,0.7),
-        0 8px 20px rgba(0,0,0,0.5),
-        0 2px 4px rgba(0,0,0,0.4);
-      border-radius: 1px;
-    }
-
-    /* Frame bevel detail */
-    .frame::before {
-      content: '';
-      position: absolute;
-      inset: 4px;
-      border: 1px solid rgba(0,0,0,0.4);
-      border-radius: 1px;
-      pointer-events: none;
-      z-index: 2;
-    }
-
-    /* Mat board */
-    .mat {
-      background: var(--mat);
-      padding: 16px 16px 28px;
-      position: relative;
-    }
-
-    /* Gallery spotlight on hover */
-    .artwork-wrap:hover .frame {
-      box-shadow:
-        0 2px 0 rgba(255,240,180,0.08) inset,
-        0 -1px 0 rgba(0,0,0,0.5) inset,
-        1px 0 0 rgba(255,240,180,0.06) inset,
-        -1px 0 0 rgba(0,0,0,0.4) inset,
-        0 28px 80px rgba(0,0,0,0.7),
-        0 10px 30px rgba(0,0,0,0.5),
-        0 0 60px rgba(255,240,180,0.04);
-    }
-
-    /* ── Canvas / Thumbnail ── */
-    .canvas {
-      display: block;
-      position: relative;
+      aspect-ratio: 4 / 3;
       overflow: hidden;
+      display: block;
+      text-decoration: none;
+      background: #080808;
+      cursor: pointer;
     }
 
-    .canvas img {
-      display: block;
+    .card img {
       width: 100%;
       height: 100%;
       object-fit: cover;
+      display: block;
+      transition: transform 0.55s cubic-bezier(.22,.68,0,1.1), filter 0.4s ease;
+      filter: brightness(0.82) saturate(0.9);
     }
 
-    .canvas-empty {
+    .card:hover img {
+      transform: scale(1.05);
+      filter: brightness(1.05) saturate(1.1);
+    }
+
+    /* empty card */
+    .card-empty {
       width: 100%;
       height: 100%;
-      background: #0e0c0a;
       display: flex;
       align-items: center;
       justify-content: center;
     }
 
-    .canvas-empty span {
+    .card-empty span {
       font-family: var(--mono);
-      font-size: 0.6rem;
-      color: #2a2520;
+      font-size: 0.58rem;
+      color: #1c1c1c;
       letter-spacing: 0.12em;
       text-transform: uppercase;
     }
 
-    /* ── Placard ── */
-    .placard {
-      margin-top: 14px;
-      background: var(--placard);
-      border: 1px solid rgba(255,255,255,0.05);
-      padding: 10px 14px 11px;
-      min-width: 160px;
-      max-width: 260px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-    }
-
-    .placard-title {
-      font-size: 0.8rem;
-      font-weight: 500;
-      color: var(--text);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      letter-spacing: 0.01em;
-    }
-
-    .placard-meta {
-      margin-top: 4px;
-      font-family: var(--mono);
-      font-size: 0.62rem;
-      color: var(--muted);
-      letter-spacing: 0.06em;
-    }
-
-    /* ── Empty Wall ── */
-    .empty-wall {
-      width: 100%;
-      padding: 120px 0;
-      text-align: center;
-      font-family: var(--mono);
-      font-size: 0.75rem;
-      color: rgba(255,255,255,0.08);
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-    }
-
-    /* ── Footer ── */
-    footer {
-      position: fixed;
+    /* ── Label (hover reveal) ── */
+    .card-label {
+      position: absolute;
       bottom: 0;
       left: 0;
       right: 0;
-      padding: 10px 40px;
-      background: linear-gradient(to top, rgba(10,8,6,0.95), transparent);
-      font-family: var(--mono);
-      font-size: 0.62rem;
-      color: rgba(255,255,255,0.12);
-      letter-spacing: 0.06em;
-      display: flex;
-      justify-content: space-between;
+      padding: 40px 20px 18px;
+      background: linear-gradient(to top, rgba(0,0,0,0.78) 0%, transparent 100%);
+      opacity: 0;
+      transform: translateY(6px);
+      transition: opacity 0.28s ease, transform 0.28s ease;
     }
 
-    a.artwork-wrap { text-decoration: none; }
+    .card:hover .card-label {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .card-title {
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: #fff;
+      letter-spacing: 0.01em;
+      line-height: 1.2;
+    }
+
+    .card-meta {
+      margin-top: 4px;
+      font-family: var(--mono);
+      font-size: 0.58rem;
+      color: rgba(255,255,255,0.45);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
   </style>
 </head>
 <body>
 
-  <header>
-    <h1>chuck.neoteric.art</h1>
-    <nav id="count"></nav>
-  </header>
+  <nav>
+    <a class="nav-logo" href="/">chuck.neoteric.art</a>
+    <span class="nav-count" id="count"></span>
+  </nav>
 
-  <div class="wall" id="wall">
-    <!-- ARTWORKS START -->
-    <!-- ARTWORKS END -->
-  </div>
-
-  <footer>
-    <span>chuck.neoteric.art</span>
-    <span id="year"></span>
-  </footer>
+  <div class="grid" id="grid"></div>
 
   <script>
-    // Year
-    document.getElementById('year').textContent = new Date().getFullYear();
-
-    // Artworks definition
-    // Each item: { title, date, type, href, thumb, width, height }
-    // width/height = canvas dimensions in px (aspect ratio only)
     const artworks = [
-      { title: "Mandala", date: "2026", type: "interactive", href: "mandala.html", thumb: "thumbs/mandala.jpg", width: 340, height: 240 },
-      { title: "Mandala I", date: "2026", type: "interactive", href: "mandala1.html", thumb: "thumbs/mandala1.jpg", width: 340, height: 240 },
-      { title: "Mandala II", date: "2026", type: "interactive", href: "mandala2.html", thumb: "thumbs/mandala2.jpg", width: 340, height: 240 },
-      { title: "Mandala III", date: "2026", type: "interactive", href: "mandala3.html", thumb: "thumbs/mandala3.jpg", width: 340, height: 240 },
-      { title: "Mandala IV", date: "2026", type: "interactive", href: "mandala4.html", thumb: "thumbs/mandala4.jpg", width: 340, height: 240 },
-      { title: "Organism I", date: "2026", type: "generative", href: "organism1.html", thumb: "thumbs/organism1.jpg", width: 340, height: 240 },
-      { title: "High Res Invader", date: "2026", type: "generative", href: "hires-invader.html", thumb: "thumbs/hires-invader.jpg", width: 340, height: 240 },
-      { title: "Generative Invader", date: "2026", type: "generative", href: "generative-invader.html", thumb: "thumbs/generative-invader.jpg", width: 300, height: 240 },
-      { title: "Invader", date: "2026", type: "pixel art", href: "invader.html", thumb: "thumbs/invader.jpg", width: 260, height: 240 },
-      { title: "Kelsey", date: "2026", type: "tribute", href: "kelsey.html", thumb: "thumbs/kelsey.jpg", width: 340, height: 240 },
+      { title: "Mandala",            date: "2026", type: "interactive", href: "mandala.html",           thumb: "thumbs/mandala.jpg"           },
+      { title: "Mandala I",          date: "2026", type: "interactive", href: "mandala1.html",          thumb: "thumbs/mandala1.jpg"          },
+      { title: "Mandala II",         date: "2026", type: "interactive", href: "mandala2.html",          thumb: "thumbs/mandala2.jpg"          },
+      { title: "Mandala III",        date: "2026", type: "interactive", href: "mandala3.html",          thumb: "thumbs/mandala3.jpg"          },
+      { title: "Mandala IV",         date: "2026", type: "interactive", href: "mandala4.html",          thumb: "thumbs/mandala4.jpg"          },
+      { title: "Organism I",         date: "2026", type: "generative",  href: "organism1.html",         thumb: "thumbs/organism1.jpg"         },
+      { title: "High Res Invader",   date: "2026", type: "generative",  href: "hires-invader.html",     thumb: "thumbs/hires-invader.jpg"     },
+      { title: "Generative Invader", date: "2026", type: "generative",  href: "generative-invader.html",thumb: "thumbs/generative-invader.jpg"},
+      { title: "Invader",            date: "2026", type: "pixel art",   href: "invader.html",           thumb: "thumbs/invader.jpg"           },
+      { title: "Kelsey",             date: "2026", type: "tribute",     href: "kelsey.html",            thumb: "thumbs/kelsey.jpg"            },
+      { title: "Neon Invader",       date: "2026", type: "generative",  href: "invader-neon.html",      thumb: "thumbs/invader-neon.jpg"      },
     ];
 
-    const wall = document.getElementById('wall');
-    const countEl = document.getElementById('count');
+    const grid = document.getElementById('grid');
+    document.getElementById('count').textContent = artworks.length + ' works';
 
-    if (artworks.length === 0) {
-      wall.innerHTML = '<div class="empty-wall">— the walls are bare —</div>';
-      countEl.textContent = '0 works';
-    } else {
-      countEl.textContent = artworks.length + ' work' + (artworks.length !== 1 ? 's' : '');
-      artworks.forEach(a => {
-        const w = a.width  || 320;
-        const h = a.height || 240;
+    artworks.forEach(a => {
+      const card = document.createElement('a');
+      card.className = 'card';
+      card.href = a.href;
 
-        const wrap = document.createElement('a');
-        wrap.className = 'artwork-wrap';
-        wrap.href = a.href || '#';
+      if (a.thumb) {
+        const img = document.createElement('img');
+        img.src = a.thumb;
+        img.alt = a.title;
+        img.loading = 'lazy';
+        card.appendChild(img);
+      } else {
+        const empty = document.createElement('div');
+        empty.className = 'card-empty';
+        empty.innerHTML = '<span>' + (a.type || 'work') + '</span>';
+        card.appendChild(empty);
+      }
 
-        const wire = document.createElement('div');
-        wire.className = 'wire';
+      const label = document.createElement('div');
+      label.className = 'card-label';
+      label.innerHTML =
+        '<div class="card-title">' + a.title + '</div>' +
+        '<div class="card-meta">' + a.date + (a.type ? ' &nbsp;·&nbsp; ' + a.type : '') + '</div>';
+      card.appendChild(label);
 
-        const frame = document.createElement('div');
-        frame.className = 'frame';
-
-        const mat = document.createElement('div');
-        mat.className = 'mat';
-
-        const canvas = document.createElement('div');
-        canvas.className = 'canvas';
-        canvas.style.width  = w + 'px';
-        canvas.style.height = h + 'px';
-
-        if (a.thumb) {
-          const img = document.createElement('img');
-          img.src = a.thumb;
-          img.alt = a.title;
-          img.loading = 'lazy';
-          canvas.appendChild(img);
-        } else {
-          canvas.innerHTML = '<div class="canvas-empty"><span>' + (a.type || 'work') + '</span></div>';
-        }
-
-        mat.appendChild(canvas);
-        frame.appendChild(mat);
-
-        const placard = document.createElement('div');
-        placard.className = 'placard';
-        placard.style.maxWidth = (w + 52) + 'px';
-        placard.innerHTML =
-          '<div class="placard-title">' + a.title + '</div>' +
-          '<div class="placard-meta">' + a.date + (a.type ? ' &nbsp;·&nbsp; ' + a.type : '') + '</div>';
-
-        wrap.appendChild(wire);
-        wrap.appendChild(frame);
-        wrap.appendChild(placard);
-        wall.appendChild(wrap);
-      });
-    }
+      grid.appendChild(card);
+    });
   </script>
 
 </body>

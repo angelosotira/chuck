@@ -399,14 +399,14 @@ new p5(function(p){
 
     // === Petal outline (outside clip) ===
     const outA=p.map(sc,0,1,18,110);
-    dctx.shadowBlur=p.map(sc,0.4,1,0,18); dctx.shadowColor=`rgba(${cr},${cg},${cb},0.45)`;
+    ctx.shadowBlur=p.map(sc,0.4,1,0,18); ctx.shadowColor=`rgba(${cr},${cg},${cb},0.45)`;
     p.noFill(); p.stroke(cr,cg,cb,outA); p.strokeWeight(0.9);
     p.beginShape();
     p.vertex(0,r1);
     p.bezierVertex(-pw*0.85,r1+(r2-r1)*0.28,-pw*1.02,petalMid,0,r2);
     p.bezierVertex(pw*1.02,petalMid,pw*0.85,r1+(r2-r1)*0.28,0,r1);
     p.endShape(p.CLOSE);
-    dctx.shadowBlur=0;
+    ctx.shadowBlur=0;
 
     p.pop();
   }
@@ -428,10 +428,10 @@ new p5(function(p){
     p.stroke(sr,sg,sb,35); p.strokeWeight(0.5); p.ellipse(0,0,r1*2.4);
 
     // Sigil
-    dctx.shadowBlur=14; dctx.shadowColor=`rgba(${sr},${sg},${sb},0.9)`;
+    ctx.shadowBlur=14; ctx.shadowColor=`rgba(${sr},${sg},${sb},0.9)`;
     p.stroke(sr,sg,sb,210); p.strokeWeight(cr*0.042); p.noFill();
     drawSigil(p,pd.sunSign,cr);
-    dctx.shadowBlur=0;
+    ctx.shadowBlur=0;
   }
 
   // ── ZODIAC SIGILS ───────────────────────────────────────────────

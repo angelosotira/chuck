@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crystal Invader</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #050508;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+  }
+  canvas {
+    display: block;
+  }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+
+// Responsive sizing
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resize);
+resize();
+
+// Space Invader grid (11 wide × 8 tall)
+const GRID = [
+  [0,0,1,0,0,0,0,0,1,0,0],
+  [0,0,0,1,0,0,0,1,0,0,0],
+  [0,0,1,1,1,1,1,1,1,0,0],
+  [0,1,1,0,1,1,1,0,1,1,0],
+  [1,1,1,1,1,1,1,1,1,1,1],
+  [1,0,1,1,1,1,1,1,1,0,1],
+  [1,0,1,0,0,0,0,0,1,0,1],
+  [0,0,0,1,1,0,1,1,0,0,0],
+];
+
+const ROWS = GRID.length;    // 8
+const COLS = GRID[0].length; // 11
+
+// Convert HSL to hex/rgb for canvas
+function hslToRgb(h, s, l) {
+  h = ((h % 360) + 360) % 360;
+  s /= 100; l /= 100;
+  const k = n => (n + h / 30) % 12;
+  const a = s * Math.min(l, 1 - l);
+  const f = n => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+  return [Math.round(f(0)*255), Math.round(f(8)*255), Math.round(f(4)*255)];
+}
+
+function rgbStr(r, g, b, a=1) {
+  if (a < 1) return `rgba(${r},${g},${b},${a.toFixed(3)})`;
+  return `rgb(${r},${g},${b})`;
+}
+
+// Draw a single crystal facet tile at (x,y) with given size
+function drawCrystalFacet(x, y, size, hue, specularPulse) {
+  const s = size;
+  const cx = x + s/2;
+  const cy = y + s/2;
+
+  // 5 triangular sub-faces: top-left, top-right, bottom-left, bottom-right, center
+  // Hue variants: center=base, top-left=lighter+cooler, top-right=medium, 
+  //               bottom-left=medium-dark, bottom-right=darkest
+
+  // Corners
+  const TL = [x,     y    ];
+  const TR = [x+s,   y    ];
+  const BL = [x,     y+s  ];
+  const BR = [x+s,   y+s  ];
+  const C  = [cx,    cy   ];
+  const TM = [cx,    y    ]; // top-mid
+  const BM = [cx,    y+s  ]; // bot-mid
+  const ML = [x,     cy   ]; // mid-left
+  const MR = [x+s,   cy   ]; // mid-right
+
+  // Face definitions: [points, lightness, saturation-modifier, hue-shift]
+  const faces = [
+    { pts: [TL, TM, C, ML],    l: 72, sm:  5, hs:  -5 }, // top-left: brightest
+    { pts: [TM, TR, MR, C],    l: 55, sm:  0, hs:   8 }, // top-right: medium-light
+    { pts: [ML, C, BM, BL],    l: 42, sm: -5, hs:  -8 }, // bot-left: medium-dark
+    { pts: [C, MR, BR, BM],    l: 28, sm: -8, hs:  12 }, // bot-right: darkest
+    { pts: [TL, TR, BR, BL],   l: 50, sm:  2, hs:   0 }, // fallback center (drawn first, behind)
+  ];
+
+  // Draw each face as polygon (in order: center bg first, then the 4 corners)
+  // Actually draw bg, then 4 triangular faces on top
+  const drawFaces = [faces[4], faces[0], faces[1], faces[2], faces[3]];
+
+  for (let fi = 0; fi < drawFaces.length; fi++) {
+    if (fi === 0) continue; // skip center bg polygon; we'll do it differently
+    const face = drawFaces[fi];
+    const [r,g,b] = hslToRgb(hue + face.hs, Math.min(100, 80 + face.sm), face.l);
+    ctx.beginPath();
+    ctx.moveTo(face.pts[0][0], face.pts[0][1]);
+    for (let i = 1; i < face.pts.length; i++) {
+      ctx.lineTo(face.pts[i][0], face.pts[i][1]);
+    }
+    ctx.closePath();
+    ctx.fillStyle = rgbStr(r,g,b);
+    ctx.fill();
+  }
+
+  // Thin dark edge lines for crystal separation
+  ctx.beginPath();
+  ctx.moveTo(TL[0], TL[1]);
+  ctx.lineTo(C[0], C[1]);
+  ctx.moveTo(TR[0], TR[1]);
+  ctx.lineTo(C[0], C[1]);
+  ctx.moveTo(BL[0], BL[1]);
+  ctx.lineTo(C[0], C[1]);
+  ctx.moveTo(BR[0], BR[1]);
+  ctx.lineTo(C[0], C[1]);
+  ctx.strokeStyle = 'rgba(0,0,0,0.35)';
+  ctx.lineWidth = 0.5;
+  ctx.stroke();
+
+  // Border
+  ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+  ctx.lineWidth = 0.7;
+  ctx.strokeRect(x, y, s, s);
+
+  // Specular highlight dot — upper-left area, pulsing
+  const dotR = s * 0.09;
+  const dotX = x + s * 0.22;
+  const dotY = y + s * 0.22;
+  const dotAlpha = 0.55 + specularPulse * 0.45;
+  const grad = ctx.createRadialGradient(dotX, dotY, 0, dotX, dotY, dotR * 2.5);
+  grad.addColorStop(0, `rgba(255,255,255,${dotAlpha.toFixed(3)})`);
+  grad.addColorStop(0.5, `rgba(255,255,255,${(dotAlpha*0.3).toFixed(3)})`);
+  grad.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.beginPath();
+  ctx.arc(dotX, dotY, dotR * 2.5, 0, Math.PI * 2);
+  ctx.fillStyle = grad;
+  ctx.fill();
+}
+
+function draw(ts) {
+  const W = canvas.width;
+  const H = canvas.height;
+
+  // Clear
+  ctx.fillStyle = '#050508';
+  ctx.fillRect(0, 0, W, H);
+
+  // Breathing scale: 1.0 → 1.03, period ~4s
+  const breathe = 1.0 + 0.015 * (1 + Math.sin(ts / 4000 * Math.PI * 2));
+
+  // Base hue cycles: sapphire(220) → amethyst(270) → emerald(150) → back, ~15s
+  // Use a smooth path: 220 → 270 → 150+360=510? Let's do 0..1 t and interpolate
+  const hCycle = (ts / 15000) % 1;
+  // Keyframes: 0=sapphire(220), 0.33=amethyst(270), 0.66=emerald(150→510 to avoid wrap jump), 1=sapphire(220+360)
+  let baseHue;
+  if (hCycle < 0.33) {
+    const t = hCycle / 0.33;
+    baseHue = 220 + (270 - 220) * t;
+  } else if (hCycle < 0.66) {
+    const t = (hCycle - 0.33) / 0.33;
+    baseHue = 270 + (150 + 360 - 270) * t; // go through 360+ to avoid backward jump
+  } else {
+    const t = (hCycle - 0.66) / 0.34;
+    baseHue = (150 + 360) + (220 + 360 - (150 + 360)) * t;
+  }
+
+  // Specular pulse: 0..1, period ~2s, offset slightly per tile
+  const specBase = (1 + Math.sin(ts / 2000 * Math.PI * 2)) / 2;
+
+  // Tile size and invader dimensions
+  const tileSize = Math.min(W, H) * 0.075;
+  const gap = tileSize * 0.08;
+  const tileStep = tileSize + gap;
+  const invaderW = COLS * tileStep - gap;
+  const invaderH = ROWS * tileStep - gap;
+
+  // Save + translate to center, apply scale
+  ctx.save();
+  ctx.translate(W / 2, H / 2);
+  ctx.scale(breathe, breathe);
+  ctx.translate(-invaderW / 2, -invaderH / 2);
+
+  // Draw glow pass first (entire invader silhouette)
+  ctx.save();
+  ctx.shadowBlur = tileSize * 2.5;
+  const [gr, gg, gb] = hslToRgb(baseHue, 85, 50);
+  ctx.shadowColor = rgbStr(gr, gg, gb, 0.8);
+
+  // Draw filled squares for glow
+  for (let row = 0; row < ROWS; row++) {
+    for (let col = 0; col < COLS; col++) {
+      if (!GRID[row][col]) continue;
+      const tx = col * tileStep;
+      const ty = row * tileStep;
+      const [r2,g2,b2] = hslToRgb(baseHue, 80, 40);
+      ctx.fillStyle = rgbStr(r2,g2,b2);
+      ctx.fillRect(tx, ty, tileSize, tileSize);
+    }
+  }
+  ctx.restore();
+
+  // Now draw each crystal facet
+  for (let row = 0; row < ROWS; row++) {
+    for (let col = 0; col < COLS; col++) {
+      if (!GRID[row][col]) continue;
+      const tx = col * tileStep;
+      const ty = row * tileStep;
+
+      // Per-tile hue offset for shimmer (row+col creates diagonal rainbow)
+      const hueOffset = (row * 4.5 + col * 5.5);
+      const tileHue = baseHue + hueOffset;
+
+      // Per-tile specular pulse offset
+      const specOffset = (row * 0.13 + col * 0.17);
+      const specPulse = (1 + Math.sin((ts / 2000 + specOffset) * Math.PI * 2)) / 2;
+
+      drawCrystalFacet(tx, ty, tileSize, tileHue, specPulse);
+    }
+  }
+
+  ctx.restore();
+
+  requestAnimationFrame(draw);
+}
+
+requestAnimationFrame(draw);
+</script>
+</body>
+</html>

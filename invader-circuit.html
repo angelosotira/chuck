@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Circuit Invader — chuck.neoteric.art</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0a120a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    font-family: monospace;
+  }
+  canvas {
+    display: block;
+    image-rendering: pixelated;
+  }
+</style>
+</head>
+<body>
+<canvas id="c" width="800" height="600"></canvas>
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+
+const GRID = [
+  [0,0,1,0,0,0,0,0,1,0,0],
+  [0,0,0,1,0,0,0,1,0,0,0],
+  [0,0,1,1,1,1,1,1,1,0,0],
+  [0,1,1,0,1,1,1,0,1,1,0],
+  [1,1,1,1,1,1,1,1,1,1,1],
+  [1,0,1,1,1,1,1,1,1,0,1],
+  [1,0,1,0,0,0,0,0,1,0,1],
+  [0,0,0,1,1,0,1,1,0,0,0],
+];
+
+const COLS = 11;
+const ROWS = 8;
+const PAD_W = 36;
+const PAD_H = 36;
+const GAP = 4;
+const CELL = PAD_W + GAP;
+const GRID_W = COLS * CELL - GAP;
+const GRID_H = ROWS * CELL - GAP;
+const OX = (800 - GRID_W) / 2;
+const OY = (600 - GRID_H) / 2;
+
+// Build list of ON pads
+function padCenter(c, r) {
+  return {
+    x: OX + c * CELL + PAD_W / 2,
+    y: OY + r * CELL + PAD_H / 2,
+  };
+}
+
+// Collect all traces (horizontal and vertical between adjacent ON pixels)
+const traces = [];
+for (let r = 0; r < ROWS; r++) {
+  for (let c = 0; c < COLS; c++) {
+    if (!GRID[r][c]) continue;
+    // horizontal
+    if (c + 1 < COLS && GRID[r][c + 1]) {
+      const a = padCenter(c, r);
+      const b = padCenter(c + 1, r);
+      traces.push({ x1: a.x, y1: a.y, x2: b.x, y2: b.y, len: b.x - a.x });
+    }
+    // vertical
+    if (r + 1 < ROWS && GRID[r + 1][c]) {
+      const a = padCenter(c, r);
+      const b = padCenter(c, r + 1);
+      traces.push({ x1: a.x, y1: a.y, x2: b.x, y2: b.y, len: b.y - a.y });
+    }
+  }
+}
+
+// Animated dots
+const NUM_DOTS = 18;
+const dots = [];
+for (let i = 0; i < NUM_DOTS; i++) {
+  spawnDot(i / NUM_DOTS);
+}
+
+function spawnDot(progress) {
+  const t = traces[Math.floor(Math.random() * traces.length)];
+  dots.push({
+    trace: t,
+    t: progress !== undefined ? progress : 0,
+    speed: 0.4 + Math.random() * 0.6, // units per second as fraction
+  });
+}
+
+// Silkscreen labels near some pads — pick a handful
+const labels = [
+  { c: 2, r: 0, text: 'U1' },
+  { c: 8, r: 0, text: 'U2' },
+  { c: 4, r: 2, text: 'R1' },
+  { c: 6, r: 2, text: 'R2' },
+  { c: 0, r: 4, text: 'C1' },
+  { c: 10, r: 4, text: 'C2' },
+  { c: 3, r: 7, text: 'D1' },
+  { c: 6, r: 7, text: 'D2' },
+  { c: 5, r: 4, text: 'IC1' },
+];
+
+function drawRoundRect(x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+function drawBoard() {
+  // PCB substrate
+  const grad = ctx.createRadialGradient(400, 300, 50, 400, 300, 500);
+  grad.addColorStop(0, '#1a2f1a');
+  grad.addColorStop(1, '#0d1a0d');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 800, 600);
+
+  // Board edge outline (PCB border)
+  const bx = OX - 40, by = OY - 40, bw = GRID_W + 80, bh = GRID_H + 80;
+  ctx.strokeStyle = '#2a4a2a';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([8, 4]);
+  ctx.strokeRect(bx, by, bw, bh);
+  ctx.setLineDash([]);
+
+  // Corner fiducial marks
+  const corners = [
+    [bx + 12, by + 12],
+    [bx + bw - 12, by + 12],
+    [bx + 12, by + bh - 12],
+    [bx + bw - 12, by + bh - 12],
+  ];
+  for (const [cx, cy] of corners) {
+    ctx.strokeStyle = '#3a6a3a';
+    ctx.lineWidth = 1;
+    // outer circle
+    ctx.beginPath();
+    ctx.arc(cx, cy, 8, 0, Math.PI * 2);
+    ctx.stroke();
+    // inner dot
+    ctx.fillStyle = '#3a6a3a';
+    ctx.beginPath();
+    ctx.arc(cx, cy, 2, 0, Math.PI * 2);
+    ctx.fill();
+    // crosshairs
+    ctx.beginPath();
+    ctx.moveTo(cx - 12, cy); ctx.lineTo(cx + 12, cy);
+    ctx.moveTo(cx, cy - 12); ctx.lineTo(cx, cy + 12);
+    ctx.strokeStyle = '#2d552d';
+    ctx.stroke();
+  }
+
+  // Board label
+  ctx.fillStyle = '#2a5a2a';
+  ctx.font = '10px monospace';
+  ctx.fillText('PCB REV 1.0  NEOTERIC-INVADER-001', bx + 20, by + bh - 8);
+  ctx.fillText('ASSY: chuck.neoteric.art', bx + 20, by - 8);
+
+  // Draw traces (copper lines between adjacent ON pads)
+  for (const tr of traces) {
+    ctx.strokeStyle = '#8a5520';
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(tr.x1, tr.y1);
+    ctx.lineTo(tr.x2, tr.y2);
+    ctx.stroke();
+
+    // Thin highlight on trace
+    ctx.strokeStyle = 'rgba(200,130,60,0.25)';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(tr.x1, tr.y1);
+    ctx.lineTo(tr.x2, tr.y2);
+    ctx.stroke();
+  }
+
+  // Draw pads (ON pixels)
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      if (!GRID[r][c]) continue;
+      const px = OX + c * CELL;
+      const py = OY + r * CELL;
+
+      // Copper pad base
+      ctx.fillStyle = '#b87333';
+      drawRoundRect(px, py, PAD_W, PAD_H, 5);
+      ctx.fill();
+
+      // Pad sheen gradient
+      const pg = ctx.createLinearGradient(px, py, px, py + PAD_H);
+      pg.addColorStop(0, 'rgba(255,200,100,0.35)');
+      pg.addColorStop(0.4, 'rgba(255,170,70,0.1)');
+      pg.addColorStop(1, 'rgba(80,30,0,0.3)');
+      ctx.fillStyle = pg;
+      drawRoundRect(px, py, PAD_W, PAD_H, 5);
+      ctx.fill();
+
+      // Pad border
+      ctx.strokeStyle = '#d49040';
+      ctx.lineWidth = 1;
+      drawRoundRect(px, py, PAD_W, PAD_H, 5);
+      ctx.stroke();
+
+      // Center via hole
+      ctx.fillStyle = '#0d1a0d';
+      ctx.beginPath();
+      ctx.arc(px + PAD_W / 2, py + PAD_H / 2, 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#c08040';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.arc(px + PAD_W / 2, py + PAD_H / 2, 5, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+  }
+
+  // Silkscreen labels
+  ctx.fillStyle = '#99ddbb';
+  ctx.font = 'bold 8px monospace';
+  for (const lb of labels) {
+    if (!GRID[lb.r]?.[lb.c]) continue;
+    const px = OX + lb.c * CELL;
+    const py = OY + lb.r * CELL;
+    ctx.fillText(lb.text, px + 1, py - 2);
+  }
+}
+
+function drawDots(dt) {
+  for (const d of dots) {
+    d.t += d.speed * dt / d.trace.len * 40;
+    if (d.t > 1) {
+      // Reassign to a new trace
+      d.trace = traces[Math.floor(Math.random() * traces.length)];
+      d.t = 0;
+      d.speed = 0.4 + Math.random() * 0.6;
+    }
+
+    const tr = d.trace;
+    const x = tr.x1 + (tr.x2 - tr.x1) * d.t;
+    const y = tr.y1 + (tr.y2 - tr.y1) * d.t;
+
+    // Glow halo
+    const r = 10;
+    const grd = ctx.createRadialGradient(x, y, 0, x, y, r);
+    grd.addColorStop(0, 'rgba(255, 240, 120, 0.9)');
+    grd.addColorStop(0.3, 'rgba(255, 180, 40, 0.5)');
+    grd.addColorStop(1, 'rgba(255, 120, 0, 0)');
+    ctx.fillStyle = grd;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Core bright dot
+    ctx.fillStyle = '#fffbe0';
+    ctx.beginPath();
+    ctx.arc(x, y, 2.2, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Trail: draw a few ghost dots behind
+    for (let i = 1; i <= 4; i++) {
+      const tp = Math.max(0, d.t - i * 0.04);
+      const tx = tr.x1 + (tr.x2 - tr.x1) * tp;
+      const ty = tr.y1 + (tr.y2 - tr.y1) * tp;
+      const alpha = (1 - i / 5) * 0.4;
+      ctx.fillStyle = `rgba(255,190,50,${alpha})`;
+      ctx.beginPath();
+      ctx.arc(tx, ty, 2 - i * 0.3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+}
+
+let last = null;
+function loop(ts) {
+  if (!last) last = ts;
+  const dt = Math.min((ts - last) / 1000, 0.05);
+  last = ts;
+
+  // Redraw board every frame (no dirty rect needed at 800×600)
+  drawBoard();
+  drawDots(dt);
+
+  requestAnimationFrame(loop);
+}
+
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

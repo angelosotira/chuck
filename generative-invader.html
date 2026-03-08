@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Space Invader</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.4/p5.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #000; overflow: hidden; }
+  </style>
+</head>
+<body>
+<script>
+const INVADER = [
+  [0,0,1,0,0,0,0,0,1,0,0],
+  [0,0,0,1,0,0,0,1,0,0,0],
+  [0,0,1,1,1,1,1,1,1,0,0],
+  [0,1,1,0,1,1,1,0,1,1,0],
+  [1,1,1,1,1,1,1,1,1,1,1],
+  [1,0,1,1,1,1,1,1,1,0,1],
+  [1,0,1,0,0,0,0,0,1,0,1],
+  [0,0,0,1,1,0,1,1,0,0,0],
+];
+
+const COLS = INVADER[0].length;
+const ROWS = INVADER.length;
+// Chars from sparse → dense, ripple animates through them
+const WAVE_CHARS = ['.', ':', '+', '*', '#', '@', '█', '@', '#', '*', '+', ':', '.'];
+
+let t = 0;
+
+function setup() {
+  createCanvas(windowWidth, windowHeight);
+  textAlign(CENTER, CENTER);
+  noStroke();
+  colorMode(HSL, 360, 100, 100, 100);
+}
+
+function draw() {
+  // Near-black bg with slight persistence = motion blur
+  background(260, 30, 4, 90);
+
+  const margin = 8;
+  const cellSize = min(windowWidth / (COLS + margin), windowHeight / (ROWS + margin));
+  const fontSize = cellSize * 0.88;
+
+  textSize(fontSize);
+  textFont('monospace');
+
+  const startX = (windowWidth  - COLS * cellSize) / 2 + cellSize / 2;
+  const startY = (windowHeight - ROWS * cellSize) / 2 + cellSize / 2;
+
+  t += 0.022;
+
+  const cx = (COLS - 1) / 2.0;
+  const cy = (ROWS - 1) / 2.0;
+
+  for (let row = 0; row < ROWS; row++) {
+    for (let col = 0; col < COLS; col++) {
+      if (INVADER[row][col] !== 1) continue;
+
+      const x = startX + col * cellSize;
+      const y = startY + row * cellSize;
+
+      // Radial distance from invader centre
+      const dx = col - cx;
+      const dy = (row - cy) * 1.2;
+      const d  = sqrt(dx * dx + dy * dy);
+
+      // Ripple: sine wave radiating outward
+      const wave = sin(d * 1.4 - t * 2.8);
+
+      // Hue: pure blue (240) → violet-purple (278)
+      const hue  = map(wave, -1, 1, 240, 278);
+      const sat  = 100;
+      const lit  = map(wave, -1, 1, 40, 88);
+
+      // Glow halo
+      drawingContext.shadowBlur  = cellSize * 1.0;
+      drawingContext.shadowColor = `hsl(${hue}, 100%, 65%)`;
+
+      fill(hue, sat, lit, 100);
+
+      // Character density tracks wave phase
+      const idx = floor(map(wave, -1, 1, 0, WAVE_CHARS.length - 0.01));
+      text(WAVE_CHARS[idx], x, y);
+    }
+  }
+
+  drawingContext.shadowBlur = 0;
+}
+
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+}
+</script>
+</body>
+</html>

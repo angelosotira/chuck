@@ -8,7 +8,7 @@
 *{margin:0;padding:0;box-sizing:border-box;}
 body{background:#000;overflow:hidden;}
 canvas{position:fixed;}
-#glc{z-index:1;}
+#glc{z-index:1;background:#000;}
 #oc{z-index:2;pointer-events:none;}
 #pb{position:fixed;top:14px;left:50%;transform:translateX(-50%);display:flex;gap:9px;z-index:20;}
 .pb{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:rgba(255,255,255,0.4);padding:7px 18px;border-radius:20px;cursor:pointer;font:12px Georgia,serif;letter-spacing:.06em;transition:all .3s;white-space:nowrap;}
@@ -183,19 +183,22 @@ void main(){
   w=clamp(w,.001,.999);
 
   vec3 prev=texture(u_prev,w).rgb;
-  float inj=pmask*psc*.0068;
-  float cg=smoothstep(R1*1.7,.0,r)*.005;
-  vec3 res=prev*.9980+pcol*inj+u_ctr*cg;
-  // Reinhard tonemap
-  res=res*1.18/(res+.62);
-  o=vec4(res,1.);
+  float inj=pmask*psc*.004;
+  float cg=smoothstep(R1*1.7,.0,r)*.003;
+  vec3 res=prev*.997+pcol*inj+u_ctr*cg;
+  // Stay linear — tonemap only in display shader
+  o=vec4(clamp(res,0.,1.),1.);
 }`;
 
 const FS_DISP=`#version 300 es
 precision highp float;
 in vec2 uv;out vec4 o;
 uniform sampler2D u_tex;
-void main(){vec3 c=texture(u_tex,uv).rgb;c=pow(max(c,0.),vec3(.88));o=vec4(c,1.);}`;
+void main(){
+  vec3 c=texture(u_tex,uv).rgb;
+  c=c*1.22/(c+.58);
+  c=pow(max(c,0.),vec3(.86));
+  o=vec4(c,1.);}`;
 
 function mkProg(vSrc,fSrc){
   function sh(src,t){const s=gl.createShader(t);gl.shaderSource(s,src);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))console.error(gl.getShaderInfoLog(s));return s;}
@@ -270,6 +273,7 @@ function render(time){
   // Display to screen
   gl.bindFramebuffer(gl.FRAMEBUFFER,null);
   gl.viewport(0,0,SZ,SZ);
+  gl.clearColor(0,0,0,1);gl.clear(gl.COLOR_BUFFER_BIT);
   gl.useProgram(dispP);gl.bindVertexArray(vaoD);
   gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,fbs[1-curr].tex);
   gl.uniform1i(UD.tex,0);

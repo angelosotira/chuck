@@ -1,14 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Watercolor Invader</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body {
     width: 100%; height: 100%;
     background: #f5f0e8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     overflow: hidden;
   }
   canvas { display: block; }
@@ -17,186 +20,200 @@
 <body>
 <canvas id="c"></canvas>
 <script>
-const GRID = [
-  [0,0,1,0,0,0,0,0,1,0,0],
-  [0,0,0,1,0,0,0,1,0,0,0],
-  [0,0,1,1,1,1,1,1,1,0,0],
-  [0,1,1,0,1,1,1,0,1,1,0],
-  [1,1,1,1,1,1,1,1,1,1,1],
-  [1,0,1,1,1,1,1,1,1,0,1],
-  [1,0,1,0,0,0,0,0,1,0,1],
-  [0,0,0,1,1,0,1,1,0,0,0],
-];
+(function() {
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d');
 
-const COLS = 11;
-const ROWS = 8;
+  // Space Invader grid 11×8
+  const GRID = [
+    [0,0,1,0,0,0,0,0,1,0,0],
+    [0,0,0,1,0,0,0,1,0,0,0],
+    [0,0,1,1,1,1,1,1,1,0,0],
+    [0,1,1,0,1,1,1,0,1,1,0],
+    [1,1,1,1,1,1,1,1,1,1,1],
+    [1,0,1,1,1,1,1,1,1,0,1],
+    [1,0,1,0,0,0,0,0,1,0,1],
+    [0,0,0,1,1,0,1,1,0,0,0],
+  ];
 
-// Muted watercolor palette
-const PALETTE = [
-  { r: 201, g: 160, b: 160 }, // dusty rose
-  { r: 136, g: 153, b: 170 }, // slate blue
-  { r: 154, g: 171, b: 153 }, // sage green
-  { r: 196, g: 168, b:  98 }, // ochre
-  { r: 176, g: 160, b: 192 }, // soft lavender
-];
+  const ROWS = GRID.length;
+  const COLS = GRID[0].length;
 
-const canvas = document.getElementById('c');
-const ctx = canvas.getContext('2d');
-let W, H;
+  // Watercolor palette (muted, aged)
+  const PALETTE = [
+    { r: 196, g: 114, b: 106 }, // rose #c4726a
+    { r: 122, g: 154, b: 181 }, // dusty blue #7a9ab5
+    { r: 201, g: 169, b: 110 }, // amber #c9a96e
+    { r: 143, g: 168, b: 136 }, // sage #8fa888
+    { r: 155, g: 127, b: 166 }, // mauve #9b7fa6
+  ];
 
-function resize() {
-  W = canvas.width = window.innerWidth;
-  H = canvas.height = window.innerHeight;
-  buildBlobs();
-  drawBackground();
-  render();
-}
-window.addEventListener('resize', resize);
+  // Canvas sizing
+  const CELL = 56; // pixel cell size
+  const PADDING = 60;
+  const W = COLS * CELL + PADDING * 2;
+  const H = ROWS * CELL + PADDING * 2;
 
-// Seeded RNG for consistent randomness per pixel
-function mulberry32(seed) {
-  return function() {
-    seed |= 0; seed = seed + 0x6D2B79F5 | 0;
-    let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
-    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
-    return ((t ^ t >>> 14) >>> 0) / 4294967296;
-  };
-}
+  canvas.width = W;
+  canvas.height = H;
 
-// Pre-generate blob data for each filled pixel
-let blobs = [];
+  // Seeded random for consistent blot placement
+  let seed = 42;
+  function rand() {
+    seed = (seed * 1664525 + 1013904223) & 0xffffffff;
+    return (seed >>> 0) / 0xffffffff;
+  }
+  function randRange(min, max) { return min + rand() * (max - min); }
 
-function buildBlobs() {
-  const PIXEL_W = Math.round(W * 0.48 / COLS);
-  const PIXEL_H = Math.round(H * 0.56 / ROWS);
-  const PIXEL_SIZE = Math.min(PIXEL_W, PIXEL_H);
-
-  const gridW = COLS * PIXEL_SIZE;
-  const gridH = ROWS * PIXEL_SIZE;
-  const originX = (W - gridW) / 2;
-  const originY = (H - gridH) / 2;
-
-  blobs = [];
-  let colorIdx = 0;
-
+  // Pre-generate blot data for each filled pixel
+  const blots = [];
   for (let row = 0; row < ROWS; row++) {
     for (let col = 0; col < COLS; col++) {
       if (!GRID[row][col]) continue;
 
-      const cx = originX + col * PIXEL_SIZE + PIXEL_SIZE / 2;
-      const cy = originY + row * PIXEL_SIZE + PIXEL_SIZE / 2;
-      const pal = PALETTE[colorIdx % PALETTE.length];
-      colorIdx++;
+      const cx = PADDING + col * CELL + CELL / 2;
+      const cy = PADDING + row * CELL + CELL / 2;
 
-      const rng = mulberry32((row * 31 + col) * 7919 + 1234);
-      const layerCount = 18 + Math.floor(rng() * 8); // 18–25 layers
+      // Pick a color from palette with slight variation
+      const baseColor = PALETTE[Math.floor(randRange(0, PALETTE.length))];
+      const cr = Math.min(255, Math.max(0, baseColor.r + randRange(-15, 15)));
+      const cg = Math.min(255, Math.max(0, baseColor.g + randRange(-15, 15)));
+      const cb = Math.min(255, Math.max(0, baseColor.b + randRange(-15, 15)));
 
+      // Generate layers for this blot
+      const numLayers = Math.floor(randRange(8, 13));
       const layers = [];
-      for (let i = 0; i < layerCount; i++) {
-        const scale = 0.78 + rng() * 0.52;     // 0.78–1.3x pixel size
-        const rx = PIXEL_SIZE * scale * (0.42 + rng() * 0.3);
-        const ry = PIXEL_SIZE * scale * (0.38 + rng() * 0.3);
-        const ox = (rng() - 0.5) * PIXEL_SIZE * 0.5;
-        const oy = (rng() - 0.5) * PIXEL_SIZE * 0.5;
-        const angle = rng() * Math.PI;
-        const alpha = 0.028 + rng() * 0.055;    // 0.028–0.083
-
-        // Slight hue variation per layer
-        const dr = Math.round((rng() - 0.5) * 28);
-        const dg = Math.round((rng() - 0.5) * 22);
-        const db = Math.round((rng() - 0.5) * 28);
-
+      for (let i = 0; i < numLayers; i++) {
         layers.push({
-          ox, oy, rx, ry, angle,
-          r: Math.min(255, Math.max(0, pal.r + dr)),
-          g: Math.min(255, Math.max(0, pal.g + dg)),
-          b: Math.min(255, Math.max(0, pal.b + db)),
-          alpha,
+          ox: randRange(-3, 3),
+          oy: randRange(-3, 3),
+          rx: CELL * randRange(0.38, 0.58),
+          ry: CELL * randRange(0.35, 0.55),
+          rotation: randRange(0, Math.PI * 2),
+          opacity: randRange(0.07, 0.15),
+          shadowBlur: randRange(20, 36),
+          // Animation: each layer has its own phase offset and period
+          phase: randRange(0, Math.PI * 2),
+          period: randRange(6000, 10000),
+          amplitude: randRange(0.01, 0.04),
         });
       }
 
-      blobs.push({ cx, cy, layers, pal, rng });
+      blots.push({
+        cx, cy,
+        cr: Math.round(cr), cg: Math.round(cg), cb: Math.round(cb),
+        layers,
+        // For the outer "bleed" halo
+        halos: Array.from({ length: 4 }, () => ({
+          ox: randRange(-6, 6),
+          oy: randRange(-6, 6),
+          rx: CELL * randRange(0.55, 0.75),
+          ry: CELL * randRange(0.5, 0.7),
+          rotation: randRange(0, Math.PI * 2),
+        })),
+      });
     }
   }
 
-  // Store PIXEL_SIZE for grain
-  blobs._pixelSize = PIXEL_SIZE;
-}
-
-// Draw the static paper background with subtle grain
-function drawBackground() {
-  // Parchment gradient
-  const grad = ctx.createRadialGradient(W/2, H/2, 0, W/2, H/2, Math.max(W, H) * 0.7);
-  grad.addColorStop(0, '#f8f4ed');
-  grad.addColorStop(1, '#ede6d8');
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, W, H);
-
-  // Subtle paper grain
-  const imageData = ctx.getImageData(0, 0, W, H);
-  const data = imageData.data;
-  const grainRng = mulberry32(42);
-  for (let i = 0; i < data.length; i += 4) {
-    const noise = (grainRng() - 0.5) * 14;
-    data[i]     = Math.min(255, Math.max(0, data[i]     + noise));
-    data[i + 1] = Math.min(255, Math.max(0, data[i + 1] + noise));
-    data[i + 2] = Math.min(255, Math.max(0, data[i + 2] + noise));
+  // Paper texture: pre-render noise to an offscreen canvas
+  const paperCanvas = document.createElement('canvas');
+  paperCanvas.width = W;
+  paperCanvas.height = H;
+  const paperCtx = paperCanvas.getContext('2d');
+  const paperImg = paperCtx.createImageData(W, H);
+  const pd = paperImg.data;
+  // Use a simple noise pass
+  seed = 7919;
+  for (let i = 0; i < pd.length; i += 4) {
+    const n = rand() * 60 - 30;
+    // Warm paper base color: #f5f0e8 = 245,240,232
+    pd[i]   = 245 + n;
+    pd[i+1] = 240 + n * 0.9;
+    pd[i+2] = 232 + n * 0.7;
+    pd[i+3] = 255;
   }
-  ctx.putImageData(imageData, 0, 0);
-}
+  paperCtx.putImageData(paperImg, 0, 0);
 
-// Offscreen canvas for watercolor layer (composited over background)
-let offCanvas, offCtx;
-function ensureOffscreen() {
-  if (!offCanvas || offCanvas.width !== W || offCanvas.height !== H) {
-    offCanvas = document.createElement('canvas');
-    offCanvas.width = W;
-    offCanvas.height = H;
-    offCtx = offCanvas.getContext('2d');
+  // Noise texture overlay canvas
+  const noiseCanvas = document.createElement('canvas');
+  noiseCanvas.width = W;
+  noiseCanvas.height = H;
+  const noiseCtx = noiseCanvas.getContext('2d');
+  const noiseImg = noiseCtx.createImageData(W, H);
+  const nd = noiseImg.data;
+  seed = 31337;
+  for (let i = 0; i < nd.length; i += 4) {
+    const n = (rand() - 0.5) * 40;
+    nd[i]   = 128 + n;
+    nd[i+1] = 128 + n;
+    nd[i+2] = 128 + n;
+    nd[i+3] = Math.round(rand() * 18 + 4); // very subtle
   }
-}
+  noiseCtx.putImageData(noiseImg, 0, 0);
 
-// Animate breathing
-let t = 0;
-const BREATHE_SPEED = 0.0006; // full cycle ≈ 10s
+  function drawBlot(blot, t) {
+    const { cx, cy, cr, cg, cb, layers, halos } = blot;
 
-function render() {
-  ensureOffscreen();
-  offCtx.clearRect(0, 0, W, H);
+    // Draw outer halo / bleed first (very faint, large spread)
+    for (const h of halos) {
+      ctx.save();
+      ctx.translate(cx + h.ox, cy + h.oy);
+      ctx.rotate(h.rotation);
+      ctx.shadowColor = `rgba(${cr},${cg},${cb},0.5)`;
+      ctx.shadowBlur = 40;
+      ctx.fillStyle = `rgba(${cr},${cg},${cb},0.03)`;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, h.rx, h.ry, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
 
-  const breathe = 0.82 + 0.18 * Math.sin(t * Math.PI * 2); // 0.82–1.0
+    // Draw layers
+    for (const layer of layers) {
+      const breathe = layer.amplitude * Math.sin(2 * Math.PI * t / layer.period + layer.phase);
+      const alpha = Math.max(0.01, layer.opacity + breathe);
 
-  for (const blob of blobs) {
-    for (const layer of blob.layers) {
-      const alpha = layer.alpha * breathe;
-      offCtx.save();
-      offCtx.translate(blob.cx + layer.ox, blob.cy + layer.oy);
-      offCtx.rotate(layer.angle);
-      offCtx.beginPath();
-      offCtx.ellipse(0, 0, layer.rx, layer.ry, 0, 0, Math.PI * 2);
-      offCtx.fillStyle = `rgba(${layer.r},${layer.g},${layer.b},${alpha.toFixed(4)})`;
-      offCtx.fill();
-      offCtx.restore();
+      ctx.save();
+      ctx.translate(cx + layer.ox, cy + layer.oy);
+      ctx.rotate(layer.rotation);
+      ctx.shadowColor = `rgba(${cr},${cg},${cb},0.6)`;
+      ctx.shadowBlur = layer.shadowBlur;
+      ctx.fillStyle = `rgba(${cr},${cg},${cb},${alpha.toFixed(3)})`;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, layer.rx, layer.ry, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
     }
   }
 
-  // Draw watercolor layer over background
-  ctx.clearRect(0, 0, W, H);
-  drawBackground();
-  ctx.drawImage(offCanvas, 0, 0);
+  function render(t) {
+    // Draw paper background
+    ctx.drawImage(paperCanvas, 0, 0);
 
-  // Subtle vignette
-  const vig = ctx.createRadialGradient(W/2, H/2, Math.min(W,H)*0.3, W/2, H/2, Math.max(W,H)*0.72);
-  vig.addColorStop(0, 'rgba(0,0,0,0)');
-  vig.addColorStop(1, 'rgba(60,40,20,0.12)');
-  ctx.fillStyle = vig;
-  ctx.fillRect(0, 0, W, H);
+    // Draw all blots
+    for (const blot of blots) {
+      drawBlot(blot, t);
+    }
 
-  t += BREATHE_SPEED;
+    // Overlay paper noise texture on top
+    ctx.globalCompositeOperation = 'overlay';
+    ctx.globalAlpha = 0.12;
+    ctx.drawImage(noiseCanvas, 0, 0);
+    ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = 'source-over';
+
+    // Second pass: very faint warm vignette around edges
+    const grad = ctx.createRadialGradient(W/2, H/2, Math.min(W,H)*0.3, W/2, H/2, Math.max(W,H)*0.75);
+    grad.addColorStop(0, 'rgba(245,240,232,0)');
+    grad.addColorStop(1, 'rgba(220,210,195,0.25)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, H);
+
+    requestAnimationFrame(render);
+  }
+
   requestAnimationFrame(render);
-}
-
-resize();
+})();
 </script>
 </body>
 </html>

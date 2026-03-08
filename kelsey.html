@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kelsey is Awesome</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 100%; height: 100%;
+      background: #000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      font-family: 'Courier New', monospace;
+    }
+    .invader {
+      font-size: 20vmin;
+      line-height: 1;
+      animation: float 3s ease-in-out infinite;
+    }
+    .text {
+      font-size: 6vmin;
+      color: #00ff88;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      animation: glow 2s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-15px); }
+    }
+    @keyframes glow {
+      0%, 100% { text-shadow: 0 0 10px #00ff88, 0 0 20px #00ff88; }
+      50% { text-shadow: 0 0 20px #00ff88, 0 0 40px #00ff88, 0 0 60px #00ff88; }
+    }
+  </style>
+</head>
+<body>
+  <div class="invader">👾</div>
+  <div class="text">Kelsey is Awesome</div>
+</body>
+</html>

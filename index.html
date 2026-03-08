@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>chuck.neoteric.art</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0a;
+      --surface: #111111;
+      --border: #1e1e1e;
+      --text: #e8e8e8;
+      --muted: #555;
+      --accent: #c8a96e;
+      --accent-dim: rgba(200, 169, 110, 0.12);
+      --font: 'Georgia', serif;
+      --mono: 'Courier New', monospace;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      min-height: 100vh;
+      padding: 60px 24px 80px;
+    }
+
+    header {
+      max-width: 720px;
+      margin: 0 auto 56px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 28px;
+    }
+
+    header h1 {
+      font-size: 1.15rem;
+      font-weight: normal;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      font-family: var(--mono);
+    }
+
+    header p {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 0.85rem;
+      font-family: var(--mono);
+      letter-spacing: 0.04em;
+    }
+
+    main {
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    .empty {
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      letter-spacing: 0.06em;
+      padding: 40px 0;
+      text-align: center;
+    }
+
+    /* Items will be added here over time */
+    .items {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+
+    .item {
+      display: flex;
+      align-items: baseline;
+      gap: 20px;
+      padding: 16px 0;
+      border-bottom: 1px solid var(--border);
+      text-decoration: none;
+      color: inherit;
+      transition: background 0.15s;
+    }
+
+    .item:hover {
+      background: var(--accent-dim);
+      padding-left: 12px;
+      margin-left: -12px;
+      padding-right: 12px;
+    }
+
+    .item-date {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      color: var(--muted);
+      white-space: nowrap;
+      flex-shrink: 0;
+      padding-top: 2px;
+    }
+
+    .item-title {
+      font-size: 1rem;
+      color: var(--text);
+      line-height: 1.4;
+    }
+
+    .item-type {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      color: var(--accent);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-left: auto;
+      flex-shrink: 0;
+    }
+
+    footer {
+      max-width: 720px;
+      margin: 64px auto 0;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>chuck.neoteric.art</h1>
+    <p>Angelo's publishing space — maintained by Vaynerchuck 🦾</p>
+  </header>
+
+  <main>
+    <div class="empty">— nothing published yet —</div>
+
+    <!-- ITEMS START -->
+    <!-- ITEMS END -->
+  </main>
+
+  <footer>
+    &copy; 2026 &nbsp;·&nbsp; angelo sotira &nbsp;·&nbsp; updated automatically
+  </footer>
+</body>
+</html>

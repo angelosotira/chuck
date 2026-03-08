@@ -3,15 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Astral Mandala</title>
+<title>Astral Organism</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
-body{background:#000;overflow:hidden;}
-canvas{position:fixed;}
-#glc{z-index:1;background:#000;}
-#oc{z-index:2;pointer-events:none;}
+html,body{background:#000;overflow:hidden;width:100%;height:100%;}
+#c,#oc{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);}
+#c{z-index:1;}#oc{z-index:2;pointer-events:none;}
 #pb{position:fixed;top:14px;left:50%;transform:translateX(-50%);display:flex;gap:9px;z-index:20;}
-.pb{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:rgba(255,255,255,0.4);padding:7px 18px;border-radius:20px;cursor:pointer;font:12px Georgia,serif;letter-spacing:.06em;transition:all .3s;white-space:nowrap;}
+.pb{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:rgba(255,255,255,0.38);padding:7px 18px;border-radius:20px;cursor:pointer;font:12px Georgia,serif;letter-spacing:.06em;transition:all .3s;white-space:nowrap;}
 .pb:hover{background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.72);}
 .pb.on{background:rgba(85,25,145,0.38);border-color:rgba(145,85,255,0.5);color:#c8a8ff;}
 #mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.82);z-index:100;backdrop-filter:blur(8px);align-items:center;justify-content:center;}
@@ -31,7 +30,7 @@ canvas{position:fixed;}
 </style>
 </head>
 <body>
-<canvas id="glc"></canvas>
+<canvas id="c"></canvas>
 <canvas id="oc"></canvas>
 <div id="pb">
   <button class="pb on" id="b0">Angelo</button>
@@ -41,32 +40,35 @@ canvas{position:fixed;}
 </div>
 <div id="mo">
   <div id="md">
-    <h2>Your Mandala</h2>
+    <h2>Your Organism</h2>
     <div class="fi"><label>Name</label><input id="fn" type="text" placeholder="Your name"></div>
     <div class="fi"><label>Birth Date</label><input id="fd" type="date"></div>
     <div class="fi"><label>Birth Time</label><input id="ft" type="time" value="12:00"><small>Local time at birth location</small></div>
     <div class="fi"><label>Birth City</label><input id="fc" type="text" placeholder="e.g. Paris, New York, Tokyo"><small>50+ major cities recognized</small></div>
-    <div class="fi"><label>Coordinates (optional override)</label><input id="fco" type="text" placeholder="lat, lon — e.g. 48.8566, 2.3522"></div>
+    <div class="fi"><label>Coordinates (optional)</label><input id="fco" type="text" placeholder="lat, lon — e.g. 48.8566, 2.3522"></div>
     <div id="mdb">
       <button id="mc" onclick="closeModal()">Cancel</button>
-      <button id="mg" onclick="generateProfile()">Reveal Mandala</button>
+      <button id="mg" onclick="generateProfile()">Reveal Organism</button>
     </div>
   </div>
 </div>
 
 <script>
+// ─── NOISE (inline Perlin) ──────────────────────────────────────────────────
+const P=(()=>{const p=new Uint8Array(512);const s=[...Array(256)].map((_,i)=>i);for(let i=255;i>0;i--){const j=Math.floor(Math.random()*(i+1));[s[i],s[j]]=[s[j],s[i]];}for(let i=0;i<512;i++)p[i]=s[i&255];const f=t=>t*t*t*(t*(t*6-15)+10),g=(h,x,y,z)=>{const u=h<8?x:y,v=h<4?y:h===12||h===14?x:z;return((h&1)?-u:u)+((h&2)?-v:v)};return(x,y,z=0)=>{const X=Math.floor(x)&255,Y=Math.floor(y)&255,Z=Math.floor(z)&255;x-=Math.floor(x);y-=Math.floor(y);z-=Math.floor(z);const u=f(x),v=f(y),w=f(z),A=p[X]+Y,B=p[X+1]+Y;const lerp=(a,b,t)=>a+(b-a)*t;return lerp(lerp(lerp(g(p[p[A]+Z],x,y,z),g(p[p[B]+Z],x-1,y,z),u),lerp(g(p[p[A+1]+Z],x,y-1,z),g(p[p[B+1]+Z],x-1,y-1,z),u),v),lerp(lerp(g(p[p[A]+Z+1],x,y,z-1),g(p[p[B]+Z+1],x-1,y,z-1),u),lerp(g(p[p[A+1]+Z+1],x,y-1,z-1),g(p[p[B+1]+Z+1],x-1,y-1,z-1),u),v),w)*0.5+0.5;};})();
+
 // ─── CITIES ────────────────────────────────────────────────────────────────
 const CITIES={"new york":[40.71,-74.01,-5],"los angeles":[34.05,-118.24,-8],"chicago":[41.88,-87.63,-6],"miami":[25.76,-80.19,-5],"houston":[29.76,-95.37,-6],"seattle":[47.61,-122.33,-8],"san francisco":[37.77,-122.42,-8],"boston":[42.36,-71.06,-5],"washington":[38.91,-77.04,-5],"toronto":[43.65,-79.38,-5],"vancouver":[49.28,-123.12,-8],"mexico city":[19.43,-99.13,-6],"london":[51.51,-0.13,0],"paris":[48.86,2.35,1],"berlin":[52.52,13.41,1],"madrid":[40.42,-3.70,1],"rome":[41.90,12.50,1],"amsterdam":[52.37,4.90,1],"brussels":[50.85,4.35,1],"vienna":[48.21,16.37,1],"zurich":[47.38,8.54,1],"milan":[45.47,9.19,1],"barcelona":[41.39,2.17,1],"lisbon":[38.72,-9.14,0],"athens":[37.98,23.73,2],"istanbul":[41.01,28.98,3],"stockholm":[59.33,18.07,1],"oslo":[59.91,10.75,1],"copenhagen":[55.68,12.57,1],"helsinki":[60.17,24.94,2],"warsaw":[52.23,21.01,1],"prague":[50.08,14.44,1],"budapest":[47.50,19.04,1],"bucharest":[44.43,26.10,2],"kyiv":[50.45,30.52,2],"moscow":[55.76,37.62,3],"dubai":[25.20,55.27,4],"riyadh":[24.69,46.72,3],"tehran":[35.69,51.39,3.5],"mumbai":[19.08,72.88,5.5],"delhi":[28.61,77.21,5.5],"bangalore":[12.97,77.59,5.5],"karachi":[24.86,67.01,5],"dhaka":[23.81,90.41,6],"bangkok":[13.76,100.50,7],"kuala lumpur":[3.14,101.69,8],"singapore":[1.35,103.82,8],"jakarta":[-6.21,106.85,7],"manila":[14.60,120.98,8],"hong kong":[22.32,114.17,8],"taipei":[25.03,121.57,8],"shanghai":[31.23,121.47,8],"beijing":[39.90,116.41,8],"tokyo":[35.68,139.65,9],"seoul":[37.57,126.98,9],"sydney":[-33.87,151.21,10],"melbourne":[-37.81,144.96,10],"auckland":[-36.85,174.76,12],"sao paulo":[-23.55,-46.63,-3],"rio de janeiro":[-22.91,-43.17,-3],"buenos aires":[-34.60,-58.38,-3],"lima":[-12.05,-77.04,-5],"bogota":[4.71,-74.07,-5],"santiago":[-33.45,-70.67,-4],"cairo":[30.04,31.24,2],"casablanca":[33.57,-7.59,1],"lagos":[6.52,3.38,1],"nairobi":[-1.29,36.82,3],"johannesburg":[-26.20,28.05,2]};
 function lookupCity(s){const k=s.toLowerCase().trim();for(const[n,v]of Object.entries(CITIES))if(k.includes(n)||n.includes(k))return{lat:v[0],lon:v[1],tz:v[2]};return null;}
 
 // ─── PROFILES ──────────────────────────────────────────────────────────────
 const PR=[{name:"Angelo",year:1981,month:2,day:14,hour:13,min:0,lat:37.98,lon:23.73,tz:2},null,null,null];
-let curP=0,editS=-1,needsReset=false;
+let curP=0,editS=-1;
 for(let i=1;i<=3;i++){try{const s=localStorage.getItem('mp'+i);if(s)PR[i]=JSON.parse(s);}catch(e){}}
 function openModal(s){editS=s;const p=PR[s];document.getElementById('fn').value=p?p.name:'';document.getElementById('fd').value=p?`${p.year}-${String(p.month).padStart(2,'0')}-${String(p.day).padStart(2,'0')}`:'';document.getElementById('ft').value=p?`${String(p.hour).padStart(2,'0')}:${String(p.min||0).padStart(2,'0')}`:'12:00';document.getElementById('fc').value=p?p.cityName||'':'';document.getElementById('fco').value='';document.getElementById('mo').classList.add('show');}
 function closeModal(){document.getElementById('mo').classList.remove('show');}
-function generateProfile(){const nm=document.getElementById('fn').value.trim(),ds=document.getElementById('fd').value;if(!nm||!ds){alert('Name and birth date required.');return;}const[y,mo,d]=ds.split('-').map(Number),[h,mi]=(document.getElementById('ft').value||'12:00').split(':').map(Number),cs=document.getElementById('fc').value.trim(),cos=document.getElementById('fco').value.trim();let lat=0,lon=0,tz=0,cityName=cs;const ct=lookupCity(cs);if(ct){lat=ct.lat;lon=ct.lon;tz=ct.tz;}else if(cos){const p=cos.split(',').map(Number);if(p.length>=2){lat=p[0];lon=p[1];tz=Math.round(lon/15);}}PR[editS]={name:nm,year:y,month:mo,day:d,hour:h,min:mi,lat,lon,tz,cityName};try{localStorage.setItem('mp'+editS,JSON.stringify(PR[editS]));}catch(e){}pCache[editS]=null;needsReset=true;selectProfile(editS);closeModal();}
-function selectProfile(i){curP=i;updateButtons();needsReset=true;}
+function generateProfile(){const nm=document.getElementById('fn').value.trim(),ds=document.getElementById('fd').value;if(!nm||!ds){alert('Name and birth date required.');return;}const[y,mo,d]=ds.split('-').map(Number),[h,mi]=(document.getElementById('ft').value||'12:00').split(':').map(Number),cs=document.getElementById('fc').value.trim(),cos=document.getElementById('fco').value.trim();let lat=0,lon=0,tz=0,cityName=cs;const ct=lookupCity(cs);if(ct){lat=ct.lat;lon=ct.lon;tz=ct.tz;}else if(cos){const p=cos.split(',').map(Number);if(p.length>=2){lat=p[0];lon=p[1];tz=Math.round(lon/15);}}PR[editS]={name:nm,year:y,month:mo,day:d,hour:h,min:mi,lat,lon,tz,cityName};try{localStorage.setItem('mp'+editS,JSON.stringify(PR[editS]));}catch(e){}pCache[editS]=null;selectProfile(editS);closeModal();}
+function selectProfile(i){curP=i;updateButtons();}
 function updateButtons(){for(let i=0;i<4;i++){const b=document.getElementById('b'+i);b.classList.toggle('on',i===curP);if(i===0){b.textContent='Angelo';b.onclick=()=>selectProfile(0);}else if(PR[i]){b.textContent=PR[i].name;b.onclick=()=>openModal(i);}else{b.textContent='+ Profile '+(i+1);b.onclick=()=>openModal(i);}}}
 updateButtons();
 
@@ -79,342 +81,292 @@ const PL_ORB={Mercury:{L0:252.25032,dm:4.09235555},Venus:{L0:181.97971,dm:1.6021
 function plLon(nm,j){if(nm==='Sun')return sLon(j);if(nm==='Moon')return mLon(j);const p=PL_ORB[nm];return n360(p.L0+p.dm*(j-2451545));}
 function allPos(j){const r={};for(const nm of['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus'])r[nm]=plLon(nm,j);return r;}
 function aspSc(diff){const d=Math.min(Math.abs(n360(diff)),360-Math.abs(n360(diff)));if(d<8)return 0.5;if(Math.abs(d-60)<6)return 2;if(Math.abs(d-90)<7)return-2.5;if(Math.abs(d-120)<8)return 3;if(Math.abs(d-150)<5)return-1;if(Math.abs(d-180)<8)return-2;return 0;}
-function fcst(natal,today){const sc={};for(const ax of AXES){let raw=0;const np=natal[ax.pl];for(const[tn,tl]of Object.entries(today)){const w=['Jupiter','Saturn','Sun','Moon'].includes(tn)?1.3:1;raw+=aspSc(tl-np)*w;}sc[ax.pl]=Math.max(0.06,Math.min(0.94,0.5+raw/20));}return sc;}
+function fcst(natal,today){const sc={};for(const ax of AXES){let raw=0;const np=natal[ax.pl];for(const[tn,tl]of Object.entries(today)){const w=['Jupiter','Saturn','Sun','Moon'].includes(tn)?1.3:1;raw+=aspSc(tl-np)*w;}sc[ax.pl]=Math.max(0.04,Math.min(0.96,0.5+raw/20));}return sc;}
 function zodSgn(lon){return['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'][Math.floor(lon/30)];}
 function calcProfile(pr){if(!pr)return null;const h=pr.hour-pr.tz+(pr.min||0)/60,j0=jd(pr.year,pr.month,pr.day,h),pos=allPos(j0);return{pos,sun:zodSgn(pos.Sun),moon:zodSgn(pos.Moon)};}
 
 // ─── AXES ──────────────────────────────────────────────────────────────────
 const AXES=[
-  {name:'Vitality', pl:'Sun',     rgb:[1.00,0.72,0.18],hex:'#d4921a'},
-  {name:'Intuition',pl:'Moon',    rgb:[0.52,0.68,1.00],hex:'#85aeff'},
-  {name:'Mind',     pl:'Mercury', rgb:[0.00,0.80,0.88],hex:'#00ccdf'},
-  {name:'Love',     pl:'Venus',   rgb:[1.00,0.34,0.56],hex:'#ff578f'},
-  {name:'Drive',    pl:'Mars',    rgb:[0.92,0.12,0.24],hex:'#eb1e3d'},
-  {name:'Abundance',pl:'Jupiter', rgb:[0.08,0.80,0.48],hex:'#14cc7a'},
-  {name:'Structure',pl:'Saturn',  rgb:[0.20,0.44,0.90],hex:'#3370e6'},
-  {name:'Awakening',pl:'Uranus',  rgb:[0.58,0.24,1.00],hex:'#943dff'},
+  {name:'Vitality', pl:'Sun',     r:255,g:185,b:45,  hex:'#c8940a'},
+  {name:'Intuition',pl:'Moon',    r:130,g:175,b:255,  hex:'#82afff'},
+  {name:'Mind',     pl:'Mercury', r:0,  g:205,b:225,  hex:'#00cde1'},
+  {name:'Love',     pl:'Venus',   r:255,g:85, b:145,  hex:'#ff5591'},
+  {name:'Drive',    pl:'Mars',    r:235,g:30, b:60,   hex:'#eb1e3c'},
+  {name:'Abundance',pl:'Jupiter', r:20, g:205,b:120,  hex:'#14cd78'},
+  {name:'Structure',pl:'Saturn',  r:50, g:110,b:230,  hex:'#326ee6'},
+  {name:'Awakening',pl:'Uranus',  r:148,g:60, b:255,  hex:'#943cff'},
 ];
-const SIGN_RGB={Aries:[0.92,0.30,0.22],Taurus:[0.38,0.76,0.30],Gemini:[0.92,0.84,0.22],Cancer:[0.60,0.82,0.92],Leo:[1.0,0.72,0.14],Virgo:[0.56,0.82,0.46],Libra:[0.76,0.60,1.0],Scorpio:[0.70,0.14,0.30],Sagittarius:[0.90,0.50,0.18],Capricorn:[0.52,0.64,0.82],Aquarius:[0.22,0.82,0.92],Pisces:[0.52,0.44,1.0]};
+const SIGN_COL={Aries:[220,70,50],Taurus:[90,185,70],Gemini:[235,215,55],Cancer:[150,200,235],Leo:[255,185,40],Virgo:[140,205,115],Libra:[190,150,255],Scorpio:[180,35,75],Sagittarius:[230,130,45],Capricorn:[130,160,210],Aquarius:[55,210,230],Pisces:[130,110,255]};
 
 // ─── ASTRO STATE ───────────────────────────────────────────────────────────
 const pCache=[null,null,null,null];
-let todayJD,todayPos;
-function initAstro(){const now=new Date();todayJD=jd(now.getFullYear(),now.getMonth()+1,now.getDate(),now.getUTCHours()+now.getUTCMinutes()/60);todayPos=allPos(todayJD);}
-function getScores(){if(!PR[curP])return new Array(8).fill(0.42);if(!pCache[curP])pCache[curP]=calcProfile(PR[curP]);const pd=pCache[curP];if(!pd)return new Array(8).fill(0.42);const sc=fcst(pd.pos,todayPos);return AXES.map(ax=>sc[ax.pl]);}
+let todayPos={};
+function initAstro(){const now=new Date();const j=jd(now.getFullYear(),now.getMonth()+1,now.getDate(),now.getUTCHours()+now.getUTCMinutes()/60);todayPos=allPos(j);pCache[0]=calcProfile(PR[0]);}
+function getScores(){if(!PR[curP])return new Array(8).fill(0.4);if(!pCache[curP])pCache[curP]=calcProfile(PR[curP]);const pd=pCache[curP];if(!pd)return new Array(8).fill(0.4);const sc=fcst(pd.pos,todayPos);return AXES.map(ax=>sc[ax.pl]);}
 
-// ─── WEBGL SETUP ───────────────────────────────────────────────────────────
-const glc=document.getElementById('glc');
+// ─── CANVAS SETUP ──────────────────────────────────────────────────────────
+const canvas=document.getElementById('c');
 const oc=document.getElementById('oc');
-const gl=glc.getContext('webgl2',{preserveDrawingBuffer:false,antialias:false});
-if(!gl){document.body.innerHTML='<p style="color:#fff;padding:40px">WebGL2 required. Please use a modern browser.</p>';throw new Error('no webgl2');}
+const ctx=canvas.getContext('2d');
 const ctx2=oc.getContext('2d');
-let SZ=0,frameNum=0,curr=0;
-let fbs=[null,null];
+let SZ=0,CX=0,CY=0;
 
-function setSize(){
+function resize(){
   SZ=Math.min(window.innerWidth,window.innerHeight);
-  const L=(window.innerWidth-SZ)/2,T=(window.innerHeight-SZ)/2;
-  const css=`left:${L}px;top:${T}px;width:${SZ}px;height:${SZ}px;`;
-  glc.width=glc.height=SZ;oc.width=oc.height=SZ;
-  glc.style.cssText='position:fixed;'+css;
-  oc.style.cssText='position:fixed;'+css;
-  gl.viewport(0,0,SZ,SZ);
-  initFBs();
+  canvas.width=canvas.height=SZ;
+  oc.width=oc.height=SZ;
+  canvas.style.width=canvas.style.height=SZ+'px';
+  oc.style.width=oc.style.height=SZ+'px';
+  CX=CY=SZ/2;
+  // Fill dark on resize
+  ctx.fillStyle='#000';ctx.fillRect(0,0,SZ,SZ);
 }
 
-// ─── SHADERS ───────────────────────────────────────────────────────────────
-const VS=`#version 300 es
-in vec2 pos;out vec2 uv;
-void main(){uv=pos*.5+.5;gl_Position=vec4(pos,0,1);}`;
+// ─── PARTICLES ─────────────────────────────────────────────────────────────
+const N_PAR=22; // per arm
+let parts=[];
+function initParticles(){
+  parts=[];
+  for(let ai=0;ai<8;ai++){
+    for(let pi=0;pi<N_PAR;pi++){
+      parts.push({ai,t:Math.random(),speed:0.003+Math.random()*0.007,sz:1.5+Math.random()*3.5,seed:Math.random()*200,lat:(Math.random()-.5)*0.28});
+    }
+  }
+}
 
-const FS_MAIN=`#version 300 es
-precision highp float;
-in vec2 uv;out vec4 o;
-uniform sampler2D u_prev;
-uniform float u_t;
-uniform int u_f;
-uniform float u_sc[8];
-uniform vec3 u_col[8];
-uniform vec3 u_ctr;
+// ─── ARM GEOMETRY ──────────────────────────────────────────────────────────
+// Returns {x,y} along arm at fractional position t (0=center, 1=tip)
+function armPoint(ai,t,time,score){
+  const baseAng=(ai/8)*Math.PI*2-Math.PI/2;
+  // Slight angle drift via noise (high-score arms sway more)
+  const angDrift=(P(ai*5.3,time*0.08)-0.5)*0.18*score;
+  const ang=baseAng+angDrift;
+  // Arm length depends on score
+  const maxLen=SZ*0.38;
+  const minLen=SZ*0.06;
+  const len=(minLen+(maxLen-minLen)*score);
+  // Lateral undulation (sine wave along arm)
+  const freq=2.2+ai*0.3;
+  const amp=SZ*0.025*score*Math.sin(Math.PI*t); // peaks at midpoint
+  const phase=time*(0.6+score*0.8)+ai*0.9;
+  const wave=amp*Math.sin(freq*Math.PI*t+phase);
+  const perpAng=ang+Math.PI/2;
+  const r=len*t;
+  return{
+    x:CX+Math.cos(ang)*r+Math.cos(perpAng)*wave,
+    y:CY+Math.sin(ang)*r+Math.sin(perpAng)*wave
+  };
+}
 
-const float PI=3.14159265359,TAU=6.28318530718;
-const float R1=0.096,R2=0.454,PW=0.086;
+// ─── DRAW HELPERS ──────────────────────────────────────────────────────────
+function radGlow(x,y,radius,r,g,b,alpha){
+  if(alpha<=0||radius<=0)return;
+  const grd=ctx.createRadialGradient(x,y,0,x,y,radius);
+  grd.addColorStop(0,`rgba(${r},${g},${b},${Math.min(1,alpha)})`);
+  grd.addColorStop(0.45,`rgba(${r},${g},${b},${Math.min(1,alpha*0.35)})`);
+  grd.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=grd;
+  ctx.beginPath();ctx.arc(x,y,radius,0,Math.PI*2);ctx.fill();
+}
 
-float h21(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
-float vnoise(vec2 p){
-  vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);
-  return mix(mix(h21(i),h21(i+vec2(1,0)),f.x),mix(h21(i+vec2(0,1)),h21(i+vec2(1,1)),f.x),f.y);}
+function drawArm(ai,score,time){
+  const ax=AXES[ai];
+  if(score<0.05)return;
+  const steps=38;
+  // Draw arm glow as series of radial gradients along path
+  for(let si=0;si<=steps;si++){
+    const t=si/steps;
+    const pos=armPoint(ai,t,time,score);
+    const pct=1-t*0.65; // brightest at base, dims toward tip
+    const radius=SZ*(0.052+0.018*score)*(1-t*0.7)*pct;
+    const alpha=score*pct*(0.12+0.08*score);
+    radGlow(pos.x,pos.y,radius,ax.r,ax.g,ax.b,alpha);
+  }
+  // Bright core line — draw as thin glowing stroke
+  ctx.beginPath();
+  for(let si=0;si<=steps;si++){
+    const pos=armPoint(ai,si/steps,time,score);
+    si===0?ctx.moveTo(pos.x,pos.y):ctx.lineTo(pos.x,pos.y);
+  }
+  const grad=ctx.createLinearGradient(CX,CY,armPoint(ai,1,time,score).x,armPoint(ai,1,time,score).y);
+  grad.addColorStop(0,`rgba(${ax.r},${ax.g},${ax.b},${0.55*score})`);
+  grad.addColorStop(0.6,`rgba(${ax.r},${ax.g},${ax.b},${0.3*score})`);
+  grad.addColorStop(1,`rgba(${ax.r},${ax.g},${ax.b},0)`);
+  ctx.strokeStyle=grad;
+  ctx.lineWidth=1.2+score*2.2;
+  ctx.stroke();
+  // Tip glow
+  const tip=armPoint(ai,1,time,score);
+  radGlow(tip.x,tip.y,SZ*(0.028+0.022*score),ax.r,ax.g,ax.b,score*0.72);
+}
 
-void main(){
-  if(u_f<2){o=vec4(.006,.003,.018,1.);return;}
-  vec2 c=uv-.5;
-  float r=length(c);
-  float rN=(r-R1)/(R2-R1);
-  float th=atan(c.y,c.x);
-  float tN=mod(th+TAU,TAU);
+// ─── MAIN RENDER ───────────────────────────────────────────────────────────
+let lastScores=new Array(8).fill(0.4);
 
-  // Find dominant petal sector
-  float pmask=0.,psc=.42;vec3 pcol=vec3(.5);
-  if(rN>=0.&&rN<=1.){
-    float sinRN=sin(PI*rN);
-    float ahw=PW*sinRN/max(r,.001);
-    for(int s=0;s<8;s++){
-      float sa=float(s)/8.*TAU;
-      float da=abs(mod(tN-sa+PI,TAU)-PI);
-      float m=1.-smoothstep(0.,ahw,da);
-      if(m>pmask){pmask=m;psc=u_sc[s];pcol=u_col[s];}
+function render(ms){
+  const time=ms*0.001;
+  const scores=getScores();
+  lastScores=scores;
+  const pd=pCache[curP];
+  const heartbeat=0.5+0.5*Math.sin(time*1.55); // ~0.25Hz pulse
+  const breathe=1+0.018*Math.sin(time*0.38); // slow breath
+
+  // ── PERSISTENCE FADE ──────────────────────────────────────────────────
+  ctx.globalCompositeOperation='source-over';
+  ctx.fillStyle='rgba(2,1,10,0.16)';
+  ctx.fillRect(0,0,SZ,SZ);
+
+  // ── AMBIENT NEBULA BODY ───────────────────────────────────────────────
+  ctx.globalCompositeOperation='screen';
+  // Soft ambient glow per arm — the "body mass"
+  const avgScore=scores.reduce((a,b)=>a+b,0)/8;
+  const bodyR=SZ*(0.22+0.06*breathe*avgScore);
+  const bgrd=ctx.createRadialGradient(CX,CY,0,CX,CY,bodyR);
+  bgrd.addColorStop(0,`rgba(20,8,45,${0.06+0.06*heartbeat})`);
+  bgrd.addColorStop(0.5,`rgba(10,4,25,${0.04+0.03*heartbeat})`);
+  bgrd.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=bgrd;ctx.beginPath();ctx.arc(CX,CY,bodyR,0,Math.PI*2);ctx.fill();
+
+  // ── CONNECTING WEB (between neighboring arms) ─────────────────────────
+  ctx.globalCompositeOperation='screen';
+  for(let i=0;i<8;i++){
+    const j=(i+1)%8;
+    const sa=scores[i],sb=scores[j];
+    if(sa<0.12&&sb<0.12)continue;
+    const strength=Math.min(sa,sb)*0.38;
+    const p1=armPoint(i,0.55,time,sa),p2=armPoint(j,0.55,time,sb);
+    const mx=(p1.x+p2.x)/2+(P(i*4,time*0.05)-0.5)*SZ*0.04;
+    const my=(p1.y+p2.y)/2+(P(i*4+50,time*0.05)-0.5)*SZ*0.04;
+    const axA=AXES[i],axB=AXES[j];
+    ctx.beginPath();ctx.moveTo(p1.x,p1.y);ctx.quadraticCurveTo(mx,my,p2.x,p2.y);
+    ctx.strokeStyle=`rgba(${Math.round((axA.r+axB.r)/2)},${Math.round((axA.g+axB.g)/2)},${Math.round((axA.b+axB.b)/2)},${strength})`;
+    ctx.lineWidth=0.5+strength*1.5;ctx.stroke();
+  }
+
+  // ── ARMS ───────────────────────────────────────────────────────────────
+  ctx.globalCompositeOperation='screen';
+  for(let i=0;i<8;i++)drawArm(i,scores[i],time);
+
+  // ── PARTICLES ──────────────────────────────────────────────────────────
+  ctx.globalCompositeOperation='screen';
+  for(const p of parts){
+    const s=scores[p.ai];
+    if(s<0.06){p.t=Math.random();continue;}
+    // Advance particle
+    const spd=p.speed*(0.15+s*0.85)*(0.85+0.15*heartbeat);
+    p.t+=spd;
+    if(p.t>1.08)p.t=0.0+Math.random()*0.05;
+    // Lateral noise wander
+    p.lat+=(P(p.seed,time*0.15)-0.5)*0.012;
+    p.lat=Math.max(-0.35,Math.min(0.35,p.lat));
+    // Position along arm + lateral offset
+    const base=armPoint(p.ai,Math.min(p.t,1),time,s);
+    const baseAng=(p.ai/8)*Math.PI*2-Math.PI/2;
+    const perp=baseAng+Math.PI/2;
+    const lAmt=p.lat*SZ*0.025*s;
+    const px=base.x+Math.cos(perp)*lAmt;
+    const py=base.y+Math.sin(perp)*lAmt;
+    // Brightness peaks at mid-arm, dims at base and tip
+    const bell=Math.sin(Math.PI*Math.min(p.t,1));
+    const alpha=s*bell*(0.55+0.3*heartbeat);
+    const sz=p.sz*(0.6+0.4*bell)*(0.7+0.3*s);
+    const ax=AXES[p.ai];
+    // Subtle hue shift via noise
+    const hshift=Math.round((P(p.seed+10,time*0.1)-0.5)*45);
+    radGlow(px,py,sz*3.5,
+      Math.max(0,Math.min(255,ax.r+hshift)),
+      Math.max(0,Math.min(255,ax.g)),
+      Math.max(0,Math.min(255,ax.b-hshift)),
+      alpha);
+    // Hard bright center dot
+    ctx.fillStyle=`rgba(${ax.r},${ax.g},${ax.b},${alpha*0.9})`;
+    ctx.beginPath();ctx.arc(px,py,Math.max(0.5,sz*0.55),0,Math.PI*2);ctx.fill();
+  }
+
+  // ── NUCLEUS ────────────────────────────────────────────────────────────
+  ctx.globalCompositeOperation='screen';
+  const nSign=pd?pd.sun:'Aquarius';
+  const nc=SIGN_COL[nSign]||[55,210,230];
+  const pulse=heartbeat;
+  const nr=SZ*(0.048+0.014*pulse)*breathe;
+  // Outer halo
+  radGlow(CX,CY,nr*4.5,nc[0],nc[1],nc[2],(0.08+0.06*pulse)*avgScore);
+  // Inner glow layers
+  radGlow(CX,CY,nr*2.2,nc[0],nc[1],nc[2],(0.22+0.12*pulse));
+  radGlow(CX,CY,nr,nc[0],nc[1],nc[2],(0.55+0.25*pulse));
+  // Hard white core
+  ctx.fillStyle=`rgba(255,255,255,${0.45+0.35*pulse})`;
+  ctx.beginPath();ctx.arc(CX,CY,nr*0.28,0,Math.PI*2);ctx.fill();
+  // Micro-sparkles around nucleus
+  ctx.globalCompositeOperation='screen';
+  for(let s=0;s<6;s++){
+    const sa=time*2.1+s/6*Math.PI*2;
+    const sr=nr*(1.4+0.4*Math.sin(time*3.5+s));
+    const sx=CX+Math.cos(sa)*sr,sy=CY+Math.sin(sa)*sr;
+    radGlow(sx,sy,nr*0.55,nc[0],nc[1],nc[2],0.28*pulse*avgScore);
+  }
+
+  // ── STARS (ambient, stable background) ───────────────────────────────
+  ctx.globalCompositeOperation='screen';
+  // Draw a handful of faint stars — use noise seeded positions (drawn once effectively via persistence)
+  if(Math.random()<0.12){// occasionally add a star flicker
+    const sx=Math.random()*SZ,sy=Math.random()*SZ;
+    const dist=Math.sqrt((sx-CX)**2+(sy-CY)**2);
+    if(dist>SZ*0.18&&dist<SZ*0.5){
+      const br=0.08+Math.random()*0.14;
+      ctx.fillStyle=`rgba(200,210,255,${br})`;
+      ctx.beginPath();ctx.arc(sx,sy,0.7,0,Math.PI*2);ctx.fill();
     }
   }
 
-  // UV warp — feedback distortion
-  float t=u_t*.00007;
-  float n1=vnoise(c*3.2+vec2(t*.42,t*.31));
-  float n2=vnoise(c*6.8+vec2(-t*.28,t*.37));
-  float grain=h21(uv*431.+t*.018);
-  vec2 w=uv;
-  if(r>.006){
-    vec2 rd=c/r,td=vec2(-c.y,c.x)/r;
-    float rv=sin(t*1.7+r*5.8)*.0013*psc;
-    float rot=(psc-.5)*.0013;
-    w+=rd*rv+td*rot;
-    w+=vec2(n1-.5,n2-.5)*.0009;
-    w+=(grain-.5)*.00035;
-  }
-  w=clamp(w,.001,.999);
-
-  vec3 prev=texture(u_prev,w).rgb;
-  float inj=pmask*psc*.004;
-  float cg=smoothstep(R1*1.7,.0,r)*.003;
-  vec3 res=prev*.997+pcol*inj+u_ctr*cg;
-  // Stay linear — tonemap only in display shader
-  o=vec4(clamp(res,0.,1.),1.);
-}`;
-
-const FS_DISP=`#version 300 es
-precision highp float;
-in vec2 uv;out vec4 o;
-uniform sampler2D u_tex;
-void main(){
-  vec3 c=texture(u_tex,uv).rgb;
-  c=c*1.22/(c+.58);
-  c=pow(max(c,0.),vec3(.86));
-  o=vec4(c,1.);}`;
-
-function mkProg(vSrc,fSrc){
-  function sh(src,t){const s=gl.createShader(t);gl.shaderSource(s,src);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))console.error(gl.getShaderInfoLog(s));return s;}
-  const p=gl.createProgram();gl.attachShader(p,sh(vSrc,gl.VERTEX_SHADER));gl.attachShader(p,sh(fSrc,gl.FRAGMENT_SHADER));gl.linkProgram(p);if(!gl.getProgramParameter(p,gl.LINK_STATUS))console.error(gl.getProgramInfoLog(p));return p;
-}
-
-const mainP=mkProg(VS,FS_MAIN);
-const dispP=mkProg(VS,FS_DISP);
-
-// Quad buffer
-const quad=gl.createBuffer();
-gl.bindBuffer(gl.ARRAY_BUFFER,quad);
-gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
-
-// VAO for main
-const vaoM=gl.createVertexArray();gl.bindVertexArray(vaoM);
-gl.bindBuffer(gl.ARRAY_BUFFER,quad);
-const aM=gl.getAttribLocation(mainP,'pos');gl.enableVertexAttribArray(aM);gl.vertexAttribPointer(aM,2,gl.FLOAT,false,0,0);
-gl.bindVertexArray(null);
-
-// VAO for display
-const vaoD=gl.createVertexArray();gl.bindVertexArray(vaoD);
-gl.bindBuffer(gl.ARRAY_BUFFER,quad);
-const aD=gl.getAttribLocation(dispP,'pos');gl.enableVertexAttribArray(aD);gl.vertexAttribPointer(aD,2,gl.FLOAT,false,0,0);
-gl.bindVertexArray(null);
-
-// Uniform locations — main
-const UM={prev:gl.getUniformLocation(mainP,'u_prev'),t:gl.getUniformLocation(mainP,'u_t'),f:gl.getUniformLocation(mainP,'u_f'),sc:gl.getUniformLocation(mainP,'u_sc[0]'),col:gl.getUniformLocation(mainP,'u_col[0]'),ctr:gl.getUniformLocation(mainP,'u_ctr')};
-const UD={tex:gl.getUniformLocation(dispP,'u_tex')};
-
-function mkFB(){
-  const tex=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,tex);
-  gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,SZ,SZ,0,gl.RGBA,gl.UNSIGNED_BYTE,null);
-  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
-  const fb=gl.createFramebuffer();gl.bindFramebuffer(gl.FRAMEBUFFER,fb);
-  gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,tex,0);
-  gl.clearColor(.006,.003,.018,1.);gl.clear(gl.COLOR_BUFFER_BIT);
-  gl.bindFramebuffer(gl.FRAMEBUFFER,null);
-  return{tex,fb};
-}
-
-function initFBs(){
-  if(fbs[0]){gl.deleteTexture(fbs[0].tex);gl.deleteFramebuffer(fbs[0].fb);}
-  if(fbs[1]){gl.deleteTexture(fbs[1].tex);gl.deleteFramebuffer(fbs[1].fb);}
-  fbs=[mkFB(),mkFB()];curr=0;frameNum=0;
-}
-
-// ─── RENDER LOOP ───────────────────────────────────────────────────────────
-function render(time){
-  if(needsReset){initFBs();needsReset=false;}
-
-  const scores=getScores();
-  const pd=pCache[curP];
-  const sign=pd?pd.sun:'Aquarius';
-  const cRGB=SIGN_RGB[sign]||[0.22,0.82,0.92];
-  const colsFlat=AXES.flatMap(a=>a.rgb);
-
-  // Draw to framebuffer
-  gl.bindFramebuffer(gl.FRAMEBUFFER,fbs[1-curr].fb);
-  gl.viewport(0,0,SZ,SZ);
-  gl.useProgram(mainP);gl.bindVertexArray(vaoM);
-  gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,fbs[curr].tex);
-  gl.uniform1i(UM.prev,0);
-  gl.uniform1f(UM.t,time);
-  gl.uniform1i(UM.f,frameNum);
-  gl.uniform1fv(UM.sc,new Float32Array(scores));
-  gl.uniform3fv(UM.col,new Float32Array(colsFlat));
-  gl.uniform3fv(UM.ctr,new Float32Array(cRGB));
-  gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
-
-  // Display to screen
-  gl.bindFramebuffer(gl.FRAMEBUFFER,null);
-  gl.viewport(0,0,SZ,SZ);
-  gl.clearColor(0,0,0,1);gl.clear(gl.COLOR_BUFFER_BIT);
-  gl.useProgram(dispP);gl.bindVertexArray(vaoD);
-  gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,fbs[1-curr].tex);
-  gl.uniform1i(UD.tex,0);
-  gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
-
-  curr=1-curr;frameNum++;
+  // ── OVERLAY ────────────────────────────────────────────────────────────
   drawOverlay(time,scores,pd);
   requestAnimationFrame(render);
 }
 
 // ─── 2D OVERLAY ────────────────────────────────────────────────────────────
 function drawOverlay(time,scores,pd){
-  const t=time*.001;
-  const cx=SZ/2,cy=SZ/2;
-  const R2px=SZ*.454,R1px=SZ*.096;
   ctx2.clearRect(0,0,SZ,SZ);
 
-  // Labels
+  // Axis labels at arm tips
   if(pd&&scores){
     ctx2.textAlign='center';ctx2.textBaseline='middle';
-    const lr=R2px*1.155;
     for(let i=0;i<8;i++){
-      const ax=AXES[i],sc=scores[i];
-      const ang=(i/8)*Math.PI*2-Math.PI/2;
-      const lx=cx+Math.cos(ang)*lr,ly=cy+Math.sin(ang)*lr;
-      ctx2.globalAlpha=.38+sc*.52;
-      ctx2.fillStyle=ax.hex;
-      ctx2.font=`${Math.floor(SZ*.0155)}px Georgia,serif`;
-      ctx2.fillText(ax.name,lx,ly);
-      ctx2.globalAlpha=.24+sc*.36;
-      ctx2.font=`${Math.floor(SZ*.012)}px Georgia,serif`;
-      ctx2.fillText(Math.round(sc*100)+'%',lx,ly+SZ*.022);
-    }
-    ctx2.globalAlpha=1;
-  }
-
-  // Center sigil
-  if(pd){
-    const sign=pd.sun;
-    const cRGB=SIGN_RGB[sign]||[0.22,0.82,0.92];
-    const hex=`rgb(${Math.round(cRGB[0]*220)},${Math.round(cRGB[1]*220)},${Math.round(cRGB[2]*220)})`;
-    ctx2.save();
-    ctx2.translate(cx,cy);
-    ctx2.shadowBlur=18;ctx2.shadowColor=hex;
-    ctx2.strokeStyle=hex;ctx2.globalAlpha=.82;
-    ctx2.lineWidth=R1px*.038;ctx2.lineCap='round';ctx2.lineJoin='round';
-    drawSigil(sign,R1px*.76);
-    ctx2.restore();
-  }
-
-  // Planet ring dots
-  if(pd&&todayPos){
-    const orR=R2px*1.055;
-    ctx2.save();
-    for(let i=0;i<8;i++){
+      const s=scores[i];
+      if(s<0.05)continue;
+      const tipPos=armPoint(i,1.14,time,s);
       const ax=AXES[i];
-      const lon=todayPos[ax.pl];
-      const ang=(lon/360)*Math.PI*2-Math.PI/2;
-      const px=cx+Math.cos(ang)*orR,py=cy+Math.sin(ang)*orR;
-      ctx2.shadowBlur=6;ctx2.shadowColor=ax.hex;
-      ctx2.fillStyle=ax.hex;ctx2.globalAlpha=.7;
-      ctx2.beginPath();ctx2.arc(px,py,3,0,Math.PI*2);ctx2.fill();
+      ctx2.globalAlpha=0.3+s*0.55;
+      ctx2.fillStyle=ax.hex;
+      ctx2.font=`${Math.floor(SZ*0.015)}px Georgia,serif`;
+      ctx2.fillText(ax.name,tipPos.x,tipPos.y);
+      ctx2.globalAlpha=0.18+s*0.32;
+      ctx2.font=`${Math.floor(SZ*0.012)}px Georgia,serif`;
+      ctx2.fillText(Math.round(s*100)+'%',tipPos.x,tipPos.y+SZ*0.022);
+      ctx2.globalAlpha=1;
     }
-    ctx2.restore();
   }
 
-  // Corner ornaments
-  drawCorners(t);
-
-  // Info text
+  // Profile + date info
   ctx2.save();
   const prof=PR[curP];
-  ctx2.globalAlpha=.52;ctx2.fillStyle='rgba(200,185,255,0.9)';
-  ctx2.font=`${Math.floor(SZ*.0145)}px Georgia,serif`;ctx2.textAlign='left';ctx2.textBaseline='top';
-  ctx2.fillText(prof?prof.name:'—',SZ*.042,SZ*.046);
-  if(pd){ctx2.globalAlpha=.32;ctx2.font=`${Math.floor(SZ*.011)}px Georgia,serif`;ctx2.fillText('☀ '+pd.sun+'  ☽ '+pd.moon,SZ*.042,SZ*.063);}
+  ctx2.globalAlpha=0.5;ctx2.fillStyle='rgba(200,185,255,0.9)';
+  ctx2.font=`${Math.floor(SZ*0.014)}px Georgia,serif`;ctx2.textAlign='left';ctx2.textBaseline='top';
+  ctx2.fillText(prof?prof.name:'—',SZ*0.04,SZ*0.044);
+  if(pd){ctx2.globalAlpha=0.3;ctx2.font=`${Math.floor(SZ*0.011)}px Georgia,serif`;ctx2.fillText('☀ '+pd.sun+'  ☽ '+pd.moon,SZ*0.04,SZ*0.061);}
   const ds=new Date().toLocaleDateString('en-US',{weekday:'short',month:'long',day:'numeric',year:'numeric'});
-  ctx2.globalAlpha=.28;ctx2.textAlign='right';ctx2.font=`${Math.floor(SZ*.011)}px Georgia,serif`;
-  ctx2.fillText(ds,SZ*.958,SZ*.046);
+  ctx2.globalAlpha=0.26;ctx2.textAlign='right';ctx2.font=`${Math.floor(SZ*0.011)}px Georgia,serif`;
+  ctx2.fillText(ds,SZ*0.96,SZ*0.044);
   ctx2.restore();
 }
 
-function drawCorners(t){
-  const s=SZ*.079;
-  const pts=[[s*.58,s*.58],[SZ-s*.58,s*.58],[s*.58,SZ-s*.58],[SZ-s*.58,SZ-s*.58]];
-  const cols=['#00ccdf','#943dff','#ff578f','#14cc7a'];
-  pts.forEach(([cx,cy],i)=>{
-    ctx2.save();ctx2.translate(cx,cy);
-    ctx2.globalAlpha=.28;ctx2.strokeStyle=cols[i];ctx2.lineWidth=.55;
-    for(let r=s*.18;r<=s*.88;r+=s*.23){ctx2.beginPath();ctx2.arc(0,0,r,0,Math.PI*2);ctx2.stroke();}
-    const rot=t*.16*(i%2?1:-1);
-    for(let j=0;j<6;j++){
-      const a=rot+j/6*Math.PI*2;
-      ctx2.globalAlpha=(.12+.12*Math.sin(t*1.2+j))*(i%2?1:.85);
-      ctx2.beginPath();ctx2.moveTo(Math.cos(a)*s*.18,Math.sin(a)*s*.18);ctx2.lineTo(Math.cos(a)*s*.86,Math.sin(a)*s*.86);ctx2.stroke();
-    }
-    ctx2.restore();
-  });
-}
-
-function drawSigil(sign,s){
-  const c=ctx2;
-  c.beginPath();
-  switch(sign){
-    case'Aquarius':
-      [-1,1].forEach(r=>{c.moveTo(-s*.68,r*s*.22);for(let i=0;i<=36;i++){const x=-s*.68+i/36*s*1.36,y=r*s*.22+Math.sin(i/36*Math.PI*6)*s*.12;i?c.lineTo(x,y):c.moveTo(x,y);}});
-      c.stroke();c.beginPath();
-      for(let i=0;i<8;i++){const a=i/8*Math.PI*2;c.moveTo(Math.cos(a)*s*.82,Math.sin(a)*s*.82);c.lineTo(Math.cos(a)*s,Math.sin(a)*s);}
-      break;
-    case'Aries':
-      c.arc(0,-s*.08,s*.44,0,Math.PI);c.moveTo(-s*.32,s*.1);c.arc(-s*.32,s*.1,s*.18,Math.PI*.5,-Math.PI*.5,true);c.moveTo(s*.32,s*.1);c.arc(s*.32,s*.1,s*.18,-Math.PI*.5,Math.PI*.5);break;
-    case'Taurus':
-      c.arc(0,s*.1,s*.42,0,Math.PI*2);c.moveTo(-s*.32,-s*.2);c.arc(0,-s*.2,s*.32,Math.PI,0);break;
-    case'Gemini':
-      c.moveTo(-s*.36,-s*.42);c.lineTo(-s*.36,s*.42);c.moveTo(s*.36,-s*.42);c.lineTo(s*.36,s*.42);c.moveTo(-s*.36,-s*.42);c.lineTo(s*.36,-s*.42);c.moveTo(-s*.36,0);c.lineTo(s*.36,0);c.moveTo(-s*.36,s*.42);c.lineTo(s*.36,s*.42);break;
-    case'Cancer':
-      c.arc(-s*.22,0,s*.27,Math.PI*.06,Math.PI*1.06);c.moveTo(s*.5,0);c.arc(s*.22,0,s*.27,Math.PI*1.06,Math.PI*.06+Math.PI*2);break;
-    case'Leo':
-      c.arc(0,s*.06,s*.3,Math.PI*.2,Math.PI*.8);c.arc(s*.04,-s*.2,s*.38,0,-Math.PI);c.moveTo(s*.38,s*.2);c.bezierCurveTo(s*.76,s*.06,s*.78,-s*.38,s*.48,-s*.46);break;
-    case'Virgo':
-      c.moveTo(-s*.38,-s*.36);c.lineTo(-s*.38,s*.36);c.moveTo(s*.38,-s*.36);c.lineTo(s*.38,s*.36);c.moveTo(-s*.38,-s*.12);c.bezierCurveTo(-s*.1,-s*.54,s*.12,-s*.12,s*.12,s*.36);c.arc(s*.38,s*.06,s*.1,-Math.PI/2,Math.PI/2);break;
-    case'Libra':
-      c.moveTo(-s*.46,s*.08);c.lineTo(s*.46,s*.08);c.moveTo(0,s*.08);c.lineTo(0,s*.32);c.moveTo(-s*.46,s*.32);c.lineTo(s*.46,s*.32);c.moveTo(-s*.32,-s*.04);c.arc(0,-s*.04,s*.32,Math.PI,0);break;
-    case'Scorpio':
-      c.moveTo(-s*.44,-s*.3);c.lineTo(-s*.44,s*.2);c.bezierCurveTo(-s*.44,0,-s*.12,-s*.44,s*.12,0);c.lineTo(s*.12,s*.2);c.bezierCurveTo(s*.12,0,s*.36,-s*.44,s*.46,0);c.lineTo(s*.46,s*.2);c.bezierCurveTo(s*.62,s*.3,s*.62,0,s*.42,-s*.1);break;
-    case'Sagittarius':
-      c.moveTo(-s*.58,s*.54);c.lineTo(s*.58,-s*.54);c.moveTo(s*.58,-s*.54);c.lineTo(s*.18,-s*.54);c.moveTo(s*.58,-s*.54);c.lineTo(s*.58,-s*.16);break;
-    case'Capricorn':
-      c.moveTo(-s*.36,-s*.4);c.bezierCurveTo(-s*.36,s*.22,0,s*.36,0,s*.36);c.bezierCurveTo(s*.52,s*.36,s*.52,0,s*.36,-s*.22);c.bezierCurveTo(s*.22,-s*.5,s*.52,-s*.5,s*.5,-s*.28);break;
-    case'Pisces':
-      c.arc(0,-s*.22,s*.3,0,Math.PI);c.arc(0,s*.22,s*.3,Math.PI,0);c.moveTo(-s*.36,0);c.lineTo(s*.36,0);break;
-    default:
-      c.arc(0,0,s*.62,0,Math.PI*2);c.moveTo(0,-s*.72);c.lineTo(0,s*.72);c.moveTo(-s*.72,0);c.lineTo(s*.72,0);
-  }
-  c.stroke();
-}
-
 // ─── BOOT ──────────────────────────────────────────────────────────────────
-window.addEventListener('resize',()=>setSize());
+window.addEventListener('resize',()=>{resize();initParticles();});
 initAstro();
-setSize();
+resize();
+initParticles();
+// Seed background dark
+ctx.fillStyle='#020108';ctx.fillRect(0,0,SZ,SZ);
 requestAnimationFrame(render);
 </script>
 </body>

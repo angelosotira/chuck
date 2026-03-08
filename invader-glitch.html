@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Glitch Invader</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #000; display: flex; align-items: center; justify-content: center; width: 100vw; height: 100vh; overflow: hidden; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+// Classic 11x8 Space Invader pixel grid
+const GRID = [
+  [0,0,1,0,0,0,0,0,1,0,0],
+  [0,0,0,1,0,0,0,1,0,0,0],
+  [0,0,1,1,1,1,1,1,1,0,0],
+  [0,1,1,0,1,1,1,0,1,1,0],
+  [1,1,1,1,1,1,1,1,1,1,1],
+  [1,0,1,1,1,1,1,1,1,0,1],
+  [1,0,1,0,0,0,0,0,1,0,1],
+  [0,0,0,1,1,0,1,1,0,0,0],
+];
+
+const GRID_COLS = 11;
+const GRID_ROWS = 8;
+const PIXEL_SIZE = Math.min(Math.floor(canvas.width / 22), Math.floor(canvas.height / 16), 48);
+const GAP = 2;
+
+const INV_W = GRID_COLS * (PIXEL_SIZE + GAP);
+const INV_H = GRID_ROWS * (PIXEL_SIZE + GAP);
+const BASE_X = Math.floor((canvas.width - INV_W) / 2);
+const BASE_Y = Math.floor((canvas.height - INV_H) / 2);
+
+// Glitch state
+let corruptionActive = false;
+let corruptionEnd = 0;
+let nextCorruption = Date.now() + rand(3000, 8000);
+
+function rand(min, max) {
+  return Math.random() * (max - min) + min;
+}
+
+function randInt(min, max) {
+  return Math.floor(rand(min, max + 1));
+}
+
+// Draw a single invader with channel color and offsets
+function drawInvader(offX, offY, color, alpha, sliceTears, isCorruption) {
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = color;
+  ctx.globalCompositeOperation = 'lighter';
+
+  for (let row = 0; row < GRID_ROWS; row++) {
+    // Calculate slice tear offset for this row
+    let tearX = 0;
+    if (sliceTears) {
+      for (let t = 0; t < sliceTears.length; t++) {
+        const tear = sliceTears[t];
+        if (row >= tear.startRow && row < tear.startRow + tear.height) {
+          tearX = tear.offset;
+          break;
+        }
+      }
+    }
+
+    // Extra corruption chaos
+    let corruptRowOffX = 0;
+    let corruptRowOffY = 0;
+    if (isCorruption) {
+      corruptRowOffX = rand(-80, 80);
+      corruptRowOffY = rand(-20, 20);
+      // Sometimes skip rows entirely
+      if (Math.random() < 0.35) continue;
+    }
+
+    for (let col = 0; col < GRID_COLS; col++) {
+      if (!GRID[row][col]) continue;
+
+      // Corruption: skip individual pixels
+      if (isCorruption && Math.random() < 0.4) continue;
+
+      const px = BASE_X + offX + tearX + corruptRowOffX + col * (PIXEL_SIZE + GAP);
+      const py = BASE_Y + offY + corruptRowOffY + row * (PIXEL_SIZE + GAP);
+
+      ctx.fillRect(px, py, PIXEL_SIZE, PIXEL_SIZE);
+    }
+  }
+  ctx.restore();
+}
+
+// Scanline noise lines
+function drawScanlineNoise() {
+  const count = randInt(0, 4);
+  for (let i = 0; i < count; i++) {
+    if (Math.random() < 0.3) {
+      const y = rand(0, canvas.height);
+      const h = rand(1, 3);
+      const brightness = rand(0.5, 1.0);
+      ctx.save();
+      ctx.globalAlpha = brightness * 0.7;
+      ctx.fillStyle = `rgb(${randInt(180,255)},${randInt(180,255)},${randInt(180,255)})`;
+      ctx.fillRect(0, y, canvas.width, h);
+      ctx.restore();
+    }
+  }
+}
+
+// Random pixel dropout
+function drawPixelDropout() {
+  const count = randInt(5, 25);
+  for (let i = 0; i < count; i++) {
+    const x = rand(BASE_X - 60, BASE_X + INV_W + 60);
+    const y = rand(BASE_Y - 40, BASE_Y + INV_H + 40);
+    const w = rand(2, PIXEL_SIZE * 1.5);
+    const h = rand(2, PIXEL_SIZE * 0.8);
+    ctx.fillStyle = '#000';
+    ctx.fillRect(x, y, w, h);
+  }
+}
+
+// Generate slice tears for this frame
+function generateSliceTears() {
+  const tears = [];
+  const count = randInt(2, 4);
+  for (let i = 0; i < count; i++) {
+    tears.push({
+      startRow: randInt(0, GRID_ROWS - 2),
+      height: randInt(1, 3),
+      offset: rand(-1, 1) > 0 ? rand(10, 40) : -rand(10, 40)
+    });
+  }
+  return tears;
+}
+
+// VHS horizontal distortion bands across the whole canvas
+function drawVHSBands() {
+  const count = randInt(0, 3);
+  for (let i = 0; i < count; i++) {
+    if (Math.random() < 0.4) {
+      const y = rand(0, canvas.height);
+      const h = rand(1, 6);
+      const offset = rand(-20, 20);
+      // Grab and shift a band
+      try {
+        const imgData = ctx.getImageData(0, y, canvas.width, h);
+        ctx.clearRect(0, y, canvas.width, h);
+        ctx.putImageData(imgData, offset, y);
+      } catch(e) {}
+    }
+  }
+}
+
+let frame = 0;
+
+function render(ts) {
+  frame++;
+  const now = Date.now();
+
+  // Check corruption trigger
+  if (!corruptionActive && now >= nextCorruption) {
+    corruptionActive = true;
+    corruptionEnd = now + rand(150, 280);
+  }
+  if (corruptionActive && now >= corruptionEnd) {
+    corruptionActive = false;
+    nextCorruption = now + rand(3000, 8000);
+  }
+
+  // Clear to black
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  if (corruptionActive) {
+    // CORRUPTION MODE: extreme fragmentation
+    const sliceTears = generateSliceTears().map(t => ({ ...t, offset: t.offset * rand(3, 6) }));
+
+    // Multiple corrupted copies everywhere
+    for (let pass = 0; pass < 6; pass++) {
+      const hue = pass * 60;
+      const offX = rand(-60, 60);
+      const offY = rand(-30, 30);
+      ctx.save();
+      ctx.globalAlpha = 0.5;
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.fillStyle = `hsl(${hue}, 100%, 70%)`;
+      ctx.restore();
+      drawInvader(offX, offY, `hsl(${hue}, 100%, 70%)`, 0.4, sliceTears, true);
+    }
+
+    // R channel — hard left
+    drawInvader(rand(-40,-20), rand(-10,10), '#ff2020', 0.7, sliceTears, true);
+    // G channel — center
+    drawInvader(rand(-5,5), rand(-5,5), '#20ff80', 0.7, sliceTears, true);
+    // B channel — hard right
+    drawInvader(rand(20,40), rand(-10,10), '#2050ff', 0.7, sliceTears, true);
+
+    // Heavy scanline noise during corruption
+    for (let i = 0; i < 8; i++) drawScanlineNoise();
+    drawPixelDropout();
+
+    // Full canvas glitch lines
+    for (let i = 0; i < 12; i++) {
+      const y = rand(0, canvas.height);
+      ctx.save();
+      ctx.globalAlpha = rand(0.3, 0.9);
+      ctx.fillStyle = `rgb(${randInt(100,255)},${randInt(100,255)},${randInt(100,255)})`;
+      ctx.fillRect(0, y, canvas.width, rand(1, 4));
+      ctx.restore();
+    }
+
+  } else {
+    // NORMAL MODE: subtle continuous glitch
+    const sliceTears = generateSliceTears();
+
+    // Subtle RGB channel split
+    const rOff = Math.sin(ts * 0.001) * 3 + rand(-2, 2);
+    const bOff = Math.cos(ts * 0.0013) * 3 + rand(-2, 2);
+    const vOff = Math.sin(ts * 0.0007) * 1;
+
+    // Red channel — left
+    drawInvader(-Math.abs(rOff) - 2, vOff, '#ff1a1a', 0.55, sliceTears, false);
+    // Green channel — center (main, lighter)
+    drawInvader(0, 0, '#e0ffff', 0.75, sliceTears, false);
+    // Blue channel — right
+    drawInvader(Math.abs(bOff) + 2, -vOff, '#1a4fff', 0.55, sliceTears, false);
+
+    // Occasional scanline noise
+    if (Math.random() < 0.35) drawScanlineNoise();
+
+    // Pixel dropout
+    if (Math.random() < 0.6) drawPixelDropout();
+
+    // Occasional VHS horizontal smear
+    if (Math.random() < 0.2) drawVHSBands();
+
+    // Extra low-freq flicker on individual pixel rows
+    if (Math.random() < 0.15) {
+      const flickerRow = randInt(0, GRID_ROWS - 1);
+      const flickerTear = [{ startRow: flickerRow, height: 1, offset: rand(-1,1) > 0 ? rand(15,35) : -rand(15,35) }];
+      drawInvader(rand(-1,1), 0, '#ffffff', 0.2, flickerTear, false);
+    }
+  }
+
+  requestAnimationFrame(render);
+}
+
+requestAnimationFrame(render);
+</script>
+</body>
+</html>

@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Matrix Invader</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; background: #000; overflow: hidden; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+(function() {
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d');
+
+  // Space Invader pixel grid (11×8)
+  const GRID = [
+    [0,0,1,0,0,0,0,0,1,0,0],
+    [0,0,0,1,0,0,0,1,0,0,0],
+    [0,0,1,1,1,1,1,1,1,0,0],
+    [0,1,1,0,1,1,1,0,1,1,0],
+    [1,1,1,1,1,1,1,1,1,1,1],
+    [1,0,1,1,1,1,1,1,1,0,1],
+    [1,0,1,0,0,0,0,0,1,0,1],
+    [0,0,0,1,1,0,1,1,0,0,0],
+  ];
+  const GRID_W = 11;
+  const GRID_H = 8;
+
+  // Characters: katakana + digits + Latin
+  const CHARS = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789ABCDEFGHZXabcdefz'.split('');
+
+  function rchar() { return CHARS[Math.floor(Math.random() * CHARS.length)]; }
+
+  const FS = 14; // font size / column width
+
+  let W, H, cols, rows;
+
+  // Per-column drop state
+  let drops;    // current head position in rows (float)
+  let speeds;   // rows per frame
+  let chars;    // chars[col][row] = character
+  let invInfo;  // cached invader geometry
+
+  function resize() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+    cols = Math.floor(W / FS);
+    rows = Math.ceil(H / FS) + 2;
+    initDrops();
+    invInfo = getInvInfo();
+  }
+
+  function initDrops() {
+    drops = [];
+    speeds = [];
+    chars = [];
+    for (let c = 0; c < cols; c++) {
+      // Spread drops across entire screen + some above
+      drops.push(Math.random() * (rows + 20) - 10);
+      speeds.push(0.25 + Math.random() * 0.45);
+      const col = [];
+      for (let r = 0; r < rows + 5; r++) col.push(rchar());
+      chars.push(col);
+    }
+  }
+
+  function getInvInfo() {
+    const margin = 0.06;
+    const maxW = W * (1 - 2 * margin);
+    const maxH = H * (1 - 2 * margin);
+    const ps = Math.min(Math.floor(maxW / GRID_W), Math.floor(maxH / GRID_H));
+    const totalW = ps * GRID_W;
+    const totalH = ps * GRID_H;
+    return {
+      ps,
+      ox: (W - totalW) / 2,
+      oy: (H - totalH) / 2
+    };
+  }
+
+  // Fast lookup: is canvas pixel (x,y) inside invader?
+  function insideInvader(x, y) {
+    const { ps, ox, oy } = invInfo;
+    const gx = Math.floor((x - ox) / ps);
+    const gy = Math.floor((y - oy) / ps);
+    if (gx < 0 || gx >= GRID_W || gy < 0 || gy >= GRID_H) return false;
+    return GRID[gy][gx] === 1;
+  }
+
+  // Pre-compute which columns are inside at which rows (based on column center)
+  // This runs each frame but is fast enough
+  function getColInsideMask(col) {
+    const x = col * FS + FS / 2;
+    const mask = new Uint8Array(rows + 5);
+    for (let r = 0; r < rows + 5; r++) {
+      const y = r * FS + FS / 2;
+      mask[r] = insideInvader(x, y) ? 1 : 0;
+    }
+    return mask;
+  }
+
+  // Build inside masks once (recompute on resize)
+  let insideMasks = [];
+  function buildMasks() {
+    insideMasks = [];
+    for (let c = 0; c < cols; c++) {
+      insideMasks.push(getColInsideMask(c));
+    }
+  }
+
+  window.addEventListener('resize', () => { resize(); buildMasks(); });
+
+  function draw() {
+    requestAnimationFrame(draw);
+
+    // Fade background slightly for trail effect
+    ctx.fillStyle = 'rgba(0,0,0,0.15)';
+    ctx.fillRect(0, 0, W, H);
+
+    for (let col = 0; col < cols; col++) {
+      const x = col * FS;
+      const head = Math.floor(drops[col]);
+      const mask = insideMasks[col];
+
+      // Advance drop
+      drops[col] += speeds[col];
+      if (drops[col] > rows + 5) {
+        drops[col] = -Math.floor(5 + Math.random() * 15);
+        // Refresh chars
+        for (let r = 0; r < rows + 5; r++) {
+          if (Math.random() < 0.3) chars[col][r] = rchar();
+        }
+      }
+
+      // Occasionally mutate a char near head
+      if (Math.random() < 0.5 && head >= 0 && head < rows + 4) {
+        chars[col][head] = rchar();
+      }
+
+      // Draw characters in this column
+      for (let row = 0; row < rows; row++) {
+        const y = row * FS;
+        const dist = head - row; // distance behind head (positive = behind/above)
+
+        if (dist < 0) continue; // ahead of drop head
+
+        const inside = mask[row] === 1;
+
+        if (inside) {
+          // === INSIDE INVADER — bright Matrix rain ===
+          if (dist === 0) {
+            // Head: bright white
+            ctx.fillStyle = '#ffffff';
+            ctx.font = `bold ${FS}px monospace`;
+          } else if (dist === 1) {
+            ctx.fillStyle = '#aaffaa';
+            ctx.font = `bold ${FS}px monospace`;
+          } else if (dist <= 4) {
+            const v = Math.floor(255 - (dist - 1) * 30);
+            ctx.fillStyle = `rgb(0,${v},50)`;
+            ctx.font = `${FS}px monospace`;
+          } else if (dist <= 12) {
+            const v = Math.floor(200 - (dist - 4) * 15);
+            if (v < 60) {
+              ctx.fillStyle = `rgb(0,60,15)`;
+            } else {
+              ctx.fillStyle = `rgb(0,${v},20)`;
+            }
+            ctx.font = `${FS}px monospace`;
+          } else if (dist <= 30) {
+            // Lingering glow inside
+            ctx.fillStyle = 'rgba(0,140,30,0.35)';
+            ctx.font = `${FS - 1}px monospace`;
+          } else {
+            // Persistent faint char to keep invader visible
+            ctx.fillStyle = 'rgba(0,100,20,0.22)';
+            ctx.font = `${FS - 2}px monospace`;
+          }
+          const ch = chars[col][row] || rchar();
+          ctx.fillText(ch, x, y + FS);
+        } else {
+          // === OUTSIDE invader — very sparse, very dim ===
+          // Only render head and short trail for sparse columns
+          if ((col * 3 + row) % 4 !== 0) continue; // further sparsify
+          if (dist === 0) {
+            ctx.fillStyle = 'rgba(0,70,0,0.6)';
+            ctx.font = `10px monospace`;
+            ctx.fillText(chars[col][row] || rchar(), x + 1, y + FS);
+          } else if (dist <= 4) {
+            const alpha = 0.25 - dist * 0.05;
+            if (alpha > 0) {
+              ctx.fillStyle = `rgba(0,50,0,${alpha})`;
+              ctx.font = `10px monospace`;
+              ctx.fillText(chars[col][row] || rchar(), x + 1, y + FS);
+            }
+          }
+        }
+      }
+    }
+
+    // Draw subtle bloom on invader boundary
+    drawBloom();
+  }
+
+  function drawBloom() {
+    const { ps, ox, oy } = invInfo;
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    for (let gy = 0; gy < GRID_H; gy++) {
+      for (let gx = 0; gx < GRID_W; gx++) {
+        if (!GRID[gy][gx]) continue;
+        // Is it a boundary pixel?
+        const nb = (gx > 0 && !GRID[gy][gx-1]) ||
+                   (gx < GRID_W-1 && !GRID[gy][gx+1]) ||
+                   (gy > 0 && !GRID[gy-1][gx]) ||
+                   (gy < GRID_H-1 && !GRID[gy+1][gx]);
+        if (!nb) continue;
+
+        const cx2 = ox + gx * ps + ps / 2;
+        const cy2 = oy + gy * ps + ps / 2;
+        const r = ps * 1.5;
+        const g = ctx.createRadialGradient(cx2, cy2, 0, cx2, cy2, r);
+        g.addColorStop(0, 'rgba(0,255,65,0.08)');
+        g.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = g;
+        ctx.fillRect(cx2 - r, cy2 - r, r * 2, r * 2);
+      }
+    }
+    ctx.restore();
+  }
+
+  // Init
+  resize();
+  buildMasks();
+  requestAnimationFrame(draw);
+})();
+</script>
+</body>
+</html>

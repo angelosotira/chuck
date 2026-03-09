@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create Your Transit Nebula — Chuck.Neoteric.Art</title>
+  <meta name="description" content="Enter your birth details and generate your unique personal nebula — shaped by the alignment of eight planets at the moment of your birth." />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --mono: 'Courier New', 'Courier', monospace;
+      --sans: -apple-system, 'Helvetica Neue', Arial, sans-serif;
+    }
+
+    html, body {
+      width: 100%; height: 100%;
+      background: #000;
+      color: #fff;
+      font-family: var(--sans);
+      overflow-x: hidden;
+    }
+
+    /* ── Nebula iframe background ── */
+    #nebula-bg {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      border: none;
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0.55;
+    }
+
+    /* ── Dark overlay ── */
+    #overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(4, 2, 12, 0.72);
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    /* ── Scroll container ── */
+    #page {
+      position: relative;
+      z-index: 2;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 24px 80px;
+    }
+
+    /* ── Header ── */
+    .page-header {
+      width: 100%;
+      max-width: 560px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 48px;
+    }
+
+    .site-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.3);
+      text-decoration: none;
+    }
+
+    /* ── Form card ── */
+    .form-card {
+      width: 100%;
+      max-width: 560px;
+      background: rgba(6, 4, 16, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 2px;
+      padding: 48px 44px 52px;
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+    }
+
+    .form-eyebrow {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.32em;
+      text-transform: uppercase;
+      color: rgba(204, 102, 255, 0.75);
+      margin-bottom: 20px;
+    }
+
+    .form-title {
+      font-family: var(--sans);
+      font-size: clamp(26px, 4vw, 36px);
+      font-weight: 300;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      color: #fff;
+      margin-bottom: 10px;
+    }
+
+    .form-subtitle {
+      font-family: var(--sans);
+      font-size: 14px;
+      font-weight: 300;
+      color: rgba(255, 255, 255, 0.42);
+      line-height: 1.6;
+      margin-bottom: 44px;
+    }
+
+    /* ── Field groups ── */
+    .field-group {
+      margin-bottom: 28px;
+    }
+
+    .field-label {
+      font-family: var(--mono);
+      font-size: 9.5px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.38);
+      margin-bottom: 10px;
+      display: block;
+    }
+
+    .field-label span.required {
+      color: rgba(204, 102, 255, 0.6);
+      margin-left: 3px;
+    }
+
+    .field-label span.optional {
+      color: rgba(255,255,255,0.2);
+      font-size: 8.5px;
+      margin-left: 4px;
+    }
+
+    /* ── Inputs ── */
+    input[type="text"],
+    input[type="email"] {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 2px;
+      color: #fff;
+      font-family: var(--sans);
+      font-size: 15px;
+      font-weight: 300;
+      padding: 12px 16px;
+      outline: none;
+      transition: border-color 0.2s, background 0.2s;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+
+    input[type="text"]:focus,
+    input[type="email"]:focus {
+      border-color: rgba(192, 84, 252, 0.5);
+      background: rgba(192, 84, 252, 0.04);
+    }
+
+    input::placeholder {
+      color: rgba(255,255,255,0.2);
+    }
+
+    /* ── Selects ── */
+    select {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 2px;
+      color: #fff;
+      font-family: var(--sans);
+      font-size: 14px;
+      font-weight: 300;
+      padding: 11px 14px;
+      outline: none;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='rgba(255,255,255,0.3)' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 36px;
+    }
+
+    select:focus {
+      border-color: rgba(192, 84, 252, 0.5);
+      background-color: rgba(192, 84, 252, 0.04);
+    }
+
+    select option {
+      background: #0d0b1e;
+      color: #fff;
+    }
+
+    /* ── Date row ── */
+    .date-row {
+      display: grid;
+      grid-template-columns: 2fr 1.2fr 1.8fr;
+      gap: 10px;
+    }
+
+    /* ── Time row ── */
+    .time-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    /* ── Divider ── */
+    .form-divider {
+      width: 100%;
+      height: 1px;
+      background: rgba(255,255,255,0.06);
+      margin: 36px 0;
+    }
+
+    /* ── Submit button ── */
+    .submit-btn {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 16px 32px;
+      background: rgba(128, 25, 255, 0.18);
+      border: 1px solid rgba(176, 100, 255, 0.55);
+      border-radius: 2px;
+      color: #fff;
+      font-family: var(--sans);
+      font-size: 15px;
+      font-weight: 400;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      transition: background 0.3s, border-color 0.3s, box-shadow 0.3s;
+      box-shadow: 0 0 20px rgba(128, 25, 255, 0.2);
+      margin-top: 8px;
+    }
+
+    .submit-btn:hover:not(:disabled) {
+      background: rgba(128, 25, 255, 0.32);
+      border-color: rgba(192, 84, 252, 0.85);
+      box-shadow: 0 0 32px rgba(128, 25, 255, 0.4);
+    }
+
+    .submit-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* ── Status messages ── */
+    #status-msg {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-align: center;
+      margin-top: 16px;
+      min-height: 18px;
+      color: rgba(255,255,255,0.4);
+    }
+
+    #status-msg.error {
+      color: rgba(255, 80, 80, 0.8);
+    }
+
+    /* ── Footer note ── */
+    .form-footer-note {
+      margin-top: 32px;
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.18);
+      text-align: center;
+      line-height: 1.8;
+    }
+
+    /* ── Back link ── */
+    .back-link {
+      display: inline-block;
+      margin-top: 36px;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.25);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .back-link:hover { color: rgba(255,255,255,0.6); }
+
+    @media (max-width: 600px) {
+      .form-card { padding: 36px 24px 40px; }
+      .date-row { grid-template-columns: 1fr 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Nebula background iframe -->
+<iframe
+  id="nebula-bg"
+  src="../nebula-art.html?birth=1990-03-15&time=12:00&lat=40.7128&lon=-74.0060"
+  title="Transit Nebula background"
+  scrolling="no"
+  tabindex="-1"
+  aria-hidden="true"
+></iframe>
+<div id="overlay"></div>
+
+<div id="page">
+  <div class="page-header">
+    <a href="/transit/" class="site-label">Chuck.Neoteric.Art</a>
+    <a href="/transit/nebula-i/" class="site-label">Transit Nebula I</a>
+  </div>
+
+  <div class="form-card">
+    <p class="form-eyebrow">Transit Nebula I</p>
+    <h1 class="form-title">Make Your Nebula</h1>
+    <p class="form-subtitle">Enter your birth details below. Your unique nebula is generated from the alignment of eight planets at the moment you were born, recalculated against today's sky.</p>
+
+    <form id="create-form" novalidate>
+
+      <!-- Name -->
+      <div class="field-group">
+        <label for="f-name" class="field-label">Your Name <span class="required">*</span> <span class="optional">— shown publicly</span></label>
+        <input type="text" id="f-name" name="name" placeholder="e.g. Maya Chen" required autocomplete="name" />
+      </div>
+
+      <!-- Email -->
+      <div class="field-group">
+        <label for="f-email" class="field-label">Email <span class="required">*</span> <span class="optional">— never displayed</span></label>
+        <input type="email" id="f-email" name="email" placeholder="you@example.com" required autocomplete="email" />
+      </div>
+
+      <div class="form-divider"></div>
+
+      <!-- Birth Date -->
+      <div class="field-group">
+        <label class="field-label">Birth Date <span class="required">*</span></label>
+        <div class="date-row">
+          <select id="f-month" name="month" required>
+            <option value="">Month</option>
+            <option value="01">January</option>
+            <option value="02">February</option>
+            <option value="03">March</option>
+            <option value="04">April</option>
+            <option value="05">May</option>
+            <option value="06">June</option>
+            <option value="07">July</option>
+            <option value="08">August</option>
+            <option value="09">September</option>
+            <option value="10">October</option>
+            <option value="11">November</option>
+            <option value="12">December</option>
+          </select>
+          <select id="f-day" name="day" required>
+            <option value="">Day</option>
+          </select>
+          <select id="f-year" name="year" required>
+            <option value="">Year</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Birth Time -->
+      <div class="field-group">
+        <label class="field-label">Birth Time <span class="optional">— optional, use noon if unknown</span></label>
+        <div class="time-row">
+          <select id="f-hour" name="hour">
+          </select>
+          <select id="f-minute" name="minute">
+          </select>
+        </div>
+      </div>
+
+      <!-- City -->
+      <div class="field-group">
+        <label for="f-city" class="field-label">Birth City <span class="optional">— for location</span></label>
+        <input type="text" id="f-city" name="city" placeholder="e.g. Los Angeles, CA" autocomplete="off" />
+      </div>
+
+      <div class="form-divider"></div>
+
+      <button type="submit" class="submit-btn" id="submit-btn">
+        Create My Nebula →
+      </button>
+
+      <p id="status-msg"></p>
+    </form>
+
+    <p class="form-footer-note">
+      Your email is stored securely and never shown publicly.<br>
+      Your nebula is unique to you — no two are the same.
+    </p>
+  </div>
+
+  <a href="/transit/nebula-i/" class="back-link">← Transit Nebula I</a>
+</div>
+
+<script>
+(function() {
+  // ── Populate Day dropdown ──────────────────────────────────────────────────
+  const daySelect = document.getElementById('f-day');
+  for (let d = 1; d <= 31; d++) {
+    const opt = document.createElement('option');
+    opt.value = String(d).padStart(2, '0');
+    opt.textContent = d;
+    daySelect.appendChild(opt);
+  }
+
+  // ── Populate Year dropdown ─────────────────────────────────────────────────
+  const yearSelect = document.getElementById('f-year');
+  const currentYear = new Date().getFullYear();
+  const defaultYear = currentYear - 20;
+  for (let y = currentYear; y >= 1920; y--) {
+    const opt = document.createElement('option');
+    opt.value = y;
+    opt.textContent = y;
+    if (y === defaultYear) opt.selected = true;
+    yearSelect.appendChild(opt);
+  }
+
+  // ── Populate Hour dropdown ─────────────────────────────────────────────────
+  const hourSelect = document.getElementById('f-hour');
+  for (let h = 0; h <= 23; h++) {
+    const opt = document.createElement('option');
+    opt.value = String(h).padStart(2, '0');
+    opt.textContent = (h === 0 ? '12 AM' : h < 12 ? h + ' AM' : h === 12 ? '12 PM' : (h - 12) + ' PM');
+    if (h === 12) opt.selected = true;
+    hourSelect.appendChild(opt);
+  }
+
+  // ── Populate Minute dropdown ───────────────────────────────────────────────
+  const minuteSelect = document.getElementById('f-minute');
+  for (let m = 0; m <= 59; m++) {
+    const opt = document.createElement('option');
+    opt.value = String(m).padStart(2, '0');
+    opt.textContent = ':' + String(m).padStart(2, '0');
+    if (m === 0) opt.selected = true;
+    minuteSelect.appendChild(opt);
+  }
+
+  // ── Form submit ───────────────────────────────────────────────────────────
+  const form = document.getElementById('create-form');
+  const submitBtn = document.getElementById('submit-btn');
+  const statusMsg = document.getElementById('status-msg');
+
+  form.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    statusMsg.className = '';
+    statusMsg.textContent = '';
+
+    const name  = document.getElementById('f-name').value.trim();
+    const email = document.getElementById('f-email').value.trim();
+    const month = document.getElementById('f-month').value;
+    const day   = document.getElementById('f-day').value;
+    const year  = document.getElementById('f-year').value;
+    const hour  = document.getElementById('f-hour').value;
+    const min   = document.getElementById('f-minute').value;
+    const city  = document.getElementById('f-city').value.trim();
+
+    // Validate
+    if (!name) { showError('Please enter your name.'); return; }
+    if (!email || !email.includes('@')) { showError('Please enter a valid email.'); return; }
+    if (!month || !day || !year) { showError('Please select your full birth date.'); return; }
+
+    const birth_date = year + '-' + month + '-' + day;
+    const birth_time = hour + ':' + min;
+
+    // Disable button, show loading
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Locating…';
+    statusMsg.textContent = '';
+
+    // Geocode city
+    let lat = 0, lon = 0, resolvedCity = city;
+    if (city) {
+      try {
+        const geoRes = await fetch(
+          'https://nominatim.openstreetmap.org/search?q=' +
+          encodeURIComponent(city) + '&format=json&limit=1',
+          { headers: { 'Accept-Language': 'en' } }
+        );
+        const geoData = await geoRes.json();
+        if (geoData && geoData.length > 0) {
+          lat = parseFloat(geoData[0].lat);
+          lon = parseFloat(geoData[0].lon);
+          resolvedCity = geoData[0].display_name.split(',').slice(0,2).join(',').trim();
+        } else {
+          showError('City not found. Try a larger nearby city, or leave blank.');
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Create My Nebula →';
+          return;
+        }
+      } catch (err) {
+        showError('Geocoding failed. Check your connection and try again.');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Create My Nebula →';
+        return;
+      }
+    }
+
+    // Save to localStorage for nebula-art.html to capture + upload
+    const pending = {
+      name: name,
+      email: email,
+      birth_date: birth_date,
+      birth_time: birth_time,
+      lat: lat,
+      lon: lon,
+      city: resolvedCity
+    };
+    localStorage.setItem('transit_pending_save', JSON.stringify(pending));
+
+    // Build redirect URL
+    const params = new URLSearchParams({
+      name: name,
+      birth: birth_date,
+      time: birth_time,
+      lat: lat,
+      lon: lon,
+      source: 'transit'
+    });
+    if (resolvedCity) params.set('city', resolvedCity);
+
+    submitBtn.textContent = 'Generating…';
+    window.location.href = '/transit/nebula-i/?' + params.toString();
+  });
+
+  function showError(msg) {
+    statusMsg.className = 'error';
+    statusMsg.textContent = msg;
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Create My Nebula →';
+  }
+})();
+</script>
+
+
+<!-- ── CONSISTENT NAV MENU ─────────────────────────────────────────────── -->
+<div id="nav-menu-btn" onclick="toggleNavMenu()" style="position:fixed;top:16px;right:18px;z-index:200;font-family:'Courier New',monospace;font-size:0.58rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.6);cursor:pointer;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.12);padding:6px 12px;border-radius:2px;transition:all 0.2s;" onmouseenter="this.style.color='rgba(255,255,255,0.95)';this.style.background='rgba(0,0,0,0.65)'" onmouseleave="this.style.color='rgba(255,255,255,0.6)';this.style.background='rgba(0,0,0,0.45)'">menu</div>
+
+<div id="nav-menu-panel" style="position:fixed;top:0;right:0;width:260px;height:100vh;z-index:300;background:rgba(6,4,14,0.97);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);transform:translateX(100%);transition:transform 0.3s cubic-bezier(0.4,0,0.2,1);display:flex;flex-direction:column;padding:48px 28px;border-left:1px solid rgba(255,255,255,0.06);overflow-y:auto;">
+  <div onclick="toggleNavMenu()" style="position:absolute;top:18px;right:20px;font-family:'Courier New',monospace;font-size:0.58rem;letter-spacing:0.12em;color:rgba(255,255,255,0.3);cursor:pointer;">✕ close</div>
+  <div style="font-family:'Courier New',monospace;font-size:0.5rem;letter-spacing:0.24em;color:rgba(255,255,255,0.18);text-transform:uppercase;margin-bottom:32px;">Transit · Nebula I</div>
+  <div style="display:flex;flex-direction:column;gap:2px;flex:1;">
+    <a href="/transit/nebula-i/" style="font-family:'Courier New',monospace;font-size:0.62rem;letter-spacing:0.06em;color:rgba(255,255,255,0.4);text-decoration:none;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.05);transition:color 0.2s;display:block;" onmouseenter="this.style.color='rgba(255,255,255,0.85)'" onmouseleave="this.style.color='rgba(255,255,255,0.4)'">Nebula I</a>
+    <a href="/transit/nebula-i/browse.html" style="font-family:'Courier New',monospace;font-size:0.62rem;letter-spacing:0.06em;color:rgba(255,255,255,0.4);text-decoration:none;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.05);transition:color 0.2s;display:block;" onmouseenter="this.style.color='rgba(255,255,255,0.85)'" onmouseleave="this.style.color='rgba(255,255,255,0.4)'">Browse →</a>
+    <a href="/transit/nebula-i/create.html" style="font-family:'Courier New',monospace;font-size:0.62rem;letter-spacing:0.06em;color:rgba(180,130,255,0.9);text-decoration:none;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.05);transition:color 0.2s;display:block;" onmouseenter="this.style.color='rgba(255,255,255,0.85)'" onmouseleave="this.style.color='rgba(180,130,255,0.9)'">Make Your Nebula →</a>
+    <a href="/transit/nebula-i/reading.html" style="font-family:'Courier New',monospace;font-size:0.62rem;letter-spacing:0.06em;color:rgba(255,255,255,0.4);text-decoration:none;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.05);transition:color 0.2s;display:block;" onmouseenter="this.style.color='rgba(255,255,255,0.85)'" onmouseleave="this.style.color='rgba(255,255,255,0.4)'">Today's Reading →</a>
+    <a href="/transit/nebula-i/about.html" style="font-family:'Courier New',monospace;font-size:0.62rem;letter-spacing:0.06em;color:rgba(255,255,255,0.4);text-decoration:none;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.05);transition:color 0.2s;display:block;" onmouseenter="this.style.color='rgba(255,255,255,0.85)'" onmouseleave="this.style.color='rgba(255,255,255,0.4)'">About →</a>
+    <a href="/transit/nebula-i/method.html" style="font-family:'Courier New',monospace;font-size:0.62rem;letter-spacing:0.06em;color:rgba(255,255,255,0.4);text-decoration:none;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.05);transition:color 0.2s;display:block;" onmouseenter="this.style.color='rgba(255,255,255,0.85)'" onmouseleave="this.style.color='rgba(255,255,255,0.4)'">Astrological Method →</a>
+    <div style="height:1px;background:rgba(255,255,255,0.06);margin:16px 0;"></div>
+    <a href="/transit/" style="font-family:'Courier New',monospace;font-size:0.62rem;letter-spacing:0.06em;color:rgba(255,255,255,0.4);text-decoration:none;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.05);transition:color 0.2s;display:block;" onmouseenter="this.style.color='rgba(255,255,255,0.85)'" onmouseleave="this.style.color='rgba(255,255,255,0.4)'">Transit Series →</a>
+    <a href="/" style="font-family:'Courier New',monospace;font-size:0.62rem;letter-spacing:0.06em;color:rgba(255,255,255,0.4);text-decoration:none;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.05);transition:color 0.2s;display:block;" onmouseenter="this.style.color='rgba(255,255,255,0.85)'" onmouseleave="this.style.color='rgba(255,255,255,0.4)'">← All Works</a>
+  </div>
+</div>
+<div id="nav-menu-overlay" onclick="toggleNavMenu()" style="display:none;position:fixed;inset:0;z-index:250;background:rgba(0,0,0,0.45);backdrop-filter:blur(2px);"></div>
+
+<script>
+function toggleNavMenu() {
+  var p = document.getElementById('nav-menu-panel');
+  var o = document.getElementById('nav-menu-overlay');
+  var open = p.style.transform === 'translateX(0%)';
+  p.style.transform = open ? 'translateX(100%)' : 'translateX(0%)';
+  o.style.display = open ? 'none' : 'block';
+}
+</script>
+<!-- ───────────────────────────────────────────────────────────────────────── -->
+
+</body>
+</html>

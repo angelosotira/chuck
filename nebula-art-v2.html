@@ -364,5 +364,19 @@ function render(timestamp) {
 }
 requestAnimationFrame(render);
 </script>
+<script>
+(function(){
+  var params = new URLSearchParams(window.location.search);
+  if (!params.get('birth')) {
+    var btn = document.createElement('a');
+    btn.href = window.location.pathname + '?name=Angelo&birth=1987-07-01&time=13:14&lat=33.4484&lon=-112.0740';
+    btn.textContent = 'SKIP → USE DEMO CHART';
+    btn.style.cssText = 'position:fixed;bottom:20px;right:20px;font-family:"Courier New",monospace;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.35);text-decoration:none;border:1px solid rgba(255,255,255,0.12);padding:6px 12px;background:rgba(0,0,0,0.5);z-index:999;transition:color 0.2s;';
+    btn.onmouseenter = function(){ btn.style.color='rgba(255,255,255,0.8)'; };
+    btn.onmouseleave = function(){ btn.style.color='rgba(255,255,255,0.35)'; };
+    document.body.appendChild(btn);
+  }
+})();
+</script>
 </body>
 </html>

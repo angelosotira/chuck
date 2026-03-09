@@ -356,6 +356,14 @@
 // ── SUPABASE CONFIG ───────────────────────────────────────────────────────────
 const SUPABASE_URL = 'https://iarmibcqsrlknptvzgkn.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlhcm1pYmNxc3Jsa25wdHZ6Z2tuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwMzA1NDEsImV4cCI6MjA4ODYwNjU0MX0.HOvdb-a9GFr0zUEgZqxPYgBEiiZUE9whch-cH0DRhnk';
+function shortCity(city) {
+  if (!city) return '';
+  var parts = city.split(',');
+  // If first part is very short (like a county code), keep 2 parts; otherwise just 1
+  var first = parts[0].trim();
+  if (parts.length > 1 && first.length < 4) return (first + ', ' + parts[1].trim()).slice(0, 40);
+  return first.slice(0, 40);
+}
 async function fetchNebulas() {
   const res = await fetch(SUPABASE_URL + '/rest/v1/nebulas?select=id,name,city,birth_date,birth_time,lat,lon,thumbnail,share_url,created_at&order=created_at.desc&limit=50', {
     headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY }
@@ -429,7 +437,7 @@ function copyShareLink() {
       info.className = 'nebula-card-info';
       info.innerHTML =
         '<div class="nebula-card-name">' + escapeHtml(nebula.name) + '</div>' +
-        (nebula.city ? '<div class="nebula-card-city">' + escapeHtml(nebula.city) + '</div>' : '');
+        (nebula.city ? '<div class="nebula-card-city">' + escapeHtml(shortCity(nebula.city)) + '</div>' : '');
       card.appendChild(info);
 
       grid.appendChild(card);

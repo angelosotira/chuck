@@ -7,7 +7,7 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 html,body{width:100%;height:100%;background:#000;overflow:hidden;}
-canvas{display:block;position:fixed;}
+canvas{display:block;position:fixed;top:0;left:0;width:100vw;height:100vh;}
 #c{image-rendering:pixelated;}
 </style>
 </head>
@@ -219,9 +219,10 @@ float nebulaCloud(vec2 uv, float seed, vec2 center, float size) {
 
 void main() {
   vec2 uv = (gl_FragCoord.xy / u_resolution) * 2.0 - 1.0;
-  float aspect = u_resolution.x / u_resolution.y;
-  if (aspect > 1.0) uv.x *= aspect;
-  else uv.y /= aspect;
+  // Correct for aspect ratio — nebula fills the full frame
+  uv.x *= u_resolution.x / u_resolution.y;
+  // Scale so nebula fills widescreen edge to edge
+  uv *= 0.85;
 
   vec3 color = vec3(0.0, 0.0, 0.008);
 
@@ -293,7 +294,7 @@ void main() {
     color += star * mix(vec3(1.0, 0.98, 0.9), color * 3.0, 0.3);
   }
 
-  float v = 1.0 - smoothstep(0.6, 1.4, length(uv));
+  float v = 1.0 - smoothstep(0.85, 1.6, length(uv));
   color *= v;
 
   fragColor = vec4(color, 1.0);
@@ -341,17 +342,10 @@ gl.uniform1fv(uScores, new Float32Array(SCORES));
 
 // ─── RESIZE ──────────────────────────────────────────────────────────────────
 function resize() {
-  const sz = Math.min(window.innerWidth, window.innerHeight);
-  const L  = (window.innerWidth  - sz) / 2;
-  const T  = (window.innerHeight - sz) / 2;
-  canvas.width  = sz;
-  canvas.height = sz;
-  canvas.style.left   = L + 'px';
-  canvas.style.top    = T + 'px';
-  canvas.style.width  = sz + 'px';
-  canvas.style.height = sz + 'px';
-  gl.viewport(0, 0, sz, sz);
-  gl.uniform2f(uResolution, sz, sz);
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+  gl.viewport(0, 0, canvas.width, canvas.height);
+  gl.uniform2f(uResolution, canvas.width, canvas.height);
 }
 window.addEventListener('resize', resize);
 resize();

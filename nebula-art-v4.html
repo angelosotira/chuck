@@ -7,7 +7,7 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 html,body{width:100%;height:100%;background:#000;overflow:hidden;}
-canvas{display:block;position:fixed;}
+canvas{display:block;position:fixed;top:0;left:0;width:100vw;height:100vh;}
 #c{image-rendering:pixelated;}
 </style>
 </head>
@@ -210,10 +210,10 @@ float star(vec2 uv, float density) {
 // ─── Main ────────────────────────────────────────────────────────────────────
 void main() {
   vec2 uv = (gl_FragCoord.xy / u_resolution) * 2.0 - 1.0;
-  if (u_resolution.x > u_resolution.y)
-    uv.x *= u_resolution.x / u_resolution.y;
-  else
-    uv.y *= u_resolution.y / u_resolution.x;
+  // Correct for aspect ratio — nebula fills the full frame
+  uv.x *= u_resolution.x / u_resolution.y;
+  // Scale so nebula fills widescreen edge to edge
+  uv *= 0.85;
 
   // ── Axis emission colors (NASA nebula palette) ──
   vec3 col[8];
@@ -240,7 +240,7 @@ void main() {
 
   // Soft radial envelope — flat interior, gradual fade at rim
   float r = length(uv);
-  float envelope = 1.0 - smoothstep(0.65, 1.35, r);
+  float envelope = 1.0 - smoothstep(0.85, 1.6, r);
   envelope = pow(envelope, 0.6); // flatten → fills more of frame
   primaryDensity *= envelope;
 
@@ -347,17 +347,10 @@ gl.uniform1fv(uScores, new Float32Array(SCORES));
 
 // ─── RESIZE ──────────────────────────────────────────────────────────────────
 function resize() {
-  const sz = Math.min(window.innerWidth, window.innerHeight);
-  const L  = (window.innerWidth  - sz) / 2;
-  const T  = (window.innerHeight - sz) / 2;
-  canvas.width  = sz;
-  canvas.height = sz;
-  canvas.style.left   = L + 'px';
-  canvas.style.top    = T + 'px';
-  canvas.style.width  = sz + 'px';
-  canvas.style.height = sz + 'px';
-  gl.viewport(0, 0, sz, sz);
-  gl.uniform2f(uResolution, sz, sz);
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+  gl.viewport(0, 0, canvas.width, canvas.height);
+  gl.uniform2f(uResolution, canvas.width, canvas.height);
 }
 window.addEventListener('resize', resize);
 resize();

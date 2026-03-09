@@ -694,11 +694,6 @@ function copyShareLink() {
         <span style="font-family:'Courier New',monospace;font-size:0.5rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.22);">Today's reading</span>
         <span id="menu-today" style="font-size:0.68rem;color:rgba(255,255,255,0.55);text-align:right;"></span>
       </div>
-      <!-- SAVE CURRENT LOOK -->
-      <div style="margin-top:18px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.06);">
-        <button onclick="saveCurrentLook()" style="width:100%;padding:10px 14px;background:rgba(80,20,160,0.22);border:1px solid rgba(180,130,255,0.32);color:rgba(180,130,255,0.88);font-family:'Courier New',monospace;font-size:0.58rem;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;transition:all 0.25s;" onmouseenter="this.style.background='rgba(100,40,200,0.38)';this.style.borderColor='rgba(180,130,255,0.65)';this.style.color='#fff'" onmouseleave="this.style.background='rgba(80,20,160,0.22)';this.style.borderColor='rgba(180,130,255,0.32)';this.style.color='rgba(180,130,255,0.88)'">Save Current Look →</button>
-        <div id="save-look-status" style="margin-top:7px;font-family:'Courier New',monospace;font-size:0.48rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.25);text-align:center;min-height:12px;transition:color 0.3s;"></div>
-      </div>
     </div>
   </div>
 
@@ -759,6 +754,11 @@ function copyShareLink() {
             oninput="setDrift(this.value)">
           <span style="font-family:'Courier New',monospace;font-size:0.44rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(180,130,255,0.45);white-space:nowrap;">Fast</span>
         </div>
+      </div>
+      <!-- SAVE CURRENT LOOK -->
+      <div style="margin-top:18px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.06);">
+        <button onclick="saveCurrentLook()" style="width:100%;padding:10px 14px;background:rgba(80,20,160,0.22);border:1px solid rgba(180,130,255,0.32);color:rgba(180,130,255,0.88);font-family:'Courier New',monospace;font-size:0.58rem;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;transition:all 0.25s;" onmouseenter="this.style.background='rgba(100,40,200,0.38)';this.style.borderColor='rgba(180,130,255,0.65)';this.style.color='#fff'" onmouseleave="this.style.background='rgba(80,20,160,0.22)';this.style.borderColor='rgba(180,130,255,0.32)';this.style.color='rgba(180,130,255,0.88)'">Save Current Look →</button>
+        <div id="save-look-status" style="margin-top:7px;font-family:'Courier New',monospace;font-size:0.48rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.25);text-align:center;min-height:12px;transition:color 0.3s;"></div>
       </div>
     </div>
   </div>

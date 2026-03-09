@@ -307,10 +307,10 @@
   </div>
   <div style="display:flex;flex-direction:column;gap:3px;">
     <a href="/transit/" style="font-family:'Courier New',monospace;font-size:0.65rem;letter-spacing:0.06em;color:rgba(255,255,255,0.5);text-decoration:none;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06);transition:color 0.2s;" onmouseenter="this.style.color='rgba(255,255,255,0.9)'" onmouseleave="this.style.color='rgba(255,255,255,0.5)'">Transit Nebula I →</a>
-    <a href="/transit/browse.html" style="font-family:'Courier New',monospace;font-size:0.65rem;letter-spacing:0.06em;color:rgba(255,255,255,0.9);text-decoration:none;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06);">Browse All Nebulas →</a>
+    <a href="/transit/nebula-i/browse.html" style="font-family:'Courier New',monospace;font-size:0.65rem;letter-spacing:0.06em;color:rgba(255,255,255,0.9);text-decoration:none;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06);">Browse All Nebulas →</a>
     <a href="/transit/nebula-i/create.html" style="font-family:'Courier New',monospace;font-size:0.65rem;letter-spacing:0.06em;color:rgba(255,255,255,0.5);text-decoration:none;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06);transition:color 0.2s;" onmouseenter="this.style.color='rgba(255,255,255,0.9)'" onmouseleave="this.style.color='rgba(255,255,255,0.5)'">Make Your Nebula →</a>
-    <a href="/nebula-about.html" style="font-family:'Courier New',monospace;font-size:0.65rem;letter-spacing:0.06em;color:rgba(255,255,255,0.5);text-decoration:none;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06);transition:color 0.2s;" onmouseenter="this.style.color='rgba(255,255,255,0.9)'" onmouseleave="this.style.color='rgba(255,255,255,0.5)'">About →</a>
-    <a href="/nebula-reading.html" style="font-family:'Courier New',monospace;font-size:0.65rem;letter-spacing:0.06em;color:rgba(255,255,255,0.5);text-decoration:none;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06);transition:color 0.2s;" onmouseenter="this.style.color='rgba(255,255,255,0.9)'" onmouseleave="this.style.color='rgba(255,255,255,0.5)'">Daily Reading →</a>
+    <a href="/transit/nebula-i/about.html" style="font-family:'Courier New',monospace;font-size:0.65rem;letter-spacing:0.06em;color:rgba(255,255,255,0.5);text-decoration:none;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06);transition:color 0.2s;" onmouseenter="this.style.color='rgba(255,255,255,0.9)'" onmouseleave="this.style.color='rgba(255,255,255,0.5)'">About →</a>
+    <a href="/transit/nebula-i/reading.html" style="font-family:'Courier New',monospace;font-size:0.65rem;letter-spacing:0.06em;color:rgba(255,255,255,0.5);text-decoration:none;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06);transition:color 0.2s;" onmouseenter="this.style.color='rgba(255,255,255,0.9)'" onmouseleave="this.style.color='rgba(255,255,255,0.5)'">Daily Reading →</a>
     <a href="/" style="font-family:'Courier New',monospace;font-size:0.65rem;letter-spacing:0.06em;color:rgba(255,255,255,0.3);text-decoration:none;padding:10px 0;transition:color 0.2s;" onmouseenter="this.style.color='rgba(255,255,255,0.7)'" onmouseleave="this.style.color='rgba(255,255,255,0.3)'">← All Works</a>
   </div>
 </div>
@@ -400,13 +400,13 @@ function copyShareLink() {
     data.forEach(function(nebula) {
       const params = new URLSearchParams({
         birth: nebula.birth_date || '',
-        time: nebula.birth_time || '12:00',
-        lat: nebula.lat || 0,
-        lon: nebula.lon || 0,
-        name: nebula.name || '',
-        city: nebula.city || ''
+        time:  nebula.birth_time || '12:00',
+        lat:   nebula.lat   || 0,
+        lon:   nebula.lon   || 0,
+        name:  nebula.name  || '',
+        city:  nebula.city  || ''
       });
-      const href = '/transit/nebula-i/art.html?' + + params.toString();
+      const href = nebula.share_url || ('/transit/nebula-i/nebula.html?' + params.toString());
 
       const card = document.createElement('a');
       card.className = 'nebula-card';

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Nebula — Astrological Field</title>
+<title>Nebula â Astrological Field</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 html,body{width:100%;height:100%;background:#000;overflow:hidden;}
@@ -14,7 +14,7 @@ canvas{display:block;position:fixed;}
 <body>
 <canvas id="c"></canvas>
 <script>
-// ─── URL PARAMS ──────────────────────────────────────────────────────────────
+// âââ URL PARAMS ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 const P = new URLSearchParams(location.search);
 const pName  = P.get('name')  || null;
 const pBirth = P.get('birth') || null; // YYYY-MM-DD
@@ -22,7 +22,7 @@ const pTime  = P.get('time')  || '12:00';
 const pLat   = parseFloat(P.get('lat')  || '0');
 const pLon   = parseFloat(P.get('lon')  || '0');
 
-// ─── ASTRONOMY (Jean Meeus) ───────────────────────────────────────────────────
+// âââ ASTRONOMY (Jean Meeus) âââââââââââââââââââââââââââââââââââââââââââââââââââ
 function jd(y, m, d, h) {
   if (m <= 2) { y--; m += 12; }
   const A = Math.floor(y / 100), B = 2 - A + Math.floor(A / 4);
@@ -68,10 +68,10 @@ function allPos(j) {
   return r;
 }
 
-// ─── COMPUTE SCORES ──────────────────────────────────────────────────────────
+// âââ COMPUTE SCORES ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function computeScores() {
   // Fallback: equal scores if no birth info
-  if (!pBirth) return PLANET_NAMES.map(() => 0.5);
+  if (!pBirth) return [0.9, 0.3, 0.7, 0.85, 0.2, 0.6, 0.4, 0.75];
 
   // Parse birth date
   const [by, bm, bd] = pBirth.split('-').map(Number);
@@ -86,17 +86,17 @@ function computeScores() {
                      now.getUTCHours() + now.getUTCMinutes()/60);
   const todayPos = allPos(todayJD);
 
-  // Angular separation → score  (0=opposition, 1=conjunction)
+  // Angular separation â score  (0=opposition, 1=conjunction)
   return PLANET_NAMES.map(nm => {
     const diff = Math.abs(n360(todayPos[nm] - natalPos[nm]));
-    const angularDiff = Math.min(diff, 360 - diff); // 0–180
+    const angularDiff = Math.min(diff, 360 - diff); // 0â180
     return Math.max(0, Math.min(1, 1.0 - angularDiff / 180.0));
   });
 }
 
 const SCORES = computeScores();
 
-// ─── WEBGL2 SETUP ─────────────────────────────────────────────────────────────
+// âââ WEBGL2 SETUP âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 const canvas = document.getElementById('c');
 const gl = canvas.getContext('webgl2', {antialias: false, alpha: false});
 if (!gl) {
@@ -104,14 +104,14 @@ if (!gl) {
   throw new Error('no webgl2');
 }
 
-// ─── SHADERS ─────────────────────────────────────────────────────────────────
+// âââ SHADERS âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 const VS = `#version 300 es
 in vec2 a_pos;
 void main() {
   gl_Position = vec4(a_pos, 0.0, 1.0);
 }`;
 
-// Stefan Gustavson's 3D simplex noise — permutation-table approach
+// Stefan Gustavson's 3D simplex noise â permutation-table approach
 const SNOISE_GLSL = `
 // --- 3D Simplex Noise (Stefan Gustavson) ---
 vec3 mod289v3(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
@@ -179,7 +179,7 @@ out vec4 fragColor;
 
 ${SNOISE_GLSL}
 
-// ─── fBm — 7 octaves ──────────────────────────────────────────────────────
+// âââ fBm â 7 octaves ââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 float fbm(vec2 p, float seed) {
   float val  = 0.0;
   float amp  = 0.5;
@@ -194,58 +194,43 @@ float fbm(vec2 p, float seed) {
   return val;
 }
 
-// ─── Domain-warped nebula cloud (Quilez double-warp) ──────────────────────
-float nebulaCloud(vec2 uv, float seed) {
-  // First warp
-  vec2 q = vec2(
-    fbm(uv + vec2(0.0, 0.0), seed),
-    fbm(uv + vec2(5.2, 1.3), seed + 1.7)
-  );
-  // Second warp (deeper)
-  vec2 r = vec2(
-    fbm(uv + 4.0*q + vec2(1.7, 9.2), seed + 3.1),
-    fbm(uv + 4.0*q + vec2(8.3, 2.8), seed + 5.4)
-  );
-  // Final density
-  float f = fbm(uv + 5.5*r, seed + 7.7);
-  return clamp(f * 0.5 + 0.5, 0.0, 1.0);
-}
+// ─── Localized nebula cloud with Gaussian envelope ───────────────────────────────
+float nebulaCloud(vec2 uv, float seed, vec2 center, float size) {
+  // Gaussian envelope — this is the KEY fix
+  float dist = length(uv - center);
+  float envelope = exp(-dist * dist / (size * size));
 
-// ─── Star field with diffraction spikes ──────────────────────────────────
-float starField(vec2 uv) {
-  vec2 id     = floor(uv * 280.0);
-  vec2 local  = fract(uv * 280.0) - 0.5;
-  float h          = fract(sin(dot(id, vec2(127.1,  311.7))) * 43758.5453);
-  float brightness = fract(sin(dot(id, vec2(269.5,  183.3))) * 17375.3231);
-  float stars = 0.0;
-  if (h > 0.985) {
-    float r  = length(local);
-    float star  = exp(-r * 60.0) * brightness;
-    // Diffraction cross
-    star += exp(-abs(local.x) * 120.0) * exp(-abs(local.y) * 8.0) * brightness * 0.3;
-    star += exp(-abs(local.y) * 120.0) * exp(-abs(local.x) * 8.0) * brightness * 0.3;
-    stars = star;
-  }
-  return stars;
+  // Domain-warped fBm for organic structure
+  vec2 q = vec2(
+    fbm(uv * 1.5 + vec2(0.0, 0.0), seed),
+    fbm(uv * 1.5 + vec2(5.2, 1.3), seed + 1.7)
+  );
+  vec2 r = vec2(
+    fbm(uv * 1.5 + 3.0*q + vec2(1.7, 9.2), seed + 3.1),
+    fbm(uv * 1.5 + 3.0*q + vec2(8.3, 2.8), seed + 5.4)
+  );
+  float f = fbm(uv * 1.5 + 4.0*r, seed + 7.7);
+
+  // Combine: fBm provides filament detail, envelope provides location
+  float density = (f * 0.5 + 0.5) * envelope;
+
+  // Sharpen contrast — low density invisible, peaks glow bright
+  density = pow(max(0.0, density - 0.1), 1.8);
+
+  return density;
 }
 
 void main() {
-  vec2 uv = (gl_FragCoord.xy / u_resolution.xy) * 2.0 - 1.0;
-  uv.x *= u_resolution.x / u_resolution.y;
-  uv *= 1.4;
+  vec2 uv = (gl_FragCoord.xy / u_resolution) * 2.0 - 1.0;
+  // Square aspect correction
+  float aspect = u_resolution.x / u_resolution.y;
+  if (aspect > 1.0) uv.x *= aspect;
+  else uv.y /= aspect;
 
-  // ─── 8 axis colors (nebula emission palette) ───────────────────────────
-  vec3 axisColors[8];
-  axisColors[0] = vec3(1.00, 0.70, 0.28);  // Sun:     amber-gold
-  axisColors[1] = vec3(0.69, 0.77, 0.87);  // Moon:    pearl silver-blue
-  axisColors[2] = vec3(0.00, 0.90, 1.00);  // Mercury: electric cyan
-  axisColors[3] = vec3(1.00, 0.41, 0.71);  // Venus:   rose pink
-  axisColors[4] = vec3(0.86, 0.08, 0.24);  // Mars:    deep crimson
-  axisColors[5] = vec3(0.31, 0.78, 0.47);  // Jupiter: soft emerald
-  axisColors[6] = vec3(0.29, 0.00, 0.51);  // Saturn:  deep indigo
-  axisColors[7] = vec3(0.58, 0.00, 0.83);  // Uranus:  electric violet
+  // Deep space background
+  vec3 color = vec3(0.0, 0.0, 0.008);
 
-  // Per-axis seeds for distinct noise fields
+  // ─── Per-axis seeds ──────────────────────────────────────────
   float seeds[8];
   seeds[0] =  0.0;
   seeds[1] = 13.7;
@@ -256,52 +241,86 @@ void main() {
   seeds[6] = 82.2;
   seeds[7] = 95.9;
 
-  // Spatial offsets so each nebula cloud occupies a different sky region
-  vec2 offsets[8];
-  offsets[0] = vec2( 0.0,  0.0);
-  offsets[1] = vec2( 0.3,  0.7);
-  offsets[2] = vec2(-0.5,  0.2);
-  offsets[3] = vec2( 0.6, -0.4);
-  offsets[4] = vec2(-0.3, -0.6);
-  offsets[5] = vec2( 0.7,  0.3);
-  offsets[6] = vec2(-0.6,  0.5);
-  offsets[7] = vec2( 0.2, -0.7);
+  // ─── Cloud centers — distributed around the canvas ───────────────────
+  vec2 cloudCenters[8];
+  cloudCenters[0] = vec2( 0.15,  0.20);  // Sun — upper right
+  cloudCenters[1] = vec2(-0.30,  0.10);  // Moon — left
+  cloudCenters[2] = vec2( 0.40, -0.15);  // Mercury — right
+  cloudCenters[3] = vec2(-0.10, -0.35);  // Venus — lower left
+  cloudCenters[4] = vec2( 0.25,  0.40);  // Mars — upper area
+  cloudCenters[5] = vec2(-0.40, -0.20);  // Jupiter — far left lower
+  cloudCenters[6] = vec2( 0.05, -0.45);  // Saturn — bottom center
+  cloudCenters[7] = vec2(-0.25,  0.40);  // Uranus — upper left
 
-  // ─── Deep space background ─────────────────────────────────────────────
-  vec3 color = vec3(0.001, 0.001, 0.005);
+  // ─── Cloud sizes ─────────────────────────────────────────────
+  float cloudSizes[8];
+  cloudSizes[0] = 0.55;
+  cloudSizes[1] = 0.45;
+  cloudSizes[2] = 0.40;
+  cloudSizes[3] = 0.50;
+  cloudSizes[4] = 0.38;
+  cloudSizes[5] = 0.52;
+  cloudSizes[6] = 0.42;
+  cloudSizes[7] = 0.48;
 
-  // ─── Accumulate 8 nebula layers ────────────────────────────────────────
+  // ─── Saturated axis colors ───────────────────────────────────────
+  vec3 axisColors[8];
+  axisColors[0] = vec3(1.0,  0.65, 0.1 );  // Sun: amber-gold
+  axisColors[1] = vec3(0.5,  0.75, 1.0 );  // Moon: cool steel blue
+  axisColors[2] = vec3(0.0,  0.95, 1.0 );  // Mercury: electric cyan
+  axisColors[3] = vec3(1.0,  0.3,  0.65);  // Venus: deep rose
+  axisColors[4] = vec3(0.95, 0.05, 0.15);  // Mars: vivid crimson
+  axisColors[5] = vec3(0.2,  0.9,  0.4 );  // Jupiter: bright emerald
+  axisColors[6] = vec3(0.45, 0.1,  0.85);  // Saturn: strong violet
+  axisColors[7] = vec3(0.7,  0.0,  1.0 );  // Uranus: electric purple
+
+  // ─── Accumulate 8 nebula clouds ──────────────────────────────────────────
   for (int i = 0; i < 8; i++) {
-    float density = nebulaCloud(uv * 0.7 + offsets[i], seeds[i]);
-
-    // Power curve — sharper contrast, more dramatic pillars
-    density = pow(density, 2.5);
-
-    // Planetary score modulates brightness: high score = bright, low = ghost
+    float density = nebulaCloud(uv, seeds[i], cloudCenters[i], cloudSizes[i]);
     float score = u_scores[i];
-    density *= score * 1.8;
 
-    // Additive blending — colours accumulate like emission nebulae
-    color += density * axisColors[i] * 0.6;
+    // Scale brightness by score — high score = vivid, low score = whisper
+    color += density * score * 2.5 * axisColors[i];
+
+    // Inner glow — brightest core
+    float coreDensity = nebulaCloud(uv * 0.7, seeds[i] + 50.0,
+                                    cloudCenters[i] * 0.7, cloudSizes[i] * 0.4);
+    color += coreDensity * score * 4.0 * (axisColors[i] * 0.5 + vec3(0.5));
   }
 
-  // ─── Tone mapping — prevent blow-out, keep organic glow ───────────────
-  color = color / (color + vec3(0.8));
-  color = pow(color, vec3(0.85)); // perceptual gamma
+  // ─── Filamentary wisps between clouds ────────────────────────────────────────
+  float wisp = fbm(uv * 2.5, 123.4) * 0.5 + 0.5;
+  wisp = pow(max(0.0, wisp - 0.55), 2.0) * 0.3;
+  color += wisp * vec3(0.3, 0.4, 0.6); // cold blue wisps
 
-  // ─── Stars ─────────────────────────────────────────────────────────────
-  float star = starField(uv * 0.5 + 0.5);
-  vec3 nebulaHint = color * 2.0;
-  color += star * mix(vec3(1.0), nebulaHint, 0.4);
+  // ─── Tone map — Reinhard on luminance (preserves saturation) ──────────────
+  float lum = dot(color, vec3(0.2126, 0.7152, 0.0722));
+  color = color / (1.0 + lum * 0.7);
+  color = pow(color, vec3(0.9)); // gentle gamma
 
-  // ─── Subtle vignette ───────────────────────────────────────────────────
-  float vignette = 1.0 - length(uv * 0.35);
-  color *= clamp(vignette, 0.0, 1.0);
+  // ─── Stars — MUCH sparser than before ────────────────────────────────────────
+  vec2 starUV = uv;
+  vec2 id = floor(starUV * 180.0);
+  vec2 local = fract(starUV * 180.0) - 0.5;
+  float h = fract(sin(dot(id, vec2(127.1, 311.7))) * 43758.5453);
+  if (h > 0.997) { // only 0.3% of cells have stars
+    float brightness = fract(sin(dot(id, vec2(269.5, 183.3))) * 17375.3231);
+    float r = length(local);
+    float star = exp(-r * 80.0) * brightness * 1.5;
+    // Diffraction spikes
+    star += exp(-abs(local.x) * 150.0) * exp(-r * 5.0) * brightness * 0.5;
+    star += exp(-abs(local.y) * 150.0) * exp(-r * 5.0) * brightness * 0.5;
+    color += star * mix(vec3(1.0, 0.98, 0.9), color * 3.0, 0.3);
+  }
+
+  // ─── Vignette ─────────────────────────────────────────────────────────
+  float v = 1.0 - smoothstep(0.6, 1.4, length(uv));
+  color *= v;
 
   fragColor = vec4(color, 1.0);
 }`;
 
-// ─── COMPILE & LINK ──────────────────────────────────────────────────────────
+// âââ COMPILE & LINK ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function compileShader(type, src) {
   const s = gl.createShader(type);
   gl.shaderSource(s, src);
@@ -322,7 +341,7 @@ if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
 }
 gl.useProgram(prog);
 
-// ─── FULL-SCREEN QUAD ────────────────────────────────────────────────────────
+// âââ FULL-SCREEN QUAD ââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 const vbo = gl.createBuffer();
 gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
 gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
@@ -333,15 +352,15 @@ const aPos = gl.getAttribLocation(prog, 'a_pos');
 gl.enableVertexAttribArray(aPos);
 gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
 
-// ─── UNIFORMS ────────────────────────────────────────────────────────────────
+// âââ UNIFORMS ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 const uTime       = gl.getUniformLocation(prog, 'u_time');
 const uResolution = gl.getUniformLocation(prog, 'u_resolution');
 const uScores     = gl.getUniformLocation(prog, 'u_scores[0]');
 
-// Upload scores (static — they don't change per frame)
+// Upload scores (static â they don't change per frame)
 gl.uniform1fv(uScores, new Float32Array(SCORES));
 
-// ─── RESIZE ──────────────────────────────────────────────────────────────────
+// âââ RESIZE ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function resize() {
   const sz = Math.min(window.innerWidth, window.innerHeight);
   const L  = (window.innerWidth  - sz) / 2;
@@ -358,9 +377,9 @@ function resize() {
 window.addEventListener('resize', resize);
 resize();
 
-// ─── RENDER LOOP ─────────────────────────────────────────────────────────────
+// âââ RENDER LOOP âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function render(timestamp) {
-  gl.uniform1f(uTime, timestamp * 0.001); // ms → seconds
+  gl.uniform1f(uTime, timestamp * 0.001); // ms â seconds
   gl.drawArrays(gl.TRIANGLES, 0, 6);
   requestAnimationFrame(render);
 }

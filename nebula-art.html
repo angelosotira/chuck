@@ -328,12 +328,9 @@ void main() {
   seeds[0] =   0.0; seeds[1] =  17.3; seeds[2] =  34.6; seeds[3] =  51.9;
   seeds[4] =  69.2; seeds[5] =  86.5; seeds[6] = 103.8; seeds[7] = 121.1;
 
-  // ── Full-frame envelope — fills every pixel, no circular boundary ─────────
-  // Soft vignette based on normalized SCREEN coords (not aspect-corrected uv)
-  // so it darkens corners equally, never cuts off left/right on widescreen.
-  vec2 sc = (gl_FragCoord.xy / u_resolution) * 2.0 - 1.0; // -1..1 both axes
-  float vign = 1.0 - smoothstep(0.7, 1.42, length(sc));   // radius 1.42 = screen corner
-  float envelope = pow(max(vign, 0.15), 0.4);              // never fully black
+  // ── Envelope — flat 1.0 across full frame; fBm noise fills naturally ──────
+  vec2 sc = (gl_FragCoord.xy / u_resolution) * 2.0 - 1.0; // kept for star density
+  float envelope = 1.0;
 
   // ── Each axis gets its own organic fBm layer — score = color weight ───────
   // No spatial centers. Different seed per axis = different swirl pattern.
@@ -402,7 +399,7 @@ void main() {
   }
 
   // ── Vignette — only at very edge ──────────────────────────────────────────
-  nebulaColor *= 1.0 - smoothstep(1.1, 1.7, length(sc)) * 0.9;
+  // No forced vignette — nebula fills all pixels naturally
 
   fragColor = vec4(nebulaColor, 1.0);
 }`;

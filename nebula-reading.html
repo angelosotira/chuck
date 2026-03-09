@@ -16,9 +16,16 @@ header{margin-bottom:52px;}
 .back-link:hover{color:rgba(255,255,255,0.5);}
 .eyebrow{font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;color:rgba(180,120,255,0.45);margin-bottom:14px;}
 header h1{font-size:1.1rem;font-weight:normal;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,0.75);margin-bottom:10px;}
-#reading-date{font-size:.75rem;color:rgba(255,255,255,0.5);letter-spacing:.1em;margin-bottom:6px;}
-.reading-subject{font-size:.7rem;color:rgba(255,255,255,0.28);letter-spacing:.08em;margin-bottom:8px;}
-.reading-note{font-size:.62rem;color:rgba(255,255,255,0.18);letter-spacing:.07em;font-style:italic;border-left:1px solid rgba(180,120,255,0.2);padding-left:10px;margin-top:14px;}
+.date-pair{margin:18px 0 16px;border:1px solid rgba(255,255,255,0.06);border-radius:8px;overflow:hidden;}
+.date-row{display:flex;justify-content:space-between;align-items:baseline;padding:11px 16px;gap:16px;}
+.date-row:first-child{background:rgba(255,255,255,0.02);}
+.date-label{font-family:'Courier New',monospace;font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,0.28);flex-shrink:0;}
+.date-value{font-size:.78rem;color:rgba(255,255,255,0.65);text-align:right;}
+#nebula-date{color:rgba(180,130,255,0.75);}
+#reading-date{color:rgba(255,255,255,0.65);}
+.date-divider{height:1px;background:rgba(255,255,255,0.05);margin:0 16px;}
+.reading-subject{font-size:.66rem;color:rgba(255,255,255,0.22);letter-spacing:.07em;margin-bottom:6px;}
+.reading-note{font-size:.62rem;color:rgba(255,255,255,0.2);letter-spacing:.05em;font-style:italic;border-left:2px solid rgba(180,120,255,0.25);padding-left:12px;margin-top:14px;line-height:1.7;}
 
 .axis-block{
   border:1px solid rgba(255,255,255,0.05);
@@ -62,9 +69,19 @@ header h1{font-size:1.1rem;font-weight:normal;letter-spacing:.18em;text-transfor
   <header>
     <p class="eyebrow">Transit Nebula I — Daily Reading</p>
     <h1 id="reading-title">Your Astrological Weather</h1>
-    <p id="reading-date"></p>
+    <div class="date-pair">
+      <div class="date-row">
+        <span class="date-label">Your nebula</span>
+        <span class="date-value" id="nebula-date">—</span>
+      </div>
+      <div class="date-divider"></div>
+      <div class="date-row">
+        <span class="date-label">Today's reading</span>
+        <span class="date-value" id="reading-date">—</span>
+      </div>
+    </div>
     <p id="reading-subject" class="reading-subject"></p>
-    <p class="reading-note">This reading recalculates every day as the planets move through the sky.</p>
+    <p class="reading-note">Your nebula is fixed to the sky at the moment of your birth. Every day the planets move — and this reading shifts with them. No one else's reading looks like yours.</p>
   </header>
 
   <div id="axes-container"></div>
@@ -225,19 +242,26 @@ function render(){
   document.getElementById('reading-title').textContent =
     NAME ? `${NAME}'s Astrological Weather` : 'Your Astrological Weather';
 
-  const now = new Date();
-  document.getElementById('reading-date').textContent =
-    'Reading for ' + now.toLocaleDateString('en-US', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
-
-  // Show whose birth chart this is based on
-  const subjectEl = document.getElementById('reading-subject');
-  if (BIRTH_STR && BIRTH_STR !== '1981-02-14') {
+  // Birth date — the fixed anchor
+  if (BIRTH_STR) {
     const [by, bm, bd] = BIRTH_STR.split('-').map(Number);
     const birthLabel = new Date(by, bm-1, bd).toLocaleDateString('en-US', {year:'numeric', month:'long', day:'numeric'});
-    const cityStr = P.get('city') ? ' · ' + P.get('city') : '';
-    subjectEl.textContent = 'Birth chart: ' + (NAME || 'Unknown') + ' · Born ' + birthLabel + (TIME_STR ? ' at ' + TIME_STR : '') + cityStr;
+    const timeStr = TIME_STR ? ' at ' + TIME_STR : '';
+    document.getElementById('nebula-date').textContent = birthLabel + timeStr;
+  }
+
+  // Today's date — the live lens
+  const now = new Date();
+  document.getElementById('reading-date').textContent =
+    now.toLocaleDateString('en-US', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
+
+  // Subject line (name + city)
+  const subjectEl = document.getElementById('reading-subject');
+  const cityStr = P.get('city') ? ' · ' + P.get('city') : '';
+  if (NAME) {
+    subjectEl.textContent = NAME + cityStr;
   } else {
-    subjectEl.textContent = '';
+    subjectEl.textContent = cityStr.replace(' · ', '');
   }
 
   const q = location.search;

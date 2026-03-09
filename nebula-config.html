@@ -170,8 +170,8 @@ let lookupTimer = null;
   const yearSelect = document.getElementById('b-year');
   yearSelect.innerHTML = '<option value="">Year</option>';
   const currentYear = new Date().getFullYear();
-  const defaultYear = currentYear - 30;
-  for (let y = currentYear - 18; y >= 1920; y--) {
+  const defaultYear = currentYear - 20;
+  for (let y = currentYear; y >= 1920; y--) {
     const o = document.createElement('option');
     o.value = y;
     o.textContent = y;

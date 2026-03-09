@@ -464,9 +464,11 @@ function render(timestamp) {
 requestAnimationFrame(render);
 
 // ─── CANVAS CAPTURE + SUPABASE SAVE ──────────────────────────────────────────
-// Wait 3.5s for nebula to render fully, then save. Also retry any pending
-// save from a previous page load that may have failed.
-setTimeout(trySaveNebula, 3500);
+// Only save when loaded as a real page, not embedded as an iframe background
+// (the transit/index.html uses this page as an iframe — must not save from there)
+if (window.self === window.top) {
+  setTimeout(trySaveNebula, 3500);
+}
 
 // ─── SHARE MENU FUNCTIONS ─────────────────────────────────────────────────────
 // ─── MENU SETUP ───────────────────────────────────────────────────────────────

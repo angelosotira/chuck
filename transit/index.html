@@ -4,336 +4,127 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Transit — Chuck.Neoteric.Art</title>
-  <meta name="description" content="The Transit series. Generative nebulae shaped by astrological birth charts and today's planetary weather. Two pieces. One living system." />
-  <meta property="og:title" content="Transit — Chuck.Neoteric.Art" />
-  <meta property="og:description" content="Your birth chart. Today's sky. A living nebula, unique to you." />
-  <meta property="og:url" content="https://chuck.neoteric.art/transit/" />
+  <meta name="description" content="Transit is a series of generative artworks driven by astrological transits. Each piece renders a unique visual from your birth chart against today's planetary sky." />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root {
-      --mono: 'Courier New', 'Courier', monospace;
-      --sans: -apple-system, 'Helvetica Neue', Arial, sans-serif;
-    }
+    :root { --mono: 'Courier New', 'Courier', monospace; --sans: -apple-system, 'Helvetica Neue', Arial, sans-serif; }
     html { scroll-behavior: smooth; }
-    body { background: #000; color: #fff; font-family: var(--sans); overflow-x: hidden; min-height: 100vh; }
+    body { background: #000; color: #fff; font-family: var(--sans); min-height: 100vh; }
 
-    /* ── Nav ── */
     nav {
-      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-      padding: 24px 40px;
-      display: flex; justify-content: space-between; align-items: center;
-      background: linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, transparent 100%);
+      position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+      padding: 24px 48px; display: flex; justify-content: space-between; align-items: center;
     }
-    .nav-brand {
-      font-family: var(--mono); font-size: 10px; letter-spacing: 0.24em;
-      text-transform: uppercase; color: rgba(255,255,255,0.35);
-      text-decoration: none; transition: color 0.2s;
-    }
-    .nav-brand:hover { color: rgba(255,255,255,0.7); }
+    .nav-brand { font-family: var(--mono); font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: rgba(255,255,255,0.3); text-decoration: none; transition: color 0.2s; }
+    .nav-brand:hover { color: rgba(255,255,255,0.65); }
 
-    /* ── Hero ── */
     .hero {
-      min-height: 100vh;
-      display: flex; flex-direction: column;
-      justify-content: center; align-items: center;
-      text-align: center;
-      padding: 120px 24px 80px;
-      position: relative;
+      padding: 160px 48px 100px;
+      max-width: 960px;
     }
+    .hero-eyebrow { font-family: var(--mono); font-size: 10px; letter-spacing: 0.38em; text-transform: uppercase; color: rgba(180,110,255,0.6); margin-bottom: 28px; }
+    .hero-title { font-family: var(--sans); font-size: clamp(48px, 7vw, 96px); font-weight: 300; line-height: 1.0; letter-spacing: -0.03em; color: #fff; margin-bottom: 32px; }
+    .hero-title em { font-style: normal; background: linear-gradient(135deg, #c084fc, #f472b6, #22d3ee); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .hero-body { font-size: clamp(16px, 1.8vw, 20px); font-weight: 300; line-height: 1.75; color: rgba(255,255,255,0.45); max-width: 620px; }
 
-    /* Dual nebula split background */
-    .hero-bg {
-      position: absolute; inset: 0; z-index: 0;
-      display: grid; grid-template-columns: 1fr 1fr;
-      opacity: 0.45;
-    }
-    .hero-bg iframe {
-      width: 100%; height: 100%; border: none; pointer-events: none;
-    }
-    .hero-bg::after {
-      content: '';
-      position: absolute; inset: 0;
-      background: radial-gradient(ellipse 80% 70% at 50% 60%, transparent 30%, rgba(0,0,0,0.82) 100%);
-    }
+    .series-section { padding: 80px 48px 120px; }
+    .series-section-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase; color: rgba(255,255,255,0.2); margin-bottom: 48px; }
 
-    .hero-content { position: relative; z-index: 1; }
+    .works-list { display: flex; flex-direction: column; gap: 2px; max-width: 1100px; }
 
-    .series-label {
-      font-family: var(--mono); font-size: 11px; letter-spacing: 0.38em;
-      text-transform: uppercase; color: rgba(180,110,255,0.7);
-      margin-bottom: 32px;
+    .work-row {
+      display: grid; grid-template-columns: 80px 1fr 200px;
+      gap: 32px; align-items: center;
+      padding: 32px 0; border-top: 1px solid rgba(255,255,255,0.06);
+      text-decoration: none; color: inherit;
+      transition: background 0.2s;
     }
-    .hero-title {
-      font-family: var(--sans); font-size: clamp(52px, 8vw, 108px);
-      font-weight: 300; line-height: 1.0; letter-spacing: -0.03em;
-      color: #fff; margin-bottom: 32px;
-    }
-    .hero-title em {
-      font-style: normal;
-      background: linear-gradient(135deg, #c084fc, #f472b6, #22d3ee);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-    }
-    .hero-subhead {
-      font-family: var(--sans); font-size: clamp(16px, 1.8vw, 21px);
-      font-weight: 300; line-height: 1.65;
-      color: rgba(255,255,255,0.52); max-width: 580px; margin: 0 auto;
-    }
+    .work-row:last-child { border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .work-row:hover .work-row-title { color: #fff; }
+    .work-row-num { font-family: var(--mono); font-size: 10px; letter-spacing: 0.2em; color: rgba(180,110,255,0.5); }
+    .work-row-body { }
+    .work-row-title { font-size: clamp(20px, 2.5vw, 32px); font-weight: 300; letter-spacing: -0.02em; color: rgba(255,255,255,0.85); margin-bottom: 8px; transition: color 0.2s; }
+    .work-row-desc { font-size: 14px; font-weight: 300; line-height: 1.6; color: rgba(255,255,255,0.35); max-width: 520px; }
+    .work-row-tags { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+    .work-row-tag { font-family: var(--mono); font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.25); }
+    .work-row-status { font-family: var(--mono); font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(180,110,255,0.55); }
+    .work-row-status.future { color: rgba(255,255,255,0.18); }
 
-    /* ── Series description ── */
-    .series-desc {
-      position: relative; z-index: 1;
-      padding: 100px 48px;
-      max-width: 900px; margin: 0 auto; text-align: center;
-      background: rgba(4,2,10,0.95);
-    }
-    .series-desc h2 {
-      font-family: var(--sans); font-size: clamp(28px, 3vw, 42px);
-      font-weight: 300; line-height: 1.2; letter-spacing: -0.02em;
-      color: #fff; margin-bottom: 24px;
-    }
-    .series-desc p {
-      font-size: 17px; font-weight: 300; line-height: 1.8;
-      color: rgba(255,255,255,0.48); max-width: 680px; margin: 0 auto;
-    }
-
-    /* ── Works grid ── */
-    .works-section {
-      position: relative; z-index: 1;
-      padding: 0 32px 120px;
-      background: rgba(4,2,10,0.95);
-    }
-    .works-grid {
-      display: grid; grid-template-columns: 1fr 1fr;
-      gap: 2px; max-width: 1300px; margin: 0 auto;
-    }
-
-    @media (max-width: 860px) { .works-grid { grid-template-columns: 1fr; } }
-
-    /* ── Work card ── */
-    .work-card {
-      position: relative; display: block; text-decoration: none;
-      overflow: hidden; aspect-ratio: 4/5;
-      background: #050308;
-    }
-    .work-card iframe {
-      position: absolute; inset: 0;
-      width: 100%; height: 100%;
-      border: none; pointer-events: none;
-      opacity: 0.75; transition: opacity 0.5s ease;
-    }
-    .work-card:hover iframe { opacity: 1; }
-    .work-card-overlay {
-      position: absolute; inset: 0;
-      background: linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.1) 55%, transparent 100%);
-      z-index: 1; transition: background 0.4s ease;
-    }
-    .work-card:hover .work-card-overlay {
-      background: linear-gradient(to top, rgba(0,0,0,0.94) 0%, rgba(0,0,0,0.2) 65%, transparent 100%);
-    }
-    .work-card-info {
-      position: absolute; bottom: 0; left: 0; right: 0;
-      padding: 40px 36px; z-index: 2;
-    }
-    .work-number {
-      font-family: var(--mono); font-size: 10px; letter-spacing: 0.28em;
-      text-transform: uppercase; color: rgba(192,84,252,0.6);
-      margin-bottom: 12px;
-    }
-    .work-number-ii { color: rgba(160,80,255,0.6); }
-    .work-title {
-      font-family: var(--sans); font-size: clamp(28px, 3.5vw, 44px);
-      font-weight: 300; letter-spacing: -0.02em; line-height: 1.1;
-      color: #fff; margin-bottom: 16px;
-    }
-    .work-desc {
-      font-family: var(--sans); font-size: 14px; font-weight: 300;
-      line-height: 1.7; color: rgba(255,255,255,0.45);
-      max-width: 360px; margin-bottom: 28px;
-    }
-    .work-tags {
-      display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 32px;
-    }
-    .work-tag {
-      font-family: var(--mono); font-size: 9px; letter-spacing: 0.16em;
-      text-transform: uppercase; color: rgba(255,255,255,0.3);
-      border: 1px solid rgba(255,255,255,0.1);
-      padding: 4px 10px;
-    }
-    .work-links {
-      display: flex; gap: 16px; align-items: center; flex-wrap: wrap;
-    }
-    .work-cta {
-      font-family: var(--mono); font-size: 10px; letter-spacing: 0.18em;
-      text-transform: uppercase; text-decoration: none;
-      color: rgba(255,255,255,0.88); border: 1px solid rgba(192,84,252,0.45);
-      padding: 10px 20px; transition: all 0.25s;
-    }
-    .work-cta:hover {
-      color: #fff; border-color: rgba(192,84,252,0.9);
-      box-shadow: 0 0 20px rgba(128,25,255,0.35);
-    }
-    .work-cta-ii { border-color: rgba(160,80,255,0.45); }
-    .work-cta-ii:hover { border-color: rgba(160,80,255,0.9); box-shadow: 0 0 20px rgba(100,0,220,0.35); }
-    .work-secondary {
-      font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em;
-      text-transform: uppercase; color: rgba(255,255,255,0.25);
-      text-decoration: none; transition: color 0.2s; padding: 10px 0;
-    }
-    .work-secondary:hover { color: rgba(255,255,255,0.6); }
-
-    /* ── How it works ── */
-    .how-section {
-      position: relative; z-index: 1;
-      padding: 120px 48px;
-      background: rgba(2,1,8,0.98);
+    .concept-section {
+      padding: 80px 48px 120px;
       border-top: 1px solid rgba(255,255,255,0.05);
+      background: rgba(4,2,12,0.8);
     }
-    .how-inner { max-width: 1100px; margin: 0 auto; }
-    .how-eyebrow {
-      font-family: var(--mono); font-size: 10px; letter-spacing: 0.32em;
-      text-transform: uppercase; color: rgba(192,84,252,0.55);
-      margin-bottom: 64px; text-align: center;
-    }
-    .how-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 48px; }
-    @media (max-width: 760px) { .how-grid { grid-template-columns: 1fr; } }
-    .how-card { border-top: 1px solid rgba(255,255,255,0.07); padding-top: 28px; }
-    .how-num {
-      font-family: var(--mono); font-size: 10px; letter-spacing: 0.22em;
-      color: rgba(192,84,252,0.45); margin-bottom: 18px; text-transform: uppercase;
-    }
-    .how-title { font-size: 19px; font-weight: 500; color: rgba(255,255,255,0.9); margin-bottom: 14px; }
-    .how-body { font-size: 14px; font-weight: 300; line-height: 1.75; color: rgba(255,255,255,0.42); }
+    .concept-inner { max-width: 720px; }
+    .concept-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase; color: rgba(255,255,255,0.18); margin-bottom: 32px; }
+    .concept-body { font-size: 16px; font-weight: 300; line-height: 1.85; color: rgba(255,255,255,0.38); }
+    .concept-body p + p { margin-top: 20px; }
 
-    /* ── Footer ── */
-    footer {
-      position: relative; z-index: 1;
-      padding: 40px 48px;
-      border-top: 1px solid rgba(255,255,255,0.05);
-      background: rgba(2,1,8,0.98);
-      display: flex; justify-content: space-between; align-items: center;
-    }
-    .footer-brand {
-      font-family: var(--mono); font-size: 9px; letter-spacing: 0.2em;
-      text-transform: uppercase; color: rgba(255,255,255,0.18);
-    }
-    .footer-back {
-      font-family: var(--mono); font-size: 9px; letter-spacing: 0.16em;
-      text-transform: uppercase; color: rgba(255,255,255,0.2);
-      text-decoration: none; transition: color 0.2s;
-    }
+    footer { padding: 40px 48px; border-top: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; }
+    .footer-brand { font-family: var(--mono); font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255,255,255,0.15); }
+    .footer-back { font-family: var(--mono); font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.18); text-decoration: none; transition: color 0.2s; }
     .footer-back:hover { color: rgba(255,255,255,0.55); }
 
-    @media (max-width: 600px) {
+    @media (max-width: 700px) {
+      .hero { padding: 120px 24px 80px; }
+      .series-section { padding: 60px 24px 80px; }
+      .work-row { grid-template-columns: 1fr; gap: 12px; }
+      .work-row-tags { align-items: flex-start; }
+      .concept-section { padding: 60px 24px 80px; }
       nav { padding: 20px 24px; }
-      .series-desc { padding: 80px 24px; }
-      .works-section { padding: 0 0 80px; }
-      .how-section { padding: 80px 24px; }
-      .work-card-info { padding: 28px 24px; }
-      footer { flex-direction: column; gap: 16px; padding: 32px 24px; }
+      footer { padding: 32px 24px; flex-direction: column; gap: 16px; }
     }
   </style>
 </head>
 <body>
 
-<!-- Nav -->
 <nav>
   <a href="/" class="nav-brand">Chuck.Neoteric.Art</a>
 </nav>
 
-<!-- Hero: split dual nebula background -->
-<section class="hero">
-  <div class="hero-bg">
-    <iframe src="/nebula-art.html?birth=1990-06-21&time=12:00&lat=40.7128&lon=-74.0060" title="" tabindex="-1" aria-hidden="true"></iframe>
-    <iframe src="/transit/nebula-II/art.html?birth=1985-09-07&time=08:30&lat=34.0522&lon=-118.2437" title="" tabindex="-1" aria-hidden="true"></iframe>
-  </div>
-  <div class="hero-content">
-    <p class="series-label">A Series by Chuck.Neoteric.Art</p>
-    <h1 class="hero-title">Transit<br><em>Nebula</em></h1>
-    <p class="hero-subhead">Two generative artworks shaped by the alignment of eight planets at the moment of your birth — recalculated every day against the living sky.</p>
-  </div>
-</section>
-
-<!-- Series description -->
-<div class="series-desc">
-  <h2>Your birth chart, rendered as a living nebula.</h2>
-  <p>The Transit series maps the language of astrology onto generative visual systems. Enter your birth details once. The work renders fresh every day, reflecting the current relationship between the sky above and the sky at the moment you arrived. No two are the same. No two days are the same.</p>
+<div class="hero">
+  <p class="hero-eyebrow">An Ongoing Series</p>
+  <h1 class="hero-title"><em>Transit</em></h1>
+  <p class="hero-body">Generative artworks shaped by astrological transits — the daily relationship between the sky at your birth and the sky right now. Each piece in the series explores a different visual physics for the same underlying data.</p>
 </div>
 
-<!-- Works grid -->
-<section class="works-section">
-  <div class="works-grid">
+<section class="series-section">
+  <p class="series-section-label">Works in This Series</p>
+  <div class="works-list">
 
-    <!-- Nebula I -->
-    <a href="nebula-I/" class="work-card">
-      <iframe
-        src="/nebula-art.html?birth=1990-06-21&time=12:00&lat=40.7128&lon=-74.0060"
-        title="Transit Nebula I preview"
-        tabindex="-1" aria-hidden="true"></iframe>
-      <div class="work-card-overlay"></div>
-      <div class="work-card-info">
-        <p class="work-number">Transit · 001</p>
-        <h2 class="work-title">Nebula I</h2>
-        <p class="work-desc">The original. Eight planetary axes woven into a single organic nebula field. Each color channel drifts independently, shaped by your natal chart and today's transits.</p>
-        <div class="work-tags">
-          <span class="work-tag">WebGL2</span>
-          <span class="work-tag">GLSL</span>
-          <span class="work-tag">8 Axes</span>
-          <span class="work-tag">Birth Chart</span>
-        </div>
-        <div class="work-links">
-          <a href="nebula-I/create.html" class="work-cta" onclick="event.stopPropagation()">Make Your Nebula →</a>
-          <a href="nebula-I/browse.html" class="work-secondary" onclick="event.stopPropagation()">Browse All</a>
-        </div>
+    <a href="/transit/nebula-i/" class="work-row">
+      <div class="work-row-num">001</div>
+      <div class="work-row-body">
+        <h2 class="work-row-title">Nebula I</h2>
+        <p class="work-row-desc">Eight planetary axes woven into a living nebula field. Color, density, and motion shift daily with your astrological weather. Adjustable physics — find the aesthetic that feels like you.</p>
+      </div>
+      <div class="work-row-tags">
+        <span class="work-row-status">Live →</span>
+        <span class="work-row-tag">WebGL2 · GLSL</span>
+        <span class="work-row-tag">Birth Chart</span>
       </div>
     </a>
 
-    <!-- Nebula II -->
-    <a href="nebula-II/" class="work-card">
-      <iframe
-        src="nebula-II/art.html?birth=1985-09-07&time=08:30&lat=34.0522&lon=-118.2437"
-        title="Transit Nebula II preview"
-        tabindex="-1" aria-hidden="true"></iframe>
-      <div class="work-card-overlay"></div>
-      <div class="work-card-info">
-        <p class="work-number work-number-ii">Transit · 002</p>
-        <h2 class="work-title">Nebula II</h2>
-        <p class="work-desc">The second piece. Same astrological engine, new visual physics — each planet's color now accretes into its own harmonic region, clumping and drifting through the noise field.</p>
-        <div class="work-tags">
-          <span class="work-tag">WebGL2</span>
-          <span class="work-tag">GLSL</span>
-          <span class="work-tag">Harmonic Physics</span>
-          <span class="work-tag">Birth Chart</span>
-        </div>
-        <div class="work-links">
-          <a href="nebula-II/configure.html" class="work-cta work-cta-ii" onclick="event.stopPropagation()">Make Your Nebula →</a>
-          <a href="nebula-II/browse.html" class="work-secondary" onclick="event.stopPropagation()">Browse All</a>
-        </div>
+    <div class="work-row" style="opacity:0.35;cursor:default;">
+      <div class="work-row-num">002</div>
+      <div class="work-row-body">
+        <h2 class="work-row-title">Coming</h2>
+        <p class="work-row-desc">The second piece in the Transit series is in development.</p>
       </div>
-    </a>
+      <div class="work-row-tags">
+        <span class="work-row-status future">In Development</span>
+      </div>
+    </div>
 
   </div>
 </section>
 
-<!-- How it works -->
-<section class="how-section">
-  <div class="how-inner">
-    <p class="how-eyebrow">How It Works</p>
-    <div class="how-grid">
-      <div class="how-card">
-        <p class="how-num">01 — Your Birth Chart</p>
-        <h3 class="how-title">A snapshot of the sky</h3>
-        <p class="how-body">Enter your birth date, time, and city. The system calculates the exact position of eight celestial bodies at that moment — the same data an astrologer uses to cast your natal chart.</p>
-      </div>
-      <div class="how-card">
-        <p class="how-num">02 — Today's Weather</p>
-        <h3 class="how-title">The sky right now</h3>
-        <p class="how-body">Every time you load the piece, it recalculates the current positions of the same eight bodies. The angular relationship between now and your birth creates that day's astrological "weather."</p>
-      </div>
-      <div class="how-card">
-        <p class="how-num">03 — A Living Image</p>
-        <h3 class="how-title">No two are the same</h3>
-        <p class="how-body">The combined data drives a generative WebGL2 shader. Your birth signature sets the color palette and base structure. Daily transits modulate the intensity of each axis. The result is yours alone — and different every day.</p>
-      </div>
+<section class="concept-section">
+  <div class="concept-inner">
+    <p class="concept-label">The Concept</p>
+    <div class="concept-body">
+      <p>Transit is named for the astrological term: the ongoing movement of planets across the sky and their relationship to fixed points in your natal chart. Every day, the planetary weather shifts. Every person's natal chart is different. The intersection — your birth sky against today's sky — is what each work in this series makes visible.</p>
+      <p>Each iteration explores a different generative system for that data. The underlying engine stays constant. The visual physics evolves.</p>
     </div>
   </div>
 </section>

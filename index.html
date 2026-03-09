@@ -1,239 +1,265 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>chuck.neoteric.art</title>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Chuck.Neoteric.Art</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
 
-    :root {
-      --bg: #000;
-      --text: #fff;
-      --muted: rgba(255,255,255,0.38);
-      --gap: 2px;
-      --mono: 'Courier New', monospace;
-      --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    }
+html{background:#000008;color:#fff;font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;}
+body{min-height:100vh;}
 
-    html, body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: var(--sans);
-      min-height: 100vh;
-    }
+/* ── Header ─────────────────────────────────────────────────────── */
+header{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  display:flex;justify-content:space-between;align-items:center;
+  padding:20px 40px;
+  background:rgba(0,0,8,0.7);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+  border-bottom:1px solid rgba(255,255,255,0.04);
+}
+.wordmark{
+  font-family:'Courier New',monospace;
+  font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;
+  color:rgba(255,255,255,0.4);text-decoration:none;
+}
+.header-note{
+  font-family:'Courier New',monospace;
+  font-size:.55rem;letter-spacing:.14em;text-transform:uppercase;
+  color:rgba(255,255,255,0.18);
+}
 
-    /* ── Nav ── */
-    nav {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      z-index: 100;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 22px 28px;
-      background: linear-gradient(to bottom, rgba(0,0,0,0.72) 0%, transparent 100%);
-      pointer-events: none;
-    }
+/* ── Intro ──────────────────────────────────────────────────────── */
+.intro{
+  padding:160px 40px 80px;
+  max-width:900px;
+}
+.intro-eyebrow{
+  font-family:'Courier New',monospace;
+  font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;
+  color:rgba(180,130,255,0.5);margin-bottom:24px;
+}
+.intro-headline{
+  font-size:clamp(28px,4vw,52px);
+  font-weight:300;line-height:1.25;
+  letter-spacing:-0.02em;
+  color:rgba(255,255,255,0.88);
+}
+.intro-headline em{
+  font-style:italic;color:rgba(255,255,255,0.45);
+}
 
-    nav a, nav span {
-      pointer-events: auto;
-    }
+/* ── Projects ───────────────────────────────────────────────────── */
+.projects{
+  padding:0 0 120px;
+}
+.projects-label{
+  font-family:'Courier New',monospace;
+  font-size:.55rem;letter-spacing:.22em;text-transform:uppercase;
+  color:rgba(255,255,255,0.18);
+  padding:0 40px 32px;
+  border-bottom:1px solid rgba(255,255,255,0.05);
+  margin-bottom:0;
+}
 
-    .nav-logo {
-      font-family: var(--mono);
-      font-size: 0.68rem;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: var(--text);
-      text-decoration: none;
-      opacity: 0.9;
-    }
+/* ── Project Card ───────────────────────────────────────────────── */
+.project{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  min-height:520px;
+  border-bottom:1px solid rgba(255,255,255,0.05);
+  text-decoration:none;
+  color:inherit;
+  transition:background 0.4s;
+}
+.project:hover{background:rgba(255,255,255,0.018);}
 
-    .nav-count {
-      font-family: var(--mono);
-      font-size: 0.62rem;
-      color: var(--muted);
-      letter-spacing: 0.1em;
-    }
+.project-left{
+  padding:64px 40px 64px;
+  display:flex;flex-direction:column;justify-content:space-between;
+  border-right:1px solid rgba(255,255,255,0.05);
+}
+.project-meta{
+  display:flex;align-items:baseline;gap:16px;margin-bottom:40px;
+}
+.project-num{
+  font-family:'Courier New',monospace;
+  font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;
+  color:rgba(255,255,255,0.2);
+}
+.project-year{
+  font-family:'Courier New',monospace;
+  font-size:.55rem;letter-spacing:.14em;
+  color:rgba(255,255,255,0.14);
+}
+.project-body{flex:1;}
+.project-title{
+  font-size:clamp(36px,5vw,72px);
+  font-weight:300;letter-spacing:-0.03em;line-height:1;
+  color:#fff;margin-bottom:24px;
+}
+.project-desc{
+  font-size:clamp(14px,1.4vw,16px);
+  line-height:1.8;
+  color:rgba(255,255,255,0.42);
+  max-width:420px;margin-bottom:40px;
+}
+.project-cta{
+  display:inline-flex;align-items:center;gap:8px;
+  font-family:'Courier New',monospace;
+  font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;
+  color:rgba(255,255,255,0.5);
+  text-decoration:none;
+  border-bottom:1px solid rgba(255,255,255,0.15);
+  padding-bottom:4px;
+  transition:color 0.2s, border-color 0.2s;
+  width:fit-content;
+}
+.project:hover .project-cta{
+  color:rgba(255,255,255,0.9);
+  border-color:rgba(255,255,255,0.5);
+}
+.project-tag{
+  font-family:'Courier New',monospace;
+  font-size:.52rem;letter-spacing:.14em;text-transform:uppercase;
+  color:rgba(255,255,255,0.15);
+  margin-top:auto;padding-top:40px;
+}
 
-    /* ── Grid ── */
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: var(--gap);
-    }
+.project-right{
+  position:relative;overflow:hidden;
+  background:#000;
+}
+.project-right img{
+  width:100%;height:100%;object-fit:cover;
+  opacity:0.75;
+  transition:opacity 0.4s, transform 0.6s;
+  display:block;
+}
+.project:hover .project-right img{
+  opacity:0.9;transform:scale(1.02);
+}
+.project-right-overlay{
+  position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(0,0,8,0.3) 0%,transparent 60%);
+  pointer-events:none;
+}
 
-    @media (max-width: 860px) {
-      .grid { grid-template-columns: repeat(2, 1fr); }
-    }
+/* Nebula project — subtle color tint */
+.project-nebula .project-right{
+  background:linear-gradient(135deg,#0a0018 0%,#000 60%);
+}
+.project-nebula .project-title{
+  background:linear-gradient(135deg,#fff 40%,rgba(180,130,255,0.7) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.project-nebula .project-cta{color:rgba(180,130,255,0.65);border-color:rgba(180,130,255,0.2);}
+.project:hover.project-nebula .project-cta{color:rgba(200,160,255,0.95);border-color:rgba(180,130,255,0.5);}
 
-    @media (max-width: 520px) {
-      .grid { grid-template-columns: 1fr; }
-    }
+/* ── Footer ─────────────────────────────────────────────────────── */
+footer{
+  padding:40px;
+  display:flex;justify-content:space-between;align-items:center;
+  border-top:1px solid rgba(255,255,255,0.04);
+}
+.footer-left{
+  font-family:'Courier New',monospace;
+  font-size:.55rem;letter-spacing:.14em;text-transform:uppercase;
+  color:rgba(255,255,255,0.14);
+}
+.footer-right{
+  font-family:'Courier New',monospace;
+  font-size:.55rem;letter-spacing:.1em;
+  color:rgba(255,255,255,0.1);
+}
 
-    /* ── Card ── */
-    .card {
-      position: relative;
-      aspect-ratio: 4 / 3;
-      overflow: hidden;
-      display: block;
-      text-decoration: none;
-      background: #080808;
-      cursor: pointer;
-    }
-
-    .card img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-      transition: transform 0.55s cubic-bezier(.22,.68,0,1.1), filter 0.4s ease;
-      filter: brightness(0.82) saturate(0.9);
-    }
-
-    .card:hover img {
-      transform: scale(1.05);
-      filter: brightness(1.05) saturate(1.1);
-    }
-
-    /* empty card */
-    .card-empty {
-      width: 100%;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .card-empty span {
-      font-family: var(--mono);
-      font-size: 0.58rem;
-      color: #1c1c1c;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-    }
-
-    /* ── Label (hover reveal) ── */
-    .card-label {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      padding: 40px 20px 18px;
-      background: linear-gradient(to top, rgba(0,0,0,0.78) 0%, transparent 100%);
-      opacity: 0;
-      transform: translateY(6px);
-      transition: opacity 0.28s ease, transform 0.28s ease;
-    }
-
-    .card:hover .card-label {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    .card-title {
-      font-size: 0.82rem;
-      font-weight: 500;
-      color: #fff;
-      letter-spacing: 0.01em;
-      line-height: 1.2;
-    }
-
-    .card-meta {
-      margin-top: 4px;
-      font-family: var(--mono);
-      font-size: 0.58rem;
-      color: rgba(255,255,255,0.45);
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-    }
-  </style>
+/* ── Mobile ─────────────────────────────────────────────────────── */
+@media(max-width:768px){
+  header{padding:16px 20px;}
+  .intro{padding:120px 20px 60px;}
+  .project{grid-template-columns:1fr;}
+  .project-left{padding:48px 20px;border-right:none;}
+  .project-right{height:300px;}
+  .projects-label{padding:0 20px 24px;}
+  footer{padding:32px 20px;flex-direction:column;gap:12px;text-align:center;}
+}
+</style>
 </head>
 <body>
 
-  <nav>
-    <a class="nav-logo" href="/">chuck.neoteric.art</a>
-    <span class="nav-count" id="count"></span>
-  </nav>
+<header>
+  <a class="wordmark" href="/">Chuck.Neoteric.Art</a>
+  <span class="header-note">Projects</span>
+</header>
 
-  <div class="grid" id="grid"></div>
+<section class="intro">
+  <p class="intro-eyebrow">Chuck</p>
+  <h1 class="intro-headline">
+    A space directly tied to my computer<br>
+    where I explore neoteric ideas<br>
+    <em>and chuck them on to the web.</em>
+  </h1>
+</section>
 
-  <script>
-    const artworks = [
-      // ── Nebula Weather Map ──────────────────────────────────────────────────
-      { title: "Transit Nebula I",         date: "2026", type: "WebGL · astrological",  href: "nebula-config.html",   thumb: "thumbs/nebula-art.jpg?v=2"             },
-      { title: "Transit Nebula I — Art", date: "2026", type: "WebGL · live",          href: "nebula-art.html",      thumb: "thumbs/nebula-art.jpg?v=2"             },
-      { title: "Transit Nebula I — v4",  date: "2026", type: "WebGL · coherent mass", href: "nebula-art-v4.html",   thumb: "thumbs/nebula-art-v4.jpg"          },
-      { title: "Transit Nebula I — v2",  date: "2026", type: "WebGL · iteration",     href: "nebula-art-v2.html",   thumb: "thumbs/nebula-art-v2.jpg"          },
-      { title: "Transit Nebula I — v1",  date: "2026", type: "canvas 2D · origin",    href: "nebula-art-v1.html",   thumb: "thumbs/nebula-art-v1.jpg"          },
-      { title: "Transit Nebula I — Reading", date: "2026", type: "astrological · text",   href: "nebula-reading.html",  thumb: "thumbs/nebula-art.jpg?v=2"             },
-      { title: "Transit Nebula I — About",   date: "2026", type: "editorial",             href: "nebula-about.html",    thumb: "thumbs/nebula-art.jpg?v=2"             },
+<section class="projects">
+  <p class="projects-label">Selected Projects</p>
 
-      // ── Mandala series ──────────────────────────────────────────────────────
-      { title: "Mandala",                date: "2026", type: "interactive",           href: "mandala.html",         thumb: "thumbs/mandala.jpg"                },
-      { title: "Mandala I",              date: "2026", type: "interactive",           href: "mandala1.html",        thumb: "thumbs/mandala1.jpg"               },
-      { title: "Mandala II",             date: "2026", type: "interactive",           href: "mandala2.html",        thumb: "thumbs/mandala2.jpg"               },
-      { title: "Mandala III",            date: "2026", type: "interactive",           href: "mandala3.html",        thumb: "thumbs/mandala3.jpg"               },
-      { title: "Mandala IV",             date: "2026", type: "interactive",           href: "mandala4.html",        thumb: "thumbs/mandala4.jpg"               },
+  <!-- ── 01: Invader ──────────────────────────────────────────── -->
+  <a class="project" href="invaders.html">
+    <div class="project-left">
+      <div>
+        <div class="project-meta">
+          <span class="project-num">01</span>
+          <span class="project-year">2026</span>
+        </div>
+        <div class="project-body">
+          <h2 class="project-title">Invader</h2>
+          <p class="project-desc">
+            Ten generative variations on the Space Invader form. Each piece renders the same iconic alien through a radically different visual language — neon, glitch, constellation, crystal, organic, matrix, wireframe, watercolor, circuit, plasma.
+          </p>
+          <span class="project-cta">View Series →</span>
+        </div>
+      </div>
+      <div class="project-tag">Generative Art · Canvas 2D · 10 pieces</div>
+    </div>
+    <div class="project-right">
+      <img src="thumbs/invader-neon.jpg" alt="Neon Invader" loading="lazy">
+      <div class="project-right-overlay"></div>
+    </div>
+  </a>
 
-      // ── Organism ────────────────────────────────────────────────────────────
-      { title: "Organism I",             date: "2026", type: "generative",            href: "organism1.html",       thumb: "thumbs/organism1.jpg"              },
+  <!-- ── 02: Transit Nebula ───────────────────────────────────── -->
+  <a class="project project-nebula" href="transit/">
+    <div class="project-left">
+      <div>
+        <div class="project-meta">
+          <span class="project-num">02</span>
+          <span class="project-year">2026</span>
+        </div>
+        <div class="project-body">
+          <h2 class="project-title">Transit Nebula</h2>
+          <p class="project-desc">
+            A living generative artwork driven by astrological transits. Your birth chart against today's sky, rendered as a nebula in real time. Every person's is unique. Every day it changes. No two people share the same image.
+          </p>
+          <span class="project-cta">Explore Project →</span>
+        </div>
+      </div>
+      <div class="project-tag">WebGL2 · GLSL · Astrological · Series I</div>
+    </div>
+    <div class="project-right">
+      <img src="thumbs/nebula-art.jpg?v=2" alt="Transit Nebula I" loading="lazy">
+      <div class="project-right-overlay"></div>
+    </div>
+  </a>
 
-      // ── Invader series (10 variations) ─────────────────────────────────────
-      { title: "Neon Invader",           date: "2026", type: "generative",            href: "invader-neon.html",    thumb: "thumbs/invader-neon.jpg"           },
-      { title: "Glitch Invader",         date: "2026", type: "generative",            href: "invader-glitch.html",  thumb: "thumbs/invader-glitch.jpg"         },
-      { title: "Constellation Invader",  date: "2026", type: "generative",            href: "invader-constellation.html", thumb: "thumbs/invader-constellation.jpg" },
-      { title: "Crystal Invader",        date: "2026", type: "generative",            href: "invader-crystal.html", thumb: "thumbs/invader-crystal.jpg"        },
-      { title: "Organic Invader",        date: "2026", type: "generative",            href: "invader-organic.html", thumb: "thumbs/invader-organic.jpg"        },
-      { title: "Matrix Invader",         date: "2026", type: "generative",            href: "invader-matrix.html",  thumb: "thumbs/invader-matrix.jpg"         },
-      { title: "Wireframe Invader",      date: "2026", type: "generative",            href: "invader-wireframe.html", thumb: "thumbs/invader-wireframe.jpg"    },
-      { title: "Watercolor Invader",     date: "2026", type: "generative",            href: "invader-watercolor.html", thumb: "thumbs/invader-watercolor.jpg"  },
-      { title: "Circuit Invader",        date: "2026", type: "generative",            href: "invader-circuit.html", thumb: "thumbs/invader-circuit.jpg"        },
-      { title: "Plasma Invader",         date: "2026", type: "generative",            href: "invader-plasma.html",  thumb: "thumbs/invader-plasma.jpg"         },
+</section>
 
-      // ── Original invaders ───────────────────────────────────────────────────
-      { title: "High Res Invader",       date: "2026", type: "generative",            href: "hires-invader.html",   thumb: "thumbs/hires-invader.jpg"          },
-      { title: "Generative Invader",     date: "2026", type: "generative",            href: "generative-invader.html", thumb: "thumbs/generative-invader.jpg"  },
-      { title: "Invader",                date: "2026", type: "pixel art",             href: "invader.html",         thumb: "thumbs/invader.jpg"                },
-
-      // ── Tribute ─────────────────────────────────────────────────────────────
-      { title: "Kelsey",                 date: "2026", type: "tribute",               href: "kelsey.html",          thumb: "thumbs/kelsey.jpg"                 },
-    ];
-
-    const grid = document.getElementById('grid');
-    document.getElementById('count').textContent = artworks.length + ' works';
-
-    artworks.forEach(a => {
-      const card = document.createElement('a');
-      card.className = 'card';
-      card.href = a.href;
-
-      if (a.thumb) {
-        const img = document.createElement('img');
-        img.src = a.thumb;
-        img.alt = a.title;
-        img.loading = 'lazy';
-        card.appendChild(img);
-      } else {
-        const empty = document.createElement('div');
-        empty.className = 'card-empty';
-        empty.innerHTML = '<span>' + (a.type || 'work') + '</span>';
-        card.appendChild(empty);
-      }
-
-      const label = document.createElement('div');
-      label.className = 'card-label';
-      label.innerHTML =
-        '<div class="card-title">' + a.title + '</div>' +
-        '<div class="card-meta">' + a.date + (a.type ? ' &nbsp;·&nbsp; ' + a.type : '') + '</div>';
-      card.appendChild(label);
-
-      grid.appendChild(card);
-    });
-  </script>
+<footer>
+  <span class="footer-left">Chuck.Neoteric.Art</span>
+  <span class="footer-right">More projects soon.</span>
+</footer>
 
 </body>
 </html>

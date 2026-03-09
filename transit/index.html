@@ -515,7 +515,25 @@
   <section id="hero">
     <div class="hero-top">
       <span class="site-label">Chuck.Neoteric.Art</span>
+      <div id="share-btn" onclick="toggleShareMenu()" style="font-family:'Courier New',monospace;font-size:0.58rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.6);cursor:pointer;transition:all 0.2s;user-select:none;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.12);padding:6px 12px;border-radius:2px;" onmouseenter="this.style.color='rgba(255,255,255,0.95)';this.style.background='rgba(0,0,0,0.65)'" onmouseleave="this.style.color='rgba(255,255,255,0.6)';this.style.background='rgba(0,0,0,0.45)'">share ↗</div>
     </div>
+
+    <!-- Share menu -->
+    <div id="share-menu" style="position:fixed;top:0;right:0;width:260px;height:100vh;z-index:300;background:rgba(6,4,14,0.96);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);transform:translateX(100%);transition:transform 0.3s cubic-bezier(0.4,0,0.2,1);display:flex;flex-direction:column;padding:48px 28px;border-left:1px solid rgba(255,255,255,0.06);">
+      <div onclick="toggleShareMenu()" style="position:absolute;top:18px;right:20px;font-family:'Courier New',monospace;font-size:0.58rem;letter-spacing:0.12em;color:rgba(255,255,255,0.3);cursor:pointer;">✕ close</div>
+      <div style="font-family:'Courier New',monospace;font-size:0.55rem;letter-spacing:0.18em;color:rgba(255,255,255,0.25);text-transform:uppercase;margin-bottom:32px;">Transit Nebula I</div>
+      <div style="margin-bottom:28px;">
+        <div style="font-family:'Courier New',monospace;font-size:0.58rem;letter-spacing:0.1em;color:rgba(255,255,255,0.4);text-transform:uppercase;margin-bottom:10px;">Share this page</div>
+        <button onclick="copyShareLink()" id="copy-btn" style="background:none;border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.7);font-family:'Courier New',monospace;font-size:0.62rem;letter-spacing:0.08em;padding:9px 16px;cursor:pointer;width:100%;text-align:left;transition:all 0.2s;">Copy link ↗</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:3px;">
+        <a href="create.html" style="font-family:'Courier New',monospace;font-size:0.65rem;letter-spacing:0.06em;color:rgba(255,255,255,0.5);text-decoration:none;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06);transition:color 0.2s;" onmouseenter="this.style.color='rgba(255,255,255,0.9)'" onmouseleave="this.style.color='rgba(255,255,255,0.5)'">Make Your Nebula →</a>
+        <a href="browse.html" style="font-family:'Courier New',monospace;font-size:0.65rem;letter-spacing:0.06em;color:rgba(255,255,255,0.5);text-decoration:none;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06);transition:color 0.2s;" onmouseenter="this.style.color='rgba(255,255,255,0.9)'" onmouseleave="this.style.color='rgba(255,255,255,0.5)'">Browse All Nebulas →</a>
+        <a href="/nebula-about.html" style="font-family:'Courier New',monospace;font-size:0.65rem;letter-spacing:0.06em;color:rgba(255,255,255,0.5);text-decoration:none;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06);transition:color 0.2s;" onmouseenter="this.style.color='rgba(255,255,255,0.9)'" onmouseleave="this.style.color='rgba(255,255,255,0.5)'">About →</a>
+        <a href="../index.html" style="font-family:'Courier New',monospace;font-size:0.65rem;letter-spacing:0.06em;color:rgba(255,255,255,0.3);text-decoration:none;padding:10px 0;transition:color 0.2s;" onmouseenter="this.style.color='rgba(255,255,255,0.7)'" onmouseleave="this.style.color='rgba(255,255,255,0.3)'">← All Works</a>
+      </div>
+    </div>
+    <div id="share-overlay" onclick="toggleShareMenu()" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.4);backdrop-filter:blur(2px);"></div>
 
     <div class="hero-center">
       <p class="eyebrow">Transit Nebula I</p>
@@ -836,6 +854,22 @@
       window.addEventListener('scroll', onScroll, { passive: true });
       onScroll();
     })();
+  </script>
+  <script>
+    function toggleShareMenu() {
+      const menu = document.getElementById('share-menu');
+      const overlay = document.getElementById('share-overlay');
+      const isOpen = menu.style.transform === 'translateX(0%)';
+      menu.style.transform = isOpen ? 'translateX(100%)' : 'translateX(0%)';
+      overlay.style.display = isOpen ? 'none' : 'block';
+    }
+    function copyShareLink() {
+      navigator.clipboard.writeText(window.location.href).then(() => {
+        const btn = document.getElementById('copy-btn');
+        btn.textContent = 'Copied! ✓';
+        setTimeout(() => btn.textContent = 'Copy link ↗', 2000);
+      });
+    }
   </script>
 
 </body>

@@ -276,7 +276,7 @@ float snoise(vec3 v) {
 float fbm(vec2 p, float seed) {
   float v = 0.0, a = 0.5, f = 1.0;
   mat2 R = mat2(0.8, 0.6, -0.6, 0.8);
-  for (int i = 0; i < 8; i++) {
+  for (int i = 0; i < 5; i++) {
     v += a * snoise(vec3(p * f, seed + u_time * 0.006 * u_drift));
     p  = R * p;
     a *= 0.5; f *= 2.07;
@@ -284,13 +284,11 @@ float fbm(vec2 p, float seed) {
   return v;
 }
 
-// ─── Double domain warp ──────────────────────────────────────────────────────
+// ─── Single domain warp (optimised: 3 fbm instead of 5) ─────────────────────
 float warpedFbm(vec2 p, float seed) {
-  vec2 q = vec2(fbm(p,                      seed + 0.0),
-                fbm(p + vec2(5.2, 1.3),     seed + 1.7));
-  vec2 r = vec2(fbm(p + 4.0*q + vec2(1.7, 9.2), seed + 3.4),
-                fbm(p + 4.0*q + vec2(8.3, 2.8), seed + 5.1));
-  return fbm(p + 4.5*r, seed + 7.3);
+  vec2 q = vec2(fbm(p,                  seed + 0.0),
+                fbm(p + vec2(5.2, 1.3), seed + 1.7));
+  return fbm(p + 4.0*q, seed + 7.3);
 }
 
 // ─── Main ────────────────────────────────────────────────────────────────────
@@ -339,7 +337,7 @@ void main() {
 
   for (int i = 0; i < 8; i++) {
     float score = u_scores[i];
-    if (score < 0.02) continue;
+    if (score < 0.04) continue;
     vec2 axisUv = (uv + axisOffsets[i] * offsetStrength) * axisScale;
     float axisField = warpedFbm(axisUv, seeds[i]);
     axisField = axisField * 0.5 + 0.5;
@@ -351,7 +349,7 @@ void main() {
   // ── Bright core — hottest part of the nebula (center) ────────────────────
   float coreDist = length(uv);
   float core = exp(-coreDist * coreDist / (0.18 * 0.18));
-  float coreFbm = warpedFbm(uv * 1.5, 200.0) * 0.5 + 0.5;
+  float coreFbm = fbm(uv * 1.5, 200.0) * 0.5 + 0.5;
   core *= coreFbm * 1.5;
 
   // core color = average of all axis colors weighted by score
@@ -368,12 +366,10 @@ void main() {
   filament = (1.0 - smoothstep(0.0, filThresh, filament)) * mix(0.25, 0.42, u_accretion);
   nebulaColor += filament * mix(coreColor, vec3(0.8, 0.9, 1.0), 0.4);
 
-  float filament2 = abs(warpedFbm(uv * 4.2, 450.0));
-  filament2 = (1.0 - smoothstep(0.0, 0.10, filament2)) * 0.15 * u_accretion;
-  nebulaColor += filament2 * mix(coreColor, vec3(1.0, 0.95, 0.9), 0.4);
+  // filament2 removed for performance
 
   // ── Dark dust lanes ───────────────────────────────────────────────────────
-  float dust = warpedFbm(uv * 1.1 + vec2(4.7, 2.3), 400.0);
+  float dust = fbm(uv * 1.1 + vec2(4.7, 2.3), 400.0);
   dust = smoothstep(0.5, 0.72, dust) * envelope * 0.65;
   nebulaColor *= 1.0 - dust;
 
@@ -446,23 +442,44 @@ let liveDrift     = 1.0;
 
 // ─── RESIZE ──────────────────────────────────────────────────────────────────
 function resize() {
-  canvas.width  = window.innerWidth;
-  canvas.height = window.innerHeight;
-  gl.viewport(0, 0, canvas.width, canvas.height);
-  gl.uniform2f(uResolution, canvas.width, canvas.height);
+  // Render at 65% of screen — CSS upscales smoothly; nebula is naturally soft
+  const PX = 0.65;
+  const w  = Math.floor(window.innerWidth  * PX);
+  const h  = Math.floor(window.innerHeight * PX);
+  canvas.width  = w;
+  canvas.height = h;
+  gl.viewport(0, 0, w, h);
+  gl.uniform2f(uResolution, w, h);
 }
 window.addEventListener('resize', resize);
 resize();
 
 // ─── RENDER LOOP ─────────────────────────────────────────────────────────────
+const FRAME_MS = 1000 / 30; // cap at 30fps — nebula moves imperceptibly slow
+let _lastFrame = 0;
+let _rafId = 0;
+
 function render(timestamp) {
+  _rafId = requestAnimationFrame(render);
+  if (timestamp - _lastFrame < FRAME_MS) return;
+  _lastFrame = timestamp;
   gl.uniform1f(uTime, timestamp * 0.001);
   gl.uniform1f(uAccretion, liveAccretion);
   gl.uniform1f(uDrift, liveDrift);
   gl.drawArrays(gl.TRIANGLES, 0, 6);
-  requestAnimationFrame(render);
 }
-requestAnimationFrame(render);
+
+// Pause when tab is backgrounded
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    cancelAnimationFrame(_rafId);
+  } else {
+    _lastFrame = 0;
+    _rafId = requestAnimationFrame(render);
+  }
+});
+
+_rafId = requestAnimationFrame(render);
 
 // ─── CANVAS CAPTURE + SUPABASE SAVE ──────────────────────────────────────────
 // Only save when loaded as a real page, not embedded as an iframe background

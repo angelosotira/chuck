@@ -163,27 +163,41 @@
 
   <script>
     const artworks = [
-      { title: "Nebula Weather Map", date: "2026", type: "interactive", href: "nebula-config.html", thumb: "thumbs/nebula-art.jpg" },
-      { title: "Mandala",            date: "2026", type: "interactive", href: "mandala.html",           thumb: "thumbs/mandala.jpg"           },
-      { title: "Mandala I",          date: "2026", type: "interactive", href: "mandala1.html",          thumb: "thumbs/mandala1.jpg"          },
-      { title: "Mandala II",         date: "2026", type: "interactive", href: "mandala2.html",          thumb: "thumbs/mandala2.jpg"          },
-      { title: "Mandala III",        date: "2026", type: "interactive", href: "mandala3.html",          thumb: "thumbs/mandala3.jpg"          },
-      { title: "Mandala IV",         date: "2026", type: "interactive", href: "mandala4.html",          thumb: "thumbs/mandala4.jpg"          },
-      { title: "Organism I",         date: "2026", type: "generative",  href: "organism1.html",         thumb: "thumbs/organism1.jpg"         },
-      { title: "High Res Invader",   date: "2026", type: "generative",  href: "hires-invader.html",     thumb: "thumbs/hires-invader.jpg"     },
-      { title: "Generative Invader", date: "2026", type: "generative",  href: "generative-invader.html",thumb: "thumbs/generative-invader.jpg"},
-      { title: "Invader",            date: "2026", type: "pixel art",   href: "invader.html",           thumb: "thumbs/invader.jpg"           },
-      { title: "Kelsey",             date: "2026", type: "tribute",     href: "kelsey.html",            thumb: "thumbs/kelsey.jpg"            },
-      { title: "Neon Invader",       date: "2026", type: "generative",  href: "invader-neon.html",      thumb: "thumbs/invader-neon.jpg"      },
-      { title: "Glitch Invader",        date: "2026", type: "generative",  href: "invader-glitch.html",        thumb: "thumbs/invader-glitch.jpg"        },
-      { title: "Constellation Invader", date: "2026", type: "generative",  href: "invader-constellation.html", thumb: "thumbs/invader-constellation.jpg" },
-      { title: "Crystal Invader", date: "2026", type: "generative", href: "invader-crystal.html", thumb: "thumbs/invader-crystal.jpg" },
-      { title: "Organic Invader", date: "2026", type: "generative", href: "invader-organic.html", thumb: "thumbs/invader-organic.jpg" },
-      { title: "Matrix Invader", date: "2026", type: "generative", href: "invader-matrix.html", thumb: "thumbs/invader-matrix.jpg" },
-      { title: "Wireframe Invader", date: "2026", type: "generative", href: "invader-wireframe.html", thumb: "thumbs/invader-wireframe.jpg" },
-      { title: "Watercolor Invader", date: "2026", type: "generative", href: "invader-watercolor.html", thumb: "thumbs/invader-watercolor.jpg" },
-      { title: "Circuit Invader", date: "2026", type: "generative", href: "invader-circuit.html", thumb: "thumbs/invader-circuit.jpg" },
-      { title: "Plasma Invader", date: "2026", type: "generative", href: "invader-plasma.html", thumb: "thumbs/invader-plasma.jpg" },
+      // ── Nebula Weather Map ──────────────────────────────────────────────────
+      { title: "Nebula Weather Map",     date: "2026", type: "WebGL · astrological",  href: "nebula-config.html",   thumb: "thumbs/nebula-config.jpg"          },
+      { title: "Nebula · Art",           date: "2026", type: "WebGL · live",          href: "nebula-art.html",      thumb: "thumbs/nebula-art.jpg"             },
+      { title: "Nebula · Reading",       date: "2026", type: "astrological · text",   href: "nebula-reading.html",  thumb: "thumbs/nebula-art.jpg"             },
+      { title: "Nebula · About",         date: "2026", type: "editorial",             href: "nebula-about.html",    thumb: "thumbs/nebula-config.jpg"          },
+
+      // ── Mandala series ──────────────────────────────────────────────────────
+      { title: "Mandala",                date: "2026", type: "interactive",           href: "mandala.html",         thumb: "thumbs/mandala.jpg"                },
+      { title: "Mandala I",              date: "2026", type: "interactive",           href: "mandala1.html",        thumb: "thumbs/mandala1.jpg"               },
+      { title: "Mandala II",             date: "2026", type: "interactive",           href: "mandala2.html",        thumb: "thumbs/mandala2.jpg"               },
+      { title: "Mandala III",            date: "2026", type: "interactive",           href: "mandala3.html",        thumb: "thumbs/mandala3.jpg"               },
+      { title: "Mandala IV",             date: "2026", type: "interactive",           href: "mandala4.html",        thumb: "thumbs/mandala4.jpg"               },
+
+      // ── Organism ────────────────────────────────────────────────────────────
+      { title: "Organism I",             date: "2026", type: "generative",            href: "organism1.html",       thumb: "thumbs/organism1.jpg"              },
+
+      // ── Invader series (10 variations) ─────────────────────────────────────
+      { title: "Neon Invader",           date: "2026", type: "generative",            href: "invader-neon.html",    thumb: "thumbs/invader-neon.jpg"           },
+      { title: "Glitch Invader",         date: "2026", type: "generative",            href: "invader-glitch.html",  thumb: "thumbs/invader-glitch.jpg"         },
+      { title: "Constellation Invader",  date: "2026", type: "generative",            href: "invader-constellation.html", thumb: "thumbs/invader-constellation.jpg" },
+      { title: "Crystal Invader",        date: "2026", type: "generative",            href: "invader-crystal.html", thumb: "thumbs/invader-crystal.jpg"        },
+      { title: "Organic Invader",        date: "2026", type: "generative",            href: "invader-organic.html", thumb: "thumbs/invader-organic.jpg"        },
+      { title: "Matrix Invader",         date: "2026", type: "generative",            href: "invader-matrix.html",  thumb: "thumbs/invader-matrix.jpg"         },
+      { title: "Wireframe Invader",      date: "2026", type: "generative",            href: "invader-wireframe.html", thumb: "thumbs/invader-wireframe.jpg"    },
+      { title: "Watercolor Invader",     date: "2026", type: "generative",            href: "invader-watercolor.html", thumb: "thumbs/invader-watercolor.jpg"  },
+      { title: "Circuit Invader",        date: "2026", type: "generative",            href: "invader-circuit.html", thumb: "thumbs/invader-circuit.jpg"        },
+      { title: "Plasma Invader",         date: "2026", type: "generative",            href: "invader-plasma.html",  thumb: "thumbs/invader-plasma.jpg"         },
+
+      // ── Original invaders ───────────────────────────────────────────────────
+      { title: "High Res Invader",       date: "2026", type: "generative",            href: "hires-invader.html",   thumb: "thumbs/hires-invader.jpg"          },
+      { title: "Generative Invader",     date: "2026", type: "generative",            href: "generative-invader.html", thumb: "thumbs/generative-invader.jpg"  },
+      { title: "Invader",                date: "2026", type: "pixel art",             href: "invader.html",         thumb: "thumbs/invader.jpg"                },
+
+      // ── Tribute ─────────────────────────────────────────────────────────────
+      { title: "Kelsey",                 date: "2026", type: "tribute",               href: "kelsey.html",          thumb: "thumbs/kelsey.jpg"                 },
     ];
 
     const grid = document.getElementById('grid');

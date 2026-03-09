@@ -72,6 +72,11 @@ input::placeholder{color:rgba(255,255,255,0.18);}
     <input type="text" id="inp-name" placeholder="Your name" autocomplete="name">
   </div>
 
+  <div class="field">
+    <label>Email <span style="opacity:.4">(optional, to save your nebula)</span></label>
+    <input type="text" id="inp-email" placeholder="you@example.com" autocomplete="email">
+  </div>
+
   <div style="margin-bottom:28px;">
     <label style="font-family:'Courier New',monospace;font-size:0.6rem;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.35);display:block;margin-bottom:10px;">BIRTH DATE</label>
     <div style="display:grid;grid-template-columns:2fr 1fr 2fr;gap:10px;">
@@ -138,8 +143,8 @@ let lookupTimer = null;
   const yearSelect = document.getElementById('b-year');
   yearSelect.innerHTML = '<option value="">Year</option>';
   const currentYear = new Date().getFullYear();
-  const defaultYear = currentYear - 30;
-  for(let y=currentYear-18;y>=1920;y--){
+  const defaultYear = currentYear - 20;
+  for(let y=currentYear;y>=1920;y--){
     const o=document.createElement('option');
     o.value=y;o.textContent=y;
     if(y===defaultYear)o.selected=true;
@@ -205,7 +210,16 @@ function buildParams(){
   if(time)params.set('time',time);
   if(resolvedLat!=null){params.set('lat',resolvedLat.toFixed(4));params.set('lon',resolvedLon.toFixed(4));}
   if(resolvedCity)params.set('city',resolvedCity);
-  try{localStorage.setItem(LS_KEY,JSON.stringify({name,birth,time,city,lat:resolvedLat,lon:resolvedLon,resolvedCity}));}catch(e){}
+  try{
+    localStorage.setItem(LS_KEY,JSON.stringify({name,birth,time,city,lat:resolvedLat,lon:resolvedLon,resolvedCity}));
+    const email=document.getElementById('inp-email').value.trim();
+    if(email||name){
+      localStorage.setItem('nebula_ii_pending_save',JSON.stringify({
+        name,email,birth_date:birth,birth_time:time||'12:00',
+        lat:resolvedLat||0,lon:resolvedLon||0,city:resolvedCity||city
+      }));
+    }
+  }catch(e){}
   return params.toString();
 }
 

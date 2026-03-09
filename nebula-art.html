@@ -21,9 +21,12 @@ canvas{display:block;position:fixed;top:0;left:0;width:100vw;height:100vh;}
 // SQL to run in Supabase SQL editor (see transit/SETUP.md)
 const SUPABASE_URL = 'https://iarmibcqsrlknptvzgkn.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlhcm1pYmNxc3Jsa25wdHZ6Z2tuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwMzA1NDEsImV4cCI6MjA4ODYwNjU0MX0.HOvdb-a9GFr0zUEgZqxPYgBEiiZUE9whch-cH0DRhnk';
-const supabase = (SUPABASE_URL !== 'YOUR_SUPABASE_URL')
-  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-  : null;
+let supabase = null;
+try {
+  if (SUPABASE_URL !== 'YOUR_SUPABASE_URL' && window.supabase) {
+    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  }
+} catch(e) { console.warn('Supabase init skipped:', e); }
 // ─────────────────────────────────────────────────────────────────────────────
 
 // ─── URL PARAMS ──────────────────────────────────────────────────────────────

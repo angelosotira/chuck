@@ -402,7 +402,7 @@ void main() {
   }
 
   // ── Vignette — only at very edge ──────────────────────────────────────────
-  nebulaColor *= 1.0 - smoothstep(1.1, 1.7, r) * 0.9;
+  nebulaColor *= 1.0 - smoothstep(1.1, 1.7, length(sc)) * 0.9;
 
   fragColor = vec4(nebulaColor, 1.0);
 }`;

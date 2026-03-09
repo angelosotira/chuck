@@ -215,6 +215,8 @@ precision highp float;
 uniform float u_time;
 uniform vec2  u_resolution;
 uniform float u_scores[8];
+uniform float u_accretion; // 0.0=Nebula I style ... 1.0=Nebula X style
+uniform float u_drift;     // animation speed multiplier
 
 out vec4 fragColor;
 
@@ -272,7 +274,7 @@ float fbm(vec2 p, float seed) {
   float v = 0.0, a = 0.5, f = 1.0;
   mat2 R = mat2(0.8, 0.6, -0.6, 0.8);
   for (int i = 0; i < 8; i++) {
-    v += a * snoise(vec3(p * f, seed + u_time * 0.006));
+    v += a * snoise(vec3(p * f, seed + u_time * 0.006 * u_drift));
     p  = R * p;
     a *= 0.5; f *= 2.07;
   }
@@ -288,51 +290,30 @@ float warpedFbm(vec2 p, float seed) {
   return fbm(p + 4.5*r, seed + 7.3);
 }
 
-// ─── Sparse diffraction-spike star ───────────────────────────────────────────
-float star(vec2 uv, float density) {
-  vec2 id = floor(uv * 220.0);
-  vec2 lc = fract(uv * 220.0) - 0.5;
-  float h = fract(sin(dot(id, vec2(127.1, 311.7))) * 43758.55);
-  if (h > (1.0 - density)) {
-    float b = fract(sin(dot(id, vec2(269.5, 183.3))) * 17375.32);
-    float rr = length(lc);
-    float s  = exp(-rr * 90.0) * b * 2.0;
-    s += exp(-abs(lc.x)*180.0) * exp(-rr*6.0) * b * 0.6;
-    s += exp(-abs(lc.y)*180.0) * exp(-rr*6.0) * b * 0.6;
-    return s;
-  }
-  return 0.0;
-}
-
 // ─── Main ────────────────────────────────────────────────────────────────────
 void main() {
   vec2 uv = (gl_FragCoord.xy / u_resolution) * 2.0 - 1.0;
-  // Correct for aspect ratio — nebula fills the full frame
   uv.x *= u_resolution.x / u_resolution.y;
-  // Nebula II: slightly wider view for larger cloud structures
-  uv *= 0.60;
 
-  // ── Axis emission colors (NASA nebula palette) ──
+  // Accretion drives UV scale — wider view = larger cloud structures
+  float uvScale = mix(0.72, 0.28, u_accretion);
+  uv *= uvScale;
+
   vec3 col[8];
-  col[0] = vec3(1.00, 0.55, 0.05); // Sun:     amber-orange
-  col[1] = vec3(0.40, 0.65, 1.00); // Moon:    steel blue
-  col[2] = vec3(0.00, 0.95, 0.95); // Mercury: cyan
-  col[3] = vec3(1.00, 0.20, 0.60); // Venus:   hot pink
-  col[4] = vec3(0.90, 0.10, 0.00); // Mars:    deep red
-  col[5] = vec3(0.10, 0.85, 0.30); // Jupiter: vivid green
-  col[6] = vec3(0.50, 0.10, 1.00); // Saturn:  deep violet
-  col[7] = vec3(0.80, 0.00, 1.00); // Uranus:  electric purple
+  col[0] = vec3(1.00, 0.55, 0.05);
+  col[1] = vec3(0.40, 0.65, 1.00);
+  col[2] = vec3(0.00, 0.95, 0.95);
+  col[3] = vec3(1.00, 0.20, 0.60);
+  col[4] = vec3(0.90, 0.10, 0.00);
+  col[5] = vec3(0.10, 0.85, 0.30);
+  col[6] = vec3(0.50, 0.10, 1.00);
+  col[7] = vec3(0.80, 0.00, 1.00);
 
-  // Axis seeds — each axis has an independent noise universe
   float seeds[8];
-  seeds[0] =   0.0; seeds[1] =  17.3; seeds[2] =  34.6; seeds[3] =  51.9;
-  seeds[4] =  69.2; seeds[5] =  86.5; seeds[6] = 103.8; seeds[7] = 121.1;
+  seeds[0] = 0.0; seeds[1] = 17.3; seeds[2] = 34.6; seeds[3] = 51.9;
+  seeds[4] = 69.2; seeds[5] = 86.5; seeds[6] = 103.8; seeds[7] = 121.1;
 
-  float envelope = 1.0; // full-frame, no circular clipping
-  // ── Nebula II: per-axis spatial offsets ─────────────────────────────────
-  // Each axis is displaced to a different region of the nebula field.
-  // This prevents all colors from uniformly overlapping (less magnetic mixing)
-  // while keeping the structure fully organic (no pinned positions).
+  // Per-axis spatial offsets — accretion controls how far colors drift apart
   vec2 axisOffsets[8];
   axisOffsets[0] = vec2( 0.00,  0.00);
   axisOffsets[1] = vec2( 1.70,  0.65);
@@ -343,23 +324,24 @@ void main() {
   axisOffsets[6] = vec2(-1.55,  0.25);
   axisOffsets[7] = vec2( 0.35,  1.65);
 
-  vec3 nebulaColor = vec3(0.0, 0.0, 0.012); // deep space
+  // Accretion-interpolated shader parameters
+  float offsetStrength = mix(0.00, 3.20, u_accretion);
+  float axisScale      = mix(0.55, 0.44, u_accretion);
+  float threshold      = mix(0.10, 0.40, u_accretion);
+  float expo           = mix(1.50, 5.50, u_accretion);
+  float scoreAmp       = mix(2.50, 9.00, u_accretion);
+
+  float envelope = 1.0;
+  vec3 nebulaColor = vec3(0.0, 0.0, mix(0.01, 0.002, u_accretion));
 
   for (int i = 0; i < 8; i++) {
     float score = u_scores[i];
     if (score < 0.02) continue;
-
-    // Offset UV per axis so each color congregates in its own region
-    vec2 axisUv = (uv + axisOffsets[i] * 0.55) * 0.50;
+    vec2 axisUv = (uv + axisOffsets[i] * offsetStrength) * axisScale;
     float axisField = warpedFbm(axisUv, seeds[i]);
     axisField = axisField * 0.5 + 0.5;
-
-    // Nebula II: higher threshold + steeper exponent = more pronounced clumping
-    axisField = pow(max(0.0, axisField - 0.18), 2.2);
-
-    // Score drives color mass — stronger score = larger denser cloud
-    axisField *= score * 3.8;
-
+    axisField = pow(max(0.0, axisField - threshold), expo);
+    axisField *= score * scoreAmp;
     nebulaColor += axisField * col[i];
   }
 
@@ -376,14 +358,15 @@ void main() {
   if (totalScore > 0.0) coreColor /= totalScore;
   nebulaColor += core * (coreColor * 0.4 + vec3(0.7, 0.65, 0.6)) * 0.8;
 
-  // ── Filaments ─────────────────────────────────────────────────────────────
-  // Nebula II: more prominent filaments — stronger nebula fabric
-  float filament = abs(warpedFbm(uv * 2.6, 300.0));
-  filament = (1.0 - smoothstep(0.0, 0.13, filament)) * 0.38;
-  nebulaColor += filament * mix(coreColor, vec3(0.85, 0.93, 1.0), 0.5);
-  // Second finer filament layer for extra weave
+  // Filaments — more pronounced as accretion increases
+  float filFreq = mix(2.0, 3.2, u_accretion);
+  float filament = abs(warpedFbm(uv * filFreq, 300.0));
+  float filThresh = mix(0.18, 0.12, u_accretion);
+  filament = (1.0 - smoothstep(0.0, filThresh, filament)) * mix(0.25, 0.42, u_accretion);
+  nebulaColor += filament * mix(coreColor, vec3(0.8, 0.9, 1.0), 0.4);
+
   float filament2 = abs(warpedFbm(uv * 4.2, 450.0));
-  filament2 = (1.0 - smoothstep(0.0, 0.10, filament2)) * 0.15;
+  filament2 = (1.0 - smoothstep(0.0, 0.10, filament2)) * 0.15 * u_accretion;
   nebulaColor += filament2 * mix(coreColor, vec3(1.0, 0.95, 0.9), 0.4);
 
   // ── Dark dust lanes ───────────────────────────────────────────────────────
@@ -408,9 +391,6 @@ void main() {
     starBright += exp(-abs(slc.y)*180.0)*exp(-sr*6.0)*sb*0.5;
     nebulaColor += starBright * vec3(1.0, 0.97, 0.9);
   }
-
-  // ── Vignette — only at very edge ──────────────────────────────────────────
-  // No forced vignette — nebula fills all pixels naturally
 
   fragColor = vec4(nebulaColor, 1.0);
 }`;
@@ -451,9 +431,15 @@ gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
 const uTime       = gl.getUniformLocation(prog, 'u_time');
 const uResolution = gl.getUniformLocation(prog, 'u_resolution');
 const uScores     = gl.getUniformLocation(prog, 'u_scores[0]');
+const uAccretion  = gl.getUniformLocation(prog, 'u_accretion');
+const uDrift      = gl.getUniformLocation(prog, 'u_drift');
 
 // Upload scores (static — they don't change per frame)
 gl.uniform1fv(uScores, new Float32Array(SCORES));
+
+// ─── LIVE CONTROLS STATE ─────────────────────────────────────────────────────
+let liveAccretion = 0.0;
+let liveDrift     = 1.0;
 
 // ─── RESIZE ──────────────────────────────────────────────────────────────────
 function resize() {
@@ -467,7 +453,9 @@ resize();
 
 // ─── RENDER LOOP ─────────────────────────────────────────────────────────────
 function render(timestamp) {
-  gl.uniform1f(uTime, timestamp * 0.001); // ms → seconds
+  gl.uniform1f(uTime, timestamp * 0.001);
+  gl.uniform1f(uAccretion, liveAccretion);
+  gl.uniform1f(uDrift, liveDrift);
   gl.drawArrays(gl.TRIANGLES, 0, 6);
   requestAnimationFrame(render);
 }
@@ -475,9 +463,34 @@ requestAnimationFrame(render);
 
 // ─── CANVAS CAPTURE + SUPABASE SAVE ──────────────────────────────────────────
 // Only save when loaded as a real page, not embedded as an iframe background
-// (the transit/index.html uses this page as an iframe — must not save from there)
 if (window.self === window.top) {
   setTimeout(trySaveNebula, 3500);
+}
+
+// ─── LIVE CONTROLS FUNCTIONS ──────────────────────────────────────────────────
+function setAccretion(val) {
+  liveAccretion = parseInt(val) / 255;
+  const pct = (liveAccretion * 100).toFixed(1) + '%';
+  const el = document.getElementById('lc-accretion-val');
+  if (el) el.textContent = val;
+  const tr = document.getElementById('lc-accretion');
+  if (tr) tr.style.setProperty('--pct', pct);
+}
+function setDrift(val) {
+  // Log curve: 0=nearly still, 255=fast
+  liveDrift = 0.02 + Math.pow(parseInt(val) / 255, 1.8) * 4.0;
+  const el = document.getElementById('lc-drift-val');
+  if (el) el.textContent = val;
+  const pct = (parseInt(val) / 255 * 100).toFixed(1) + '%';
+  const tr = document.getElementById('lc-drift');
+  if (tr) tr.style.setProperty('--pct', pct);
+}
+function toggleLiveControls() {
+  const panel = document.getElementById('lc-panel');
+  const arrow = document.getElementById('lc-arrow');
+  const open = panel.style.display !== 'none';
+  panel.style.display = open ? 'none' : 'block';
+  if (arrow) arrow.textContent = open ? '▼' : '▲';
 }
 
 // ─── SHARE MENU FUNCTIONS ─────────────────────────────────────────────────────
@@ -532,7 +545,7 @@ if (window.self === window.top) {
   document.addEventListener('DOMContentLoaded', function() {
     // Reading link
     const rl = document.getElementById('menu-reading-link');
-    if (rl) rl.href = '/nebula-reading.html' + _q;
+    if (rl) rl.href = '/transit/nebula-II/reading.html' + _q;
     // Heuristic
     const hEl = document.getElementById('menu-heuristic');
     if (hEl) hEl.textContent = _heuristic;
@@ -543,6 +556,8 @@ if (window.self === window.top) {
     if (birthEl) birthEl.textContent = _birthStr;
     const todayEl = document.getElementById('menu-today');
     if (todayEl) todayEl.textContent = _today;
+    // Initialise drift slider default
+    setDrift(32);
   });
 })();
 
@@ -623,7 +638,7 @@ function copyShareLink() {
   <div style="margin-bottom:28px;padding-bottom:28px;border-bottom:1px solid rgba(255,255,255,0.07);">
     <div style="font-family:'Courier New',monospace;font-size:0.52rem;letter-spacing:0.16em;color:rgba(180,130,255,0.55);text-transform:uppercase;margin-bottom:10px;">Today's energy</div>
     <p id="menu-heuristic" style="font-size:0.78rem;line-height:1.7;color:rgba(210,195,255,0.65);margin-bottom:16px;font-style:italic;"></p>
-    <a id="menu-reading-link" href="/nebula-reading.html" style="
+    <a id="menu-reading-link" href="/transit/nebula-II/reading.html" style="
       display:block;font-family:'Courier New',monospace;font-size:0.62rem;
       letter-spacing:0.1em;text-transform:uppercase;
       color:rgba(180,130,255,0.9);text-decoration:none;
@@ -633,6 +648,51 @@ function copyShareLink() {
         onmouseleave="this.style.color='rgba(180,130,255,0.9)';this.style.background='rgba(80,20,160,0.15)';this.style.borderColor='rgba(180,130,255,0.3)'">
       View Today's Reading →
     </a>
+  </div>
+
+  <!-- ── Live Controls ──────────────────────────────────────────── -->
+  <div style="margin-bottom:24px;padding-bottom:24px;border-bottom:1px solid rgba(255,255,255,0.07);">
+    <div id="lc-toggle" onclick="toggleLiveControls()" style="
+      display:flex;justify-content:space-between;align-items:center;
+      font-family:'Courier New',monospace;font-size:0.62rem;letter-spacing:0.1em;
+      text-transform:uppercase;color:rgba(255,255,255,0.45);cursor:pointer;
+      padding:10px 14px;border:1px solid rgba(255,255,255,0.1);
+      transition:all 0.2s;user-select:none;background:rgba(255,255,255,0.025);
+      " onmouseenter="this.style.color='rgba(255,255,255,0.85)';this.style.borderColor='rgba(255,255,255,0.3)'"
+        onmouseleave="this.style.color='rgba(255,255,255,0.45)';this.style.borderColor='rgba(255,255,255,0.1)'">
+      <span>Live Controls</span>
+      <span id="lc-arrow">▼</span>
+    </div>
+    <div id="lc-panel" style="display:none;padding:16px 0 0;">
+      <!-- ACCRETION -->
+      <div style="margin-bottom:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px;">
+          <span style="font-family:'Courier New',monospace;font-size:0.52rem;letter-spacing:0.16em;text-transform:uppercase;color:rgba(180,130,255,0.7);">Accretion</span>
+          <span id="lc-accretion-val" style="font-family:'Courier New',monospace;font-size:0.52rem;color:rgba(255,255,255,0.3);">0</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-family:'Courier New',monospace;font-size:0.44rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.2);white-space:nowrap;">Nebula I</span>
+          <input type="range" id="lc-accretion" min="0" max="255" value="0"
+            style="flex:1;height:2px;-webkit-appearance:none;appearance:none;background:rgba(255,255,255,0.1);outline:none;cursor:pointer;accent-color:rgba(180,130,255,0.9);"
+            oninput="setAccretion(this.value)">
+          <span style="font-family:'Courier New',monospace;font-size:0.44rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(180,130,255,0.45);white-space:nowrap;">Nebula X</span>
+        </div>
+      </div>
+      <!-- DRIFT -->
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px;">
+          <span style="font-family:'Courier New',monospace;font-size:0.52rem;letter-spacing:0.16em;text-transform:uppercase;color:rgba(180,130,255,0.7);">Drift</span>
+          <span id="lc-drift-val" style="font-family:'Courier New',monospace;font-size:0.52rem;color:rgba(255,255,255,0.3);">32</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-family:'Courier New',monospace;font-size:0.44rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.2);white-space:nowrap;">Still</span>
+          <input type="range" id="lc-drift" min="0" max="255" value="32"
+            style="flex:1;height:2px;-webkit-appearance:none;appearance:none;background:rgba(255,255,255,0.1);outline:none;cursor:pointer;accent-color:rgba(180,130,255,0.9);"
+            oninput="setDrift(this.value)">
+          <span style="font-family:'Courier New',monospace;font-size:0.44rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(180,130,255,0.45);white-space:nowrap;">Fast</span>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- ── Share link ──────────────────────────────────────────────── -->
@@ -648,9 +708,8 @@ function copyShareLink() {
   <!-- ── Nav links ───────────────────────────────────────────────── -->
   <div style="display:flex;flex-direction:column;gap:3px;">
     <a href="/transit/nebula-II/" style="font-family:'Courier New',monospace;font-size:0.62rem;letter-spacing:0.06em;color:rgba(255,255,255,0.4);text-decoration:none;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.05);transition:color 0.2s;" onmouseenter="this.style.color='rgba(255,255,255,0.85)'" onmouseleave="this.style.color='rgba(255,255,255,0.4)'">Transit Nebula II →</a>
-    <a href="/transit/" style="font-family:'Courier New',monospace;font-size:0.62rem;letter-spacing:0.06em;color:rgba(255,255,255,0.4);text-decoration:none;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.05);transition:color 0.2s;" onmouseenter="this.style.color='rgba(255,255,255,0.85)'" onmouseleave="this.style.color='rgba(255,255,255,0.4)'">Transit Nebula I →</a>
-    <a href="/transit/browse.html" style="font-family:'Courier New',monospace;font-size:0.62rem;letter-spacing:0.06em;color:rgba(255,255,255,0.4);text-decoration:none;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.05);transition:color 0.2s;" onmouseenter="this.style.color='rgba(255,255,255,0.85)'" onmouseleave="this.style.color='rgba(255,255,255,0.4)'">Browse All Nebulas →</a>
-    <a href="/transit/create.html" style="font-family:'Courier New',monospace;font-size:0.62rem;letter-spacing:0.06em;color:rgba(255,255,255,0.4);text-decoration:none;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.05);transition:color 0.2s;" onmouseenter="this.style.color='rgba(255,255,255,0.85)'" onmouseleave="this.style.color='rgba(255,255,255,0.4)'">Make Your Nebula →</a>
+    <a href="/transit/browse.html" style="font-family:'Courier New',monospace;font-size:0.62rem;letter-spacing:0.06em;color:rgba(255,255,255,0.4);text-decoration:none;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.05);transition:color 0.2s;" onmouseenter="this.style.color='rgba(255,255,255,0.85)'" onmouseleave="this.style.color='rgba(255,255,255,0.4)'">Browse →</a>
+    <a href="/transit/nebula-II/configure.html" style="font-family:'Courier New',monospace;font-size:0.62rem;letter-spacing:0.06em;color:rgba(255,255,255,0.4);text-decoration:none;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.05);transition:color 0.2s;" onmouseenter="this.style.color='rgba(255,255,255,0.85)'" onmouseleave="this.style.color='rgba(255,255,255,0.4)'">Make Your Nebula →</a>
     <a href="/nebula-about.html" style="font-family:'Courier New',monospace;font-size:0.62rem;letter-spacing:0.06em;color:rgba(255,255,255,0.4);text-decoration:none;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.05);transition:color 0.2s;" onmouseenter="this.style.color='rgba(255,255,255,0.85)'" onmouseleave="this.style.color='rgba(255,255,255,0.4)'">About →</a>
     <a href="/nebula-method.html" style="font-family:'Courier New',monospace;font-size:0.62rem;letter-spacing:0.06em;color:rgba(255,255,255,0.4);text-decoration:none;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.05);transition:color 0.2s;" onmouseenter="this.style.color='rgba(255,255,255,0.85)'" onmouseleave="this.style.color='rgba(255,255,255,0.4)'">Astrological Method →</a>
     <a href="/" style="font-family:'Courier New',monospace;font-size:0.62rem;letter-spacing:0.06em;color:rgba(255,255,255,0.25);text-decoration:none;padding:9px 0;transition:color 0.2s;" onmouseenter="this.style.color='rgba(255,255,255,0.65)'" onmouseleave="this.style.color='rgba(255,255,255,0.25)'">← All Works</a>

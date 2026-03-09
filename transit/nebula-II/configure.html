@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Transit Nebula II</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{min-height:100vh;background:#000005;color:#fff;font-family:Georgia,serif;}
+body{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;min-height:100vh;}
+.container{width:100%;max-width:420px;}
+.header{text-align:center;margin-bottom:48px;}
+.header h1{font-size:1.4rem;font-weight:normal;letter-spacing:.22em;text-transform:uppercase;color:rgba(255,255,255,0.9);margin-bottom:10px;}
+.header p{font-size:.8rem;color:rgba(255,255,255,0.28);letter-spacing:.1em;line-height:1.7;}
+.field{margin-bottom:20px;}
+.field label{display:block;font-size:.65rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-bottom:8px;}
+.field small{display:block;font-size:.62rem;color:rgba(255,255,255,0.18);margin-top:5px;font-style:italic;}
+input[type=text],input[type=time]{
+  width:100%;background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:8px;padding:12px 16px;
+  color:rgba(255,255,255,0.85);font:14px Georgia,serif;
+  outline:none;transition:border-color .3s;
+}
+input[type=text]:focus,input[type=time]:focus{border-color:rgba(180,100,255,0.4);}
+input[type=time]::-webkit-calendar-picker-indicator{filter:invert(1) opacity(.2);cursor:pointer;}
+input::placeholder{color:rgba(255,255,255,0.18);}
+#city-resolved{font-size:.7rem;color:rgba(150,200,255,0.6);margin-top:6px;min-height:18px;font-style:italic;}
+#city-error{font-size:.7rem;color:rgba(255,100,100,0.6);margin-top:6px;min-height:18px;font-style:italic;}
+.btn-primary{
+  width:100%;padding:14px;background:rgba(100,40,200,0.4);
+  border:1px solid rgba(160,80,255,0.3);border-radius:10px;
+  color:#c8a8ff;font:14px Georgia,serif;letter-spacing:.1em;
+  cursor:pointer;transition:all .3s;margin-top:10px;text-transform:uppercase;
+}
+.btn-primary:hover{background:rgba(120,50,220,0.55);border-color:rgba(180,100,255,0.5);}
+.btn-primary:disabled{opacity:.35;cursor:not-allowed;}
+.secondary-links{margin-top:28px;display:flex;gap:16px;justify-content:center;flex-wrap:wrap;}
+.secondary-links a{
+  font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;
+  color:rgba(255,255,255,0.22);text-decoration:none;
+  border-bottom:1px solid rgba(255,255,255,0.08);padding-bottom:2px;transition:color .3s;
+}
+.secondary-links a:hover{color:rgba(255,255,255,0.55);}
+.divider{border:none;border-top:1px solid rgba(255,255,255,0.05);margin:32px 0;}
+.back-link{text-align:center;margin-top:36px;}
+.back-link a{font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,0.18);text-decoration:none;}
+.back-link a:hover{color:rgba(255,255,255,0.45);}
+.axes-preview{display:flex;gap:8px;justify-content:center;margin-bottom:40px;flex-wrap:wrap;}
+.axis-dot{width:8px;height:8px;border-radius:50%;opacity:.5;}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="axes-preview">
+      <div class="axis-dot" style="background:#FFB347"></div>
+      <div class="axis-dot" style="background:#B0C4DE"></div>
+      <div class="axis-dot" style="background:#00E5FF"></div>
+      <div class="axis-dot" style="background:#FF69B4"></div>
+      <div class="axis-dot" style="background:#DC143C"></div>
+      <div class="axis-dot" style="background:#50C878"></div>
+      <div class="axis-dot" style="background:#4B0082;opacity:.8"></div>
+      <div class="axis-dot" style="background:#9400D3"></div>
+    </div>
+    <h1>Transit Nebula II</h1>
+    <p>Your birth chart, rendered as a living nebula with harmonic color clumping.<br>Updated daily with today's planetary weather.</p>
+  </div>
+
+  <div class="field">
+    <label>Name <span style="opacity:.4">(optional)</span></label>
+    <input type="text" id="inp-name" placeholder="Your name" autocomplete="name">
+  </div>
+
+  <div style="margin-bottom:28px;">
+    <label style="font-family:'Courier New',monospace;font-size:0.6rem;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.35);display:block;margin-bottom:10px;">BIRTH DATE</label>
+    <div style="display:grid;grid-template-columns:2fr 1fr 2fr;gap:10px;">
+      <select id="b-month" style="background:#0d0d0d;color:#fff;border:1px solid rgba(255,255,255,0.12);border-radius:6px;padding:14px 12px;font-size:0.88rem;font-family:inherit;appearance:none;-webkit-appearance:none;cursor:pointer;width:100%;">
+        <option value="">Month</option>
+        <option value="01">January</option><option value="02">February</option>
+        <option value="03">March</option><option value="04">April</option>
+        <option value="05">May</option><option value="06">June</option>
+        <option value="07">July</option><option value="08">August</option>
+        <option value="09">September</option><option value="10">October</option>
+        <option value="11">November</option><option value="12">December</option>
+      </select>
+      <select id="b-day" style="background:#0d0d0d;color:#fff;border:1px solid rgba(255,255,255,0.12);border-radius:6px;padding:14px 12px;font-size:0.88rem;font-family:inherit;appearance:none;-webkit-appearance:none;cursor:pointer;width:100%;"></select>
+      <select id="b-year" style="background:#0d0d0d;color:#fff;border:1px solid rgba(255,255,255,0.12);border-radius:6px;padding:14px 12px;font-size:0.88rem;font-family:inherit;appearance:none;-webkit-appearance:none;cursor:pointer;width:100%;"></select>
+    </div>
+  </div>
+
+  <div class="field">
+    <label>Birth Time <span style="opacity:.4">(optional)</span></label>
+    <input type="time" id="inp-time" placeholder="HH:MM">
+    <small>For rising sign accuracy</small>
+  </div>
+
+  <div class="field">
+    <label>Birth City</label>
+    <input type="text" id="inp-city" placeholder="e.g. New York, Athens, Tokyo" autocomplete="off">
+    <div id="city-resolved"></div>
+    <div id="city-error"></div>
+  </div>
+
+  <button class="btn-primary" id="btn-view" onclick="viewArt()">View Your Nebula →</button>
+
+  <div style="text-align:center;margin-top:12px;">
+    <a href="index.html?name=Angelo&birth=1987-07-01&time=13:14&lat=33.4484&lon=-112.0740"
+       style="font-family:'Courier New',monospace;font-size:0.65rem;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.35);text-decoration:none;">
+      SKIP → USE DEMO CHART
+    </a>
+  </div>
+
+  <hr class="divider">
+
+  <div class="secondary-links">
+    <a href="#" id="link-reading" onclick="openPage('reading.html');return false;">Daily Reading</a>
+    <a href="/nebula-about.html">About this Work</a>
+  </div>
+
+  <div class="back-link">
+    <a href="/transit/">← Transit</a>
+  </div>
+</div>
+
+<script>
+const LS_KEY = 'nebula_config_v2';
+let resolvedLat = null, resolvedLon = null, resolvedCity = null;
+let lookupTimer = null;
+
+(function(){
+  const daySelect = document.getElementById('b-day');
+  daySelect.innerHTML = '<option value="">Day</option>';
+  for(let d=1;d<=31;d++){
+    const o=document.createElement('option');
+    o.value=String(d).padStart(2,'0');o.textContent=d;daySelect.appendChild(o);
+  }
+  const yearSelect = document.getElementById('b-year');
+  yearSelect.innerHTML = '<option value="">Year</option>';
+  const currentYear = new Date().getFullYear();
+  const defaultYear = currentYear - 30;
+  for(let y=currentYear-18;y>=1920;y--){
+    const o=document.createElement('option');
+    o.value=y;o.textContent=y;
+    if(y===defaultYear)o.selected=true;
+    yearSelect.appendChild(o);
+  }
+})();
+
+(function(){
+  try{
+    const saved=JSON.parse(localStorage.getItem(LS_KEY)||'{}');
+    if(saved.name)document.getElementById('inp-name').value=saved.name;
+    if(saved.birth){
+      const parts=saved.birth.split('-');
+      if(parts[0])document.getElementById('b-year').value=parts[0];
+      if(parts[1])document.getElementById('b-month').value=parts[1];
+      if(parts[2])document.getElementById('b-day').value=parts[2];
+    }
+    if(saved.time)document.getElementById('inp-time').value=saved.time;
+    if(saved.city)document.getElementById('inp-city').value=saved.city;
+    if(saved.lat!=null){resolvedLat=saved.lat;resolvedLon=saved.lon;resolvedCity=saved.resolvedCity;}
+    if(resolvedCity)document.getElementById('city-resolved').textContent='✓ '+resolvedCity;
+  }catch(e){}
+})();
+
+document.getElementById('inp-city').addEventListener('input',function(){
+  clearTimeout(lookupTimer);
+  const val=this.value.trim();
+  document.getElementById('city-resolved').textContent='';
+  document.getElementById('city-error').textContent='';
+  resolvedLat=null;resolvedLon=null;resolvedCity=null;
+  if(val.length<2)return;
+  lookupTimer=setTimeout(()=>lookupCity(val),800);
+});
+
+async function lookupCity(q){
+  const el=document.getElementById('city-resolved');
+  const err=document.getElementById('city-error');
+  el.textContent='Looking up…';
+  try{
+    const res=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1`,{headers:{'Accept-Language':'en'}});
+    const data=await res.json();
+    if(data&&data.length>0){
+      resolvedLat=parseFloat(data[0].lat);resolvedLon=parseFloat(data[0].lon);
+      resolvedCity=data[0].display_name.split(',').slice(0,2).join(',').trim();
+      el.textContent='✓ '+resolvedCity;err.textContent='';
+    }else{el.textContent='';err.textContent='City not found — try a different spelling';}
+  }catch(e){el.textContent='';err.textContent='Lookup failed — check your connection';}
+}
+
+function buildParams(){
+  const name=document.getElementById('inp-name').value.trim();
+  const month=document.getElementById('b-month').value;
+  const day=document.getElementById('b-day').value;
+  const year=document.getElementById('b-year').value;
+  const birth=(year&&month&&day)?`${year}-${month}-${day}`:'';
+  const time=document.getElementById('inp-time').value;
+  const city=document.getElementById('inp-city').value.trim();
+  if(!birth){alert('Please enter your birth date.');return null;}
+  if(!resolvedLat&&!city){alert('Please enter your birth city.');return null;}
+  const params=new URLSearchParams();
+  if(name)params.set('name',name);
+  params.set('birth',birth);
+  if(time)params.set('time',time);
+  if(resolvedLat!=null){params.set('lat',resolvedLat.toFixed(4));params.set('lon',resolvedLon.toFixed(4));}
+  if(resolvedCity)params.set('city',resolvedCity);
+  try{localStorage.setItem(LS_KEY,JSON.stringify({name,birth,time,city,lat:resolvedLat,lon:resolvedLon,resolvedCity}));}catch(e){}
+  return params.toString();
+}
+
+function viewArt(){const q=buildParams();if(q)window.location.href='index.html?'+q;}
+function openPage(page){const q=buildParams();if(q)window.location.href=page+'?'+q;}
+</script>
+</body>
+</html>

@@ -158,6 +158,13 @@ header{
 .project-nebula .project-cta{color:rgba(180,130,255,0.65);border-color:rgba(180,130,255,0.2);}
 .project:hover.project-nebula .project-cta{color:rgba(200,160,255,0.95);border-color:rgba(180,130,255,0.5);}
 
+/* Making of — muted purple/indigo tint */
+.project-making .project-right{background:linear-gradient(135deg,#050010 0%,#000 70%);}
+.project-making .project-title{color:rgba(255,255,255,0.7);font-style:italic;}
+.project-making .project-tag{color:rgba(255,255,255,0.1);}
+.project-making .project-cta{color:rgba(130,110,200,0.6);border-color:rgba(130,110,200,0.18);}
+.project:hover.project-making .project-cta{color:rgba(170,150,255,0.9);border-color:rgba(150,130,220,0.45);}
+
 /* ── Footer ─────────────────────────────────────────────────────── */
 footer{
   padding:40px;
@@ -206,36 +213,12 @@ footer{
 <section class="projects">
   <p class="projects-label">Selected Projects</p>
 
-  <!-- ── 01: Invader ──────────────────────────────────────────── -->
-  <a class="project" href="invaders.html">
-    <div class="project-left">
-      <div>
-        <div class="project-meta">
-          <span class="project-num">01</span>
-          <span class="project-year">2026</span>
-        </div>
-        <div class="project-body">
-          <h2 class="project-title">Invader</h2>
-          <p class="project-desc">
-            Ten generative variations on the Space Invader form. Each piece renders the same iconic alien through a radically different visual language — neon, glitch, constellation, crystal, organic, matrix, wireframe, watercolor, circuit, plasma.
-          </p>
-          <span class="project-cta">View Series →</span>
-        </div>
-      </div>
-      <div class="project-tag">Generative Art · Canvas 2D · 10 pieces</div>
-    </div>
-    <div class="project-right">
-      <img src="thumbs/invader-neon.jpg" alt="Neon Invader" loading="lazy">
-      <div class="project-right-overlay"></div>
-    </div>
-  </a>
-
-  <!-- ── 02: Transit Nebula ───────────────────────────────────── -->
+  <!-- ── 01: Transit Nebula ───────────────────────────────────── -->
   <a class="project project-nebula" href="transit/">
     <div class="project-left">
       <div>
         <div class="project-meta">
-          <span class="project-num">02</span>
+          <span class="project-num">01</span>
           <span class="project-year">2026</span>
         </div>
         <div class="project-body">
@@ -250,6 +233,54 @@ footer{
     </div>
     <div class="project-right">
       <img src="thumbs/nebula-art.jpg?v=2" alt="Transit Nebula I" loading="lazy">
+      <div class="project-right-overlay"></div>
+    </div>
+  </a>
+
+  <!-- ── 02: Making of Transit Nebula ─────────────────────────── -->
+  <a class="project project-making" href="making-of-nebula.html">
+    <div class="project-left">
+      <div>
+        <div class="project-meta">
+          <span class="project-num">02</span>
+          <span class="project-year">2026</span>
+        </div>
+        <div class="project-body">
+          <h2 class="project-title">Making of<br>Transit Nebula</h2>
+          <p class="project-desc">
+            The iterations, experiments, and companion pieces built during development — from the first Canvas 2D sketch through four WebGL versions to the astrological engine. The process as artifact.
+          </p>
+          <span class="project-cta">View Process →</span>
+        </div>
+      </div>
+      <div class="project-tag">4 iterations · Reading · Method · Gen Tests · Nebula II</div>
+    </div>
+    <div class="project-right">
+      <img src="thumbs/nebula-art-v1.jpg" alt="Making of Transit Nebula" loading="lazy">
+      <div class="project-right-overlay"></div>
+    </div>
+  </a>
+
+  <!-- ── 03: Invader ──────────────────────────────────────────── -->
+  <a class="project" href="invaders.html">
+    <div class="project-left">
+      <div>
+        <div class="project-meta">
+          <span class="project-num">03</span>
+          <span class="project-year">2026</span>
+        </div>
+        <div class="project-body">
+          <h2 class="project-title">Invader</h2>
+          <p class="project-desc">
+            Ten generative variations on the Space Invader form. Each piece renders the same iconic alien through a radically different visual language — neon, glitch, constellation, crystal, organic, matrix, wireframe, watercolor, circuit, plasma.
+          </p>
+          <span class="project-cta">View Series →</span>
+        </div>
+      </div>
+      <div class="project-tag">Generative Art · Canvas 2D · 10 pieces</div>
+    </div>
+    <div class="project-right">
+      <img src="thumbs/invader-neon.jpg" alt="Neon Invader" loading="lazy">
       <div class="project-right-overlay"></div>
     </div>
   </a>

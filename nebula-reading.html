@@ -14,8 +14,11 @@ body{background:#000005;color:#fff;font-family:Georgia,serif;min-height:100vh;pa
 header{margin-bottom:52px;}
 .back-link{font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,0.2);text-decoration:none;display:inline-block;margin-bottom:32px;}
 .back-link:hover{color:rgba(255,255,255,0.5);}
-header h1{font-size:1.1rem;font-weight:normal;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,0.75);margin-bottom:8px;}
-header p{font-size:.75rem;color:rgba(255,255,255,0.28);letter-spacing:.1em;}
+.eyebrow{font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;color:rgba(180,120,255,0.45);margin-bottom:14px;}
+header h1{font-size:1.1rem;font-weight:normal;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,0.75);margin-bottom:10px;}
+#reading-date{font-size:.75rem;color:rgba(255,255,255,0.5);letter-spacing:.1em;margin-bottom:6px;}
+.reading-subject{font-size:.7rem;color:rgba(255,255,255,0.28);letter-spacing:.08em;margin-bottom:8px;}
+.reading-note{font-size:.62rem;color:rgba(255,255,255,0.18);letter-spacing:.07em;font-style:italic;border-left:1px solid rgba(180,120,255,0.2);padding-left:10px;margin-top:14px;}
 
 .axis-block{
   border:1px solid rgba(255,255,255,0.05);
@@ -57,8 +60,11 @@ header p{font-size:.75rem;color:rgba(255,255,255,0.28);letter-spacing:.1em;}
 <div class="wrap">
   <a class="back-link" id="back-art" href="nebula-config.html">← configure</a>
   <header>
+    <p class="eyebrow">Transit Nebula I — Daily Reading</p>
     <h1 id="reading-title">Your Astrological Weather</h1>
     <p id="reading-date"></p>
+    <p id="reading-subject" class="reading-subject"></p>
+    <p class="reading-note">This reading recalculates every day as the planets move through the sky.</p>
   </header>
 
   <div id="axes-container"></div>
@@ -217,11 +223,22 @@ function render(){
   const suffix = NAME ? "'s" : '';
 
   document.getElementById('reading-title').textContent =
-    `${name}${suffix && name !== 'Your' ? suffix : ''} Astrological Weather`;
+    NAME ? `${NAME}'s Astrological Weather` : 'Your Astrological Weather';
 
   const now = new Date();
   document.getElementById('reading-date').textContent =
-    now.toLocaleDateString('en-US', {weekday:'long',year:'numeric',month:'long',day:'numeric'});
+    'Reading for ' + now.toLocaleDateString('en-US', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
+
+  // Show whose birth chart this is based on
+  const subjectEl = document.getElementById('reading-subject');
+  if (BIRTH_STR && BIRTH_STR !== '1981-02-14') {
+    const [by, bm, bd] = BIRTH_STR.split('-').map(Number);
+    const birthLabel = new Date(by, bm-1, bd).toLocaleDateString('en-US', {year:'numeric', month:'long', day:'numeric'});
+    const cityStr = P.get('city') ? ' · ' + P.get('city') : '';
+    subjectEl.textContent = 'Birth chart: ' + (NAME || 'Unknown') + ' · Born ' + birthLabel + (TIME_STR ? ' at ' + TIME_STR : '') + cityStr;
+  } else {
+    subjectEl.textContent = '';
+  }
 
   const q = location.search;
   document.getElementById('back-art').href = 'nebula-art.html' + q;

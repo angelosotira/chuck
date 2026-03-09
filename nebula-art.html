@@ -469,6 +469,12 @@ requestAnimationFrame(render);
 setTimeout(trySaveNebula, 3500);
 
 // ─── SHARE MENU FUNCTIONS ─────────────────────────────────────────────────────
+// Wire reading link to carry birth params
+(function(){
+  const rl = document.getElementById('menu-reading-link');
+  if (rl) rl.href = '/nebula-reading.html' + location.search;
+})();
+
 function toggleShareMenu() {
   const menu = document.getElementById('share-menu');
   const overlay = document.getElementById('share-overlay');
@@ -541,7 +547,7 @@ function copyShareLink() {
     <a href="/transit/browse.html" style="font-family:'Courier New',monospace;font-size:0.65rem;letter-spacing:0.06em;color:rgba(255,255,255,0.5);text-decoration:none;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06);transition:color 0.2s;" onmouseenter="this.style.color='rgba(255,255,255,0.9)'" onmouseleave="this.style.color='rgba(255,255,255,0.5)'">Browse All Nebulas →</a>
     <a href="/transit/create.html" style="font-family:'Courier New',monospace;font-size:0.65rem;letter-spacing:0.06em;color:rgba(255,255,255,0.5);text-decoration:none;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06);transition:color 0.2s;" onmouseenter="this.style.color='rgba(255,255,255,0.9)'" onmouseleave="this.style.color='rgba(255,255,255,0.5)'">Make Your Nebula →</a>
     <a href="/nebula-about.html" style="font-family:'Courier New',monospace;font-size:0.65rem;letter-spacing:0.06em;color:rgba(255,255,255,0.5);text-decoration:none;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06);transition:color 0.2s;" onmouseenter="this.style.color='rgba(255,255,255,0.9)'" onmouseleave="this.style.color='rgba(255,255,255,0.5)'">About →</a>
-    <a href="/nebula-reading.html" style="font-family:'Courier New',monospace;font-size:0.65rem;letter-spacing:0.06em;color:rgba(255,255,255,0.5);text-decoration:none;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06);transition:color 0.2s;" onmouseenter="this.style.color='rgba(255,255,255,0.9)'" onmouseleave="this.style.color='rgba(255,255,255,0.5)'">Daily Reading →</a>
+    <a id="menu-reading-link" href="/nebula-reading.html" style="font-family:'Courier New',monospace;font-size:0.65rem;letter-spacing:0.06em;color:rgba(255,255,255,0.5);text-decoration:none;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06);transition:color 0.2s;" onmouseenter="this.style.color='rgba(255,255,255,0.9)'" onmouseleave="this.style.color='rgba(255,255,255,0.5)'">Daily Reading →</a>
     <a href="/" style="font-family:'Courier New',monospace;font-size:0.65rem;letter-spacing:0.06em;color:rgba(255,255,255,0.3);text-decoration:none;padding:10px 0;transition:color 0.2s;" onmouseenter="this.style.color='rgba(255,255,255,0.7)'" onmouseleave="this.style.color='rgba(255,255,255,0.3)'">← All Works</a>
   </div>
 </div>

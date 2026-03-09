@@ -242,12 +242,13 @@ function render(){
   document.getElementById('reading-title').textContent =
     NAME ? `${NAME}'s Astrological Weather` : 'Your Astrological Weather';
 
-  // Birth date — the fixed anchor
+  // Birth date — the fixed anchor (date · time · place)
   if (BIRTH_STR) {
     const [by, bm, bd] = BIRTH_STR.split('-').map(Number);
     const birthLabel = new Date(by, bm-1, bd).toLocaleDateString('en-US', {year:'numeric', month:'long', day:'numeric'});
-    const timeStr = TIME_STR ? ' at ' + TIME_STR : '';
-    document.getElementById('nebula-date').textContent = birthLabel + timeStr;
+    const timeStr = TIME_STR ? ' · ' + TIME_STR : '';
+    const cityStr = P.get('city') ? ' · ' + P.get('city') : '';
+    document.getElementById('nebula-date').textContent = birthLabel + timeStr + cityStr;
   }
 
   // Today's date — the live lens

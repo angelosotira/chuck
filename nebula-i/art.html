@@ -60,10 +60,10 @@ async function saveNebulaEntry(payload) {
 }
 
 async function trySaveNebula() {
-  const pendingStr = localStorage.getItem('nebula_i_pending_save');
+  const pendingStr = localStorage.getItem('transit_pending_save');
   if (!pendingStr) return;
   let pending;
-  try { pending = JSON.parse(pendingStr); } catch(e) { localStorage.removeItem('nebula_i_pending_save'); return; }
+  try { pending = JSON.parse(pendingStr); } catch(e) { localStorage.removeItem('transit_pending_save'); return; }
 
   // Capture thumbnail from live WebGL canvas
   let thumbnail = null;
@@ -99,8 +99,8 @@ async function trySaveNebula() {
     try {
       const result = await saveNebulaEntry(payload);
       if (result && result.length > 0) {
-        localStorage.removeItem('nebula_i_pending_save');
-        localStorage.setItem('nebula_i_last_id', result[0].id);
+        localStorage.removeItem('transit_pending_save');
+        localStorage.setItem('transit_last_id', result[0].id);
         showSaveStatus('Nebula saved ✓', 'ok');
         return;
       }
@@ -573,7 +573,7 @@ function toggleLiveControls() {
 // ─── SAVE CURRENT LOOK ───────────────────────────────────────────────────────
 async function saveCurrentLook() {
   const statusEl = document.getElementById('save-look-status');
-  const existingId = localStorage.getItem('nebula_i_last_id');
+  const existingId = localStorage.getItem('transit_last_id');
   if (statusEl) statusEl.textContent = '';
 
   // Capture thumbnail
@@ -799,7 +799,7 @@ function copyShareLink() {
 
   <!-- ── Nav links ───────────────────────────────────────────────── -->
   <div style="display:flex;flex-direction:column;gap:3px;">
-    <a href="/nebula-i/" style="font-family:'Courier New',monospace;font-size:0.62rem;letter-spacing:0.06em;color:rgba(255,255,255,0.4);text-decoration:none;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.05);transition:color 0.2s;" onmouseenter="this.style.color='rgba(255,255,255,0.85)'" onmouseleave="this.style.color='rgba(255,255,255,0.4)'">Transit Nebula II →</a>
+    <a href="/nebula-i/" style="font-family:'Courier New',monospace;font-size:0.62rem;letter-spacing:0.06em;color:rgba(255,255,255,0.4);text-decoration:none;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.05);transition:color 0.2s;" onmouseenter="this.style.color='rgba(255,255,255,0.85)'" onmouseleave="this.style.color='rgba(255,255,255,0.4)'">Nebula I →</a>
     <a href="/nebula-i/browse.html" style="font-family:'Courier New',monospace;font-size:0.62rem;letter-spacing:0.06em;color:rgba(255,255,255,0.4);text-decoration:none;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.05);transition:color 0.2s;" onmouseenter="this.style.color='rgba(255,255,255,0.85)'" onmouseleave="this.style.color='rgba(255,255,255,0.4)'">Browse →</a>
     <a href="/nebula-i/configure.html" style="font-family:'Courier New',monospace;font-size:0.62rem;letter-spacing:0.06em;color:rgba(255,255,255,0.4);text-decoration:none;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.05);transition:color 0.2s;" onmouseenter="this.style.color='rgba(255,255,255,0.85)'" onmouseleave="this.style.color='rgba(255,255,255,0.4)'">Make Your Nebula →</a>
     <a href="/nebula-about.html" style="font-family:'Courier New',monospace;font-size:0.62rem;letter-spacing:0.06em;color:rgba(255,255,255,0.4);text-decoration:none;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.05);transition:color 0.2s;" onmouseenter="this.style.color='rgba(255,255,255,0.85)'" onmouseleave="this.style.color='rgba(255,255,255,0.4)'">About →</a>

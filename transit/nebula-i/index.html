@@ -212,6 +212,14 @@ window.addEventListener('scroll', function() {
 
 <!-- Browse grid from Supabase -->
 <script>
+function shortCity(city) {
+  if (!city) return '';
+  var parts = city.split(',');
+  // If first part is very short (like a county code), keep 2 parts; otherwise just 1
+  var first = parts[0].trim();
+  if (parts.length > 1 && first.length < 4) return (first + ', ' + parts[1].trim()).slice(0, 40);
+  return first.slice(0, 40);
+}
 (async function() {
   var loading = document.getElementById('browse-loading');
   var grid = document.getElementById('nebula-grid');
@@ -236,7 +244,7 @@ window.addEventListener('scroll', function() {
         card.appendChild(ph);
       }
       var info = document.createElement('div'); info.className = 'nebula-card-info';
-      info.innerHTML = '<div class="nebula-card-name">' + esc(n.name) + '</div>' + (n.city ? '<div class="nebula-card-city">' + esc(n.city) + '</div>' : '');
+      info.innerHTML = '<div class="nebula-card-name">' + esc(n.name) + '</div>' + (n.city ? '<div class="nebula-card-city">' + esc(shortCity(n.city)) + '</div>' : '');
       card.appendChild(info);
       grid.appendChild(card);
     });

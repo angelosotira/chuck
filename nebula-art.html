@@ -501,13 +501,15 @@ setTimeout(trySaveNebula, 3500);
     }
   }
 
-  // Wire reading link with params
-  const rl = document.getElementById('menu-reading-link');
-  if (rl) rl.href = '/nebula-reading.html' + location.search;
-
-  // Populate heuristic
-  const hEl = document.getElementById('menu-heuristic');
-  if (hEl) hEl.textContent = buildHeuristic(SCORES);
+  // Wire reading link + heuristic after DOM is ready
+  const _q = location.search;
+  const _heuristic = buildHeuristic(SCORES);
+  document.addEventListener('DOMContentLoaded', function() {
+    const rl = document.getElementById('menu-reading-link');
+    if (rl) rl.href = '/nebula-reading.html' + _q;
+    const hEl = document.getElementById('menu-heuristic');
+    if (hEl) hEl.textContent = _heuristic;
+  });
 })();
 
 function toggleShareMenu() {

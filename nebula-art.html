@@ -511,7 +511,7 @@ setTimeout(trySaveNebula, 3500);
   if (pBirth) {
     const [by, bm, bd] = pBirth.split('-').map(Number);
     const bLabel = new Date(by, bm-1, bd).toLocaleDateString('en-US', {year:'numeric', month:'long', day:'numeric'});
-    const tStr = (pTime && pTime !== '12:00') ? ' · ' + pTime : '';
+    const tStr = pTime ? ' · ' + pTime : '';
     const city = P.get('city') ? ' · ' + P.get('city') : '';
     _birthStr = bLabel + tStr + city;
   }

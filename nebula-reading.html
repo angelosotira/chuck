@@ -80,7 +80,7 @@ header h1{font-size:1.1rem;font-weight:normal;letter-spacing:.18em;text-transfor
         <span class="date-value" id="reading-date">—</span>
       </div>
     </div>
-    <p id="reading-subject" class="reading-subject"></p>
+
     <p class="reading-note">Your nebula is fixed to the sky at the moment of your birth. Every day the planets move — and this reading shifts with them. No one else's reading looks like yours.</p>
   </header>
 
@@ -103,7 +103,7 @@ header h1{font-size:1.1rem;font-weight:normal;letter-spacing:.18em;text-transfor
 const P = new URLSearchParams(location.search);
 const NAME      = P.get('name') || '';
 const BIRTH_STR = P.get('birth') || '1981-02-14';
-const TIME_STR  = P.get('time') || '';
+const TIME_STR  = P.get('time') || '12:00';
 const LAT       = parseFloat(P.get('lat') || '34.05');
 const LON       = parseFloat(P.get('lon') || '-118.24');
 
@@ -246,7 +246,7 @@ function render(){
   if (BIRTH_STR) {
     const [by, bm, bd] = BIRTH_STR.split('-').map(Number);
     const birthLabel = new Date(by, bm-1, bd).toLocaleDateString('en-US', {year:'numeric', month:'long', day:'numeric'});
-    const timeStr = TIME_STR ? ' · ' + TIME_STR : '';
+    const timeStr = ' · ' + TIME_STR;
     const cityStr = P.get('city') ? ' · ' + P.get('city') : '';
     document.getElementById('nebula-date').textContent = birthLabel + timeStr + cityStr;
   }
@@ -256,14 +256,7 @@ function render(){
   document.getElementById('reading-date').textContent =
     now.toLocaleDateString('en-US', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
 
-  // Subject line (name + city)
-  const subjectEl = document.getElementById('reading-subject');
-  const cityStr = P.get('city') ? ' · ' + P.get('city') : '';
-  if (NAME) {
-    subjectEl.textContent = NAME + cityStr;
-  } else {
-    subjectEl.textContent = cityStr.replace(' · ', '');
-  }
+
 
   const q = location.search;
   document.getElementById('back-art').href = 'nebula-art.html' + q;

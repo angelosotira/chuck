@@ -416,8 +416,8 @@
   // ── Populate Year dropdown ─────────────────────────────────────────────────
   const yearSelect = document.getElementById('f-year');
   const currentYear = new Date().getFullYear();
-  const defaultYear = currentYear - 30;
-  for (let y = currentYear - 18; y >= 1920; y--) {
+  const defaultYear = currentYear - 20;
+  for (let y = currentYear; y >= 1920; y--) {
     const opt = document.createElement('option');
     opt.value = y;
     opt.textContent = y;

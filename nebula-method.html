@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Transit Nebula I — Astrological Method</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+html{background:#000005;}
+body{background:#000005;color:#fff;font-family:Georgia,serif;min-height:100vh;padding:60px 20px 100px;}
+.wrap{max-width:680px;margin:0 auto;}
+
+a.back{font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,0.2);text-decoration:none;display:inline-block;margin-bottom:36px;font-family:'Courier New',monospace;}
+a.back:hover{color:rgba(255,255,255,0.5);}
+
+.eyebrow{font-family:'Courier New',monospace;font-size:.58rem;letter-spacing:.22em;text-transform:uppercase;color:rgba(180,130,255,0.5);margin-bottom:16px;}
+h1{font-size:1.4rem;font-weight:normal;letter-spacing:.04em;color:rgba(255,255,255,0.85);margin-bottom:10px;line-height:1.3;}
+.subtitle{font-size:.8rem;color:rgba(255,255,255,0.25);letter-spacing:.06em;margin-bottom:52px;line-height:1.6;}
+
+h2{font-family:'Courier New',monospace;font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(180,130,255,0.6);margin-bottom:14px;margin-top:48px;}
+p{font-size:.9rem;line-height:1.9;color:rgba(220,210,255,0.6);margin-bottom:16px;}
+p strong{color:rgba(255,255,255,0.75);font-weight:normal;}
+
+.precision-block{
+  border:1px solid rgba(255,255,255,0.07);
+  border-radius:10px;padding:22px 24px;margin:24px 0;
+  background:rgba(255,255,255,0.015);
+}
+.precision-block .label{font-family:'Courier New',monospace;font-size:.55rem;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,0.25);margin-bottom:12px;}
+.precision-row{display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04);gap:16px;}
+.precision-row:last-child{border-bottom:none;}
+.precision-planet{font-family:'Courier New',monospace;font-size:.68rem;color:rgba(255,255,255,0.5);}
+.precision-accuracy{font-size:.75rem;color:rgba(220,210,255,0.5);text-align:right;}
+
+.axis-table{width:100%;border-collapse:collapse;margin:20px 0;}
+.axis-table th{font-family:'Courier New',monospace;font-size:.52rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,0.25);text-align:left;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06);}
+.axis-table td{font-size:.8rem;color:rgba(220,210,255,0.55);padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.04);vertical-align:top;}
+.axis-table td:first-child{font-family:'Courier New',monospace;font-size:.72rem;color:rgba(255,255,255,0.6);white-space:nowrap;padding-right:20px;}
+.axis-table td:nth-child(2){padding-right:20px;}
+
+.swatch{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:middle;}
+
+.callout{
+  border-left:2px solid rgba(180,130,255,0.3);
+  padding:16px 20px;margin:28px 0;
+  background:rgba(80,20,160,0.08);border-radius:0 6px 6px 0;
+}
+.callout p{font-size:.84rem;color:rgba(210,195,255,0.6);margin:0;}
+
+.not-included{list-style:none;margin:10px 0;}
+.not-included li{font-size:.84rem;color:rgba(220,210,255,0.5);padding:5px 0;padding-left:16px;position:relative;line-height:1.6;}
+.not-included li::before{content:'–';position:absolute;left:0;color:rgba(255,255,255,0.2);}
+
+.feedback-block{
+  margin-top:52px;padding:28px;
+  border:1px solid rgba(180,130,255,0.15);border-radius:10px;
+  background:rgba(80,20,160,0.07);
+}
+.feedback-block h3{font-family:'Courier New',monospace;font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(180,130,255,0.55);margin-bottom:12px;}
+.feedback-block p{font-size:.84rem;line-height:1.8;color:rgba(220,210,255,0.55);margin-bottom:14px;}
+.feedback-block p:last-child{margin-bottom:0;}
+
+.nav-links{margin-top:52px;display:flex;gap:20px;flex-wrap:wrap;}
+.nav-links a{font-family:'Courier New',monospace;font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,0.2);text-decoration:none;border-bottom:1px solid rgba(255,255,255,0.08);padding-bottom:2px;}
+.nav-links a:hover{color:rgba(255,255,255,0.5);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="/nebula-about.html">← About</a>
+
+  <p class="eyebrow">Transit Nebula I</p>
+  <h1>Astrological Method</h1>
+  <p class="subtitle">A technical account of how planetary positions are calculated, how scores are derived, and where the precision of this implementation sits relative to professional-grade ephemeris tools. Written for astrologers and technically curious visitors.</p>
+
+
+  <!-- ── WHAT WE COMPUTE ──────────────────────────────────────────────────── -->
+  <h2>What We Compute</h2>
+  <p>Transit Nebula I works with two sets of planetary positions: a <strong>natal chart</strong> (the sky at the moment and place of your birth) and a <strong>transit chart</strong> (the sky at the current moment, recalculated every time the page loads).</p>
+  <p>For each of 8 planetary bodies, we compare natal position against current position using angular separation. That separation becomes a score between 0 and 1, which drives both the color weight of your nebula and the energy level shown in your daily reading. This is the core logic of transit astrology — comparing the moving sky against a fixed birth snapshot.</p>
+
+
+  <!-- ── THE EIGHT AXES ───────────────────────────────────────────────────── -->
+  <h2>The Eight Axes</h2>
+  <p>We track 8 bodies, each mapped to a life domain. All positions are computed as ecliptic longitudes (0–360°).</p>
+
+  <table class="axis-table">
+    <thead>
+      <tr>
+        <th>Body</th>
+        <th>Domain</th>
+        <th>Color</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>☀ Sun</td><td>Vitality, identity, self-expression</td><td><span class="swatch" style="background:#ff8c0d"></span>#ff8c0d</td></tr>
+      <tr><td>🌙 Moon</td><td>Intuition, emotion, inner life</td><td><span class="swatch" style="background:#66a6ff"></span>#66a6ff</td></tr>
+      <tr><td>☿ Mercury</td><td>Mind, communication, perception</td><td><span class="swatch" style="background:#00f2f2"></span>#00f2f2</td></tr>
+      <tr><td>♀ Venus</td><td>Love, beauty, desire, values</td><td><span class="swatch" style="background:#ff3399"></span>#ff3399</td></tr>
+      <tr><td>♂ Mars</td><td>Drive, action, will, conflict</td><td><span class="swatch" style="background:#e61900"></span>#e61900</td></tr>
+      <tr><td>♃ Jupiter</td><td>Abundance, expansion, philosophy</td><td><span class="swatch" style="background:#1ad64d"></span>#1ad64d</td></tr>
+      <tr><td>♄ Saturn</td><td>Structure, discipline, limits</td><td><span class="swatch" style="background:#8019ff"></span>#8019ff</td></tr>
+      <tr><td>⛢ Uranus</td><td>Awakening, disruption, originality</td><td><span class="swatch" style="background:#cc00ff"></span>#cc00ff</td></tr>
+    </tbody>
+  </table>
+
+  <p>Neptune, Pluto, Chiron, and the lunar nodes are not currently included. Their omission is a scope decision, not a statement about their astrological significance.</p>
+
+
+  <!-- ── THE SCORING METHOD ──────────────────────────────────────────────── -->
+  <h2>Scoring Method</h2>
+  <p>For each planetary body, we compute the angular difference between its natal longitude and its current transit longitude. The angular separation is reduced to the 0–180° range (i.e., we take the shorter arc). This is then mapped linearly to a score:</p>
+
+  <div class="precision-block">
+    <div class="label">Score formula</div>
+    <p style="font-family:'Courier New',monospace;font-size:.78rem;color:rgba(200,190,255,0.7);margin:0;line-height:2;">
+      angularDiff = min(|transitLon − natalLon|, 360 − |transitLon − natalLon|)<br>
+      score = clamp(1.0 − angularDiff / 180.0, 0, 1)
+    </p>
+  </div>
+
+  <p>This produces a score of <strong>1.0 at exact conjunction</strong> (0° separation), <strong>0.5 at square</strong> (90°), and <strong>0.0 at opposition</strong> (180°). The score is a continuous linear measure of proximity — it does not apply orbs, aspect weights, or dignity weighting. It is intentionally simple: closer = more activated.</p>
+
+  <div class="callout">
+    <p>This approach treats all separations as equally meaningful along a gradient. A professional interpretation would weight conjunctions and oppositions differently, apply orbs, and consider whether aspects are applying or separating. We acknowledge these omissions — the scoring is designed for generative art, not chart analysis.</p>
+  </div>
+
+
+  <!-- ── EPHEMERIS SOURCE ─────────────────────────────────────────────────── -->
+  <h2>Ephemeris Source</h2>
+  <p>Planetary positions are calculated entirely client-side using mathematical algorithms derived from <strong>Jean Meeus, <em>Astronomical Algorithms</em> (2nd ed.)</strong> — a widely used reference for computing celestial mechanics without a live ephemeris service.</p>
+  <p>All computation runs in JavaScript in the visitor's browser. There is no server, no external API call, and no third-party astrology service involved. Every page load independently recalculates all positions from scratch using <code style="font-family:'Courier New',monospace;font-size:.82rem;color:rgba(200,190,255,0.7);">new Date()</code> for the current moment.</p>
+
+
+  <!-- ── PRECISION ───────────────────────────────────────────────────────── -->
+  <h2>Precision vs. Professional Tools</h2>
+  <p>The Meeus approximations are accurate for artistic purposes but are not a substitute for professional-grade ephemeris software. For comparison:</p>
+
+  <div class="precision-block">
+    <div class="label">Approximate accuracy vs. Swiss Ephemeris (current era)</div>
+    <div class="precision-row"><span class="precision-planet">Sun</span><span class="precision-accuracy">~0.01° — effectively exact</span></div>
+    <div class="precision-row"><span class="precision-planet">Moon</span><span class="precision-accuracy">~0.3–1.0° — meaningful for sign cusps</span></div>
+    <div class="precision-row"><span class="precision-planet">Mercury / Venus</span><span class="precision-accuracy">~0.5–1.5° — adequate</span></div>
+    <div class="precision-row"><span class="precision-planet">Mars</span><span class="precision-accuracy">~0.5–2.0° — adequate</span></div>
+    <div class="precision-row"><span class="precision-planet">Jupiter / Saturn</span><span class="precision-accuracy">~0.5–1.0° — adequate</span></div>
+    <div class="precision-row"><span class="precision-planet">Uranus</span><span class="precision-accuracy">~1.0–3.0° — lowest precision in our set</span></div>
+  </div>
+
+  <p>The professional standard is the <strong>Swiss Ephemeris</strong> (developed by Astrodienst, used by Co-Star, TimePassages, astro.com, and most serious astrology software). It achieves sub-arcsecond accuracy across millennia. The tradeoff here was zero external dependencies and a self-contained HTML file — worthwhile for a generative art context, but worth noting for anyone using this as an astrological reference.</p>
+
+
+  <!-- ── WHAT WE DON'T CALCULATE ─────────────────────────────────────────── -->
+  <h2>What We Don't Calculate</h2>
+  <ul class="not-included">
+    <li>House systems (Placidus, Whole Sign, Equal, etc.) — no house cusps are computed</li>
+    <li>Aspects with orbs — no categorization of conjunctions, trines, squares, oppositions as distinct aspect types</li>
+    <li>Applying vs. separating aspects</li>
+    <li>Planetary dignity, exaltation, detriment, or fall</li>
+    <li>Retrograde status</li>
+    <li>Lunar nodes (North/South)</li>
+    <li>Neptune, Pluto, Chiron, asteroids</li>
+    <li>Progressions, solar returns, or any technique beyond natal-to-transit comparison</li>
+  </ul>
+
+
+  <!-- ── FEEDBACK ────────────────────────────────────────────────────────── -->
+  <div class="feedback-block">
+    <h3>A note to professional astrologers</h3>
+    <p>Transit Nebula I is a work of generative art, not a chart service. The astrological framework is the conceptual and mathematical spine of the piece — the intent is sincere, even where the implementation is simplified.</p>
+    <p>If you practice astrology and have thoughts on the scoring approach, the choice of axes, or how the methodology could be improved or more accurately described, we'd genuinely welcome that conversation. This page exists specifically to be transparent enough to make that dialogue possible.</p>
+    <p>The work is by Chuck, at <a href="https://chuck.neoteric.art" style="color:rgba(180,130,255,0.7);text-decoration:none;">chuck.neoteric.art</a>.</p>
+  </div>
+
+
+  <div class="nav-links">
+    <a href="/nebula-about.html">About the Work</a>
+    <a href="/transit/">Transit Nebula I</a>
+    <a href="/nebula-reading.html">Daily Reading</a>
+    <a href="/">All Works</a>
+  </div>
+</div>
+</body>
+</html>

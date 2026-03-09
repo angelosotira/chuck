@@ -71,7 +71,7 @@ function allPos(j) {
 // ─── COMPUTE SCORES ──────────────────────────────────────────────────────────
 function computeScores() {
   // Fallback: equal scores if no birth info
-  if (!pBirth) return [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5];
+  if (!pBirth) return [0.85, 0.45, 0.72, 0.90, 0.30, 0.65, 0.55, 0.78];
 
   // Parse birth date
   const [by, bm, bd] = pBirth.split('-').map(Number);
@@ -227,83 +227,80 @@ void main() {
   col[7] = vec3(0.80, 0.00, 1.00); // Uranus:  electric purple
 
   // Axis seeds — each axis has an independent noise universe
-  float seeds[8];
-  seeds[0] =   0.0; seeds[1] =  17.3; seeds[2] =  34.6; seeds[3] =  51.9;
-  seeds[4] =  69.2; seeds[5] =  86.5; seeds[6] = 103.8; seeds[7] = 121.1;
+  float seed[8];
+  seed[0] =   0.0; seed[1] =  17.3; seed[2] =  34.6; seed[3] =  51.9;
+  seed[4] =  69.2; seed[5] =  86.5; seed[6] = 103.8; seed[7] = 121.1;
 
-  // ── Primary nebula envelope — one large coherent mass ─────────────────────
+  // ── ONE coherent primary nebula mass ──────────────────────────────────────
+  // Large-scale domain-warped fBm fills 65-75% of the canvas.
+  // Scores modulate color + local density of this single form.
+
+  float primaryDensity = warpedFbm(uv * 0.55, 0.0);
+  primaryDensity = primaryDensity * 0.5 + 0.5; // 0..1
+
+  // Soft radial envelope — flat interior, gradual fade at rim
   float r = length(uv);
-  float envelope = 1.0 - smoothstep(0.60, 1.30, r);
-  envelope = pow(envelope, 0.55); // flat — fills most of frame
+  float envelope = 1.0 - smoothstep(0.65, 1.35, r);
+  envelope = pow(envelope, 0.6); // flatten → fills more of frame
+  primaryDensity *= envelope;
 
-  // ── Each axis gets its own organic fBm layer — score = color weight ───────
-  // No spatial centers. Different seed per axis = different swirl pattern.
-  // Score controls how prominent that color is throughout the whole nebula.
-  vec3 nebulaColor = vec3(0.0, 0.0, 0.01); // deep space
+  // ── Layer each axis over the primary mass ────────────────────────────────
+  vec3 nebulaColor = vec3(0.0);
 
   for (int i = 0; i < 8; i++) {
     float score = u_scores[i];
-    if (score < 0.02) continue;
+    if (score < 0.05) continue;
 
-    // Each axis gets its own organic fBm field — different seed = different swirl
-    float axisField = warpedFbm(uv * 0.55, seeds[i]);
-    axisField = axisField * 0.5 + 0.5;
+    // Per-axis spatial emphasis (still part of the same mass, just weighted)
+    float axisNoise = warpedFbm(uv * 0.7 + float(i) * vec2(0.37, 0.19), seed[i]);
+    axisNoise = axisNoise * 0.5 + 0.5;
 
-    // Apply overall nebula envelope
-    axisField *= envelope;
+    float layerDensity = primaryDensity * (0.4 + 0.6 * axisNoise);
 
-    // Contrast
-    axisField = pow(max(0.0, axisField - 0.1), 1.5);
+    // High score → brighter, spreads to translucent edges
+    // Low score  → dim wisps only in densest core regions
+    layerDensity = pow(layerDensity, 1.0 + (1.0 - score) * 2.5);
+    layerDensity *= score * 1.8;
 
-    // Score = how much of this color appears in the nebula
-    axisField *= score * 2.5;
-
-    nebulaColor += axisField * col[i];
+    nebulaColor += layerDensity * col[i];
   }
 
-  // ── Bright core — hottest part of the nebula (center) ────────────────────
-  float coreDist = length(uv);
-  float core = exp(-coreDist * coreDist / (0.18 * 0.18));
-  float coreFbm = warpedFbm(uv * 1.5, 200.0) * 0.5 + 0.5;
-  core *= coreFbm * 1.5;
+  // ── Bright inner core — always present ───────────────────────────────────
+  float coreDensity = warpedFbm(uv * 1.2, 200.0) * 0.5 + 0.5;
+  coreDensity *= 1.0 - smoothstep(0.0, 0.45, r);
+  coreDensity  = pow(coreDensity, 1.5) * 1.5;
 
-  // core color = average of all axis colors weighted by score
+  // Find dominant axis color
   vec3 coreColor = vec3(0.0);
-  float totalScore = 0.0;
-  for (int i = 0; i < 8; i++) { coreColor += col[i] * u_scores[i]; totalScore += u_scores[i]; }
-  if (totalScore > 0.0) coreColor /= totalScore;
-  nebulaColor += core * (coreColor * 0.4 + vec3(0.7, 0.65, 0.6)) * 0.8;
-
-  // ── Filaments ─────────────────────────────────────────────────────────────
-  float filament = abs(warpedFbm(uv * 2.0, 300.0));
-  filament = (1.0 - smoothstep(0.0, 0.18, filament)) * envelope * 0.25;
-  nebulaColor += filament * mix(coreColor, vec3(0.8, 0.9, 1.0), 0.4);
-
-  // ── Dark dust lanes ───────────────────────────────────────────────────────
-  float dust = warpedFbm(uv * 1.1 + vec2(4.7, 2.3), 400.0);
-  dust = smoothstep(0.5, 0.72, dust) * envelope * 0.65;
-  nebulaColor *= 1.0 - dust;
-
-  // ── Tone mapping ──────────────────────────────────────────────────────────
-  float lum = dot(nebulaColor, vec3(0.2126, 0.7152, 0.0722));
-  nebulaColor = nebulaColor / (1.0 + lum * 0.6);
-  nebulaColor = pow(nebulaColor, vec3(0.88));
-
-  // ── Stars — very sparse ───────────────────────────────────────────────────
-  vec2 sid = floor(uv * 200.0);
-  vec2 slc = fract(uv * 200.0) - 0.5;
-  float sh = fract(sin(dot(sid, vec2(127.1, 311.7))) * 43758.5453);
-  if (sh > 0.997) {
-    float sb = fract(sin(dot(sid, vec2(269.5, 183.3))) * 17375.32);
-    float sr = length(slc);
-    float starBright = exp(-sr * 90.0) * sb * 2.0;
-    starBright += exp(-abs(slc.x)*180.0)*exp(-sr*6.0)*sb*0.5;
-    starBright += exp(-abs(slc.y)*180.0)*exp(-sr*6.0)*sb*0.5;
-    nebulaColor += starBright * vec3(1.0, 0.97, 0.9);
+  float topScore = 0.0;
+  for (int i = 0; i < 8; i++) {
+    if (u_scores[i] > topScore) { topScore = u_scores[i]; coreColor = col[i]; }
   }
+  nebulaColor += coreDensity * (coreColor * 0.5 + vec3(0.6, 0.5, 0.4)) * topScore;
 
-  // ── Vignette — only at very edge ──────────────────────────────────────────
-  nebulaColor *= 1.0 - smoothstep(1.1, 1.7, r) * 0.9;
+  // ── Filament ridges (Eagle / Carina pillar-like structures) ──────────────
+  float filament = warpedFbm(uv * 1.8, 300.0);
+  filament = abs(filament);                          // ridge lines
+  filament = 1.0 - smoothstep(0.0, 0.15, filament); // thin bright ridges
+  filament *= envelope * 0.35;
+  nebulaColor += filament * mix(coreColor, vec3(0.9, 0.8, 1.0), 0.5);
+
+  // ── Dark absorption pillars (Horsehead / Eagle silhouettes) ──────────────
+  float pillar = warpedFbm(uv * 0.9 + vec2(3.3, 1.1), 400.0);
+  pillar = smoothstep(0.55, 0.75, pillar) * envelope;
+  nebulaColor *= 1.0 - pillar * 0.7;
+
+  // ── Tone mapping — Reinhard luminance, preserve saturation ───────────────
+  float lum = dot(nebulaColor, vec3(0.2126, 0.7152, 0.0722));
+  nebulaColor = nebulaColor / (1.0 + lum * 0.65);
+  nebulaColor = pow(max(nebulaColor, vec3(0.0)), vec3(0.88));
+
+  // ── Stars (sparse, ~0.4%) ─────────────────────────────────────────────────
+  float s = star(uv * 0.55 + 0.5, 0.004);
+  nebulaColor += s * mix(vec3(1.0, 0.97, 0.88), coreColor + vec3(0.3), 0.25);
+
+  // ── Subtle outer vignette ─────────────────────────────────────────────────
+  nebulaColor *= 1.0 - smoothstep(1.1, 1.6, r) * 0.8;
 
   fragColor = vec4(nebulaColor, 1.0);
 }`;

@@ -136,7 +136,7 @@
 
 <!-- Live nebula background (demo chart) -->
 <iframe id="nebula-bg"
-  src="/transit/nebula-i/art.html?birth=1990-06-21&time=12:00&lat=40.7128&lon=-74.0060"
+  src="/transit/nebula-i/nebula.html?birth=1990-06-21&time=12:00&lat=40.7128&lon=-74.0060"
   title="" tabindex="-1" aria-hidden="true"></iframe>
 <div id="scroll-overlay"></div>
 
@@ -224,7 +224,7 @@ window.addEventListener('scroll', function() {
     if (!data || data.length === 0) { loading.textContent = 'Be the first.'; loading.style.display = 'block'; return; }
     data.forEach(function(n) {
       var params = new URLSearchParams({ birth: n.birth_date||'', time: n.birth_time||'12:00', lat: n.lat||0, lon: n.lon||0, name: n.name||'', city: n.city||'' });
-      var href = '/transit/nebula-i/art.html?' + params.toString();
+      var href = '/transit/nebula-i/nebula.html?' + params.toString();
       var card = document.createElement('a');
       card.className = 'nebula-card'; card.href = n.share_url || href;
       if (n.thumbnail) {

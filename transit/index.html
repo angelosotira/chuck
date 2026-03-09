@@ -758,7 +758,6 @@
     <p class="footer-tech">Built with WebGL2 · Jean Meeus ephemeris · Nominatim geocoding</p>
   </footer>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script>
   // ── SUPABASE CONFIG ─────────────────────────────────────────────────────────
   const SUPABASE_URL = 'https://iarmibcqsrlknptvzgkn.supabase.co';
@@ -766,15 +765,12 @@
 
   // ── Load preview nebulas ────────────────────────────────────────────────────
   (async function() {
-    if (SUPABASE_URL === 'YOUR_SUPABASE_URL') return;
     try {
-      if (!window.supabase) return;
-      const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-      const { data } = await sb
-        .from('nebulas')
-        .select('id, name, city, birth_date, birth_time, lat, lon, thumbnail')
-        .order('created_at', { ascending: false })
-        .limit(6);
+      const res = await fetch(SUPABASE_URL + '/rest/v1/nebulas?select=id,name,city,birth_date,birth_time,lat,lon,thumbnail&order=created_at.desc&limit=6', {
+        headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY }
+      });
+      if (!res.ok) return;
+      const data = await res.json();
       if (!data || data.length === 0) return;
 
       const section = document.getElementById('browse-preview');

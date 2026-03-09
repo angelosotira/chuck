@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>All Nebulas — Transit Nebula I</title>
   <meta name="description" content="Every nebula here is unique. Each one is someone's birth chart meeting today's sky." />
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -356,12 +356,13 @@
 // ── SUPABASE CONFIG ───────────────────────────────────────────────────────────
 const SUPABASE_URL = 'https://iarmibcqsrlknptvzgkn.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlhcm1pYmNxc3Jsa25wdHZ6Z2tuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwMzA1NDEsImV4cCI6MjA4ODYwNjU0MX0.HOvdb-a9GFr0zUEgZqxPYgBEiiZUE9whch-cH0DRhnk';
-let supabase = null;
-try {
-  if (SUPABASE_URL !== 'YOUR_SUPABASE_URL' && window.supabase) {
-    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  }
-} catch(e) { console.warn('Supabase init skipped:', e); }
+async function fetchNebulas() {
+  const res = await fetch(SUPABASE_URL + '/rest/v1/nebulas?select=id,name,city,birth_date,birth_time,lat,lon,thumbnail,share_url,created_at&order=created_at.desc&limit=50', {
+    headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY }
+  });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  return await res.json();
+}
 
 // ── Share menu ────────────────────────────────────────────────────────────────
 function toggleShareMenu() {
@@ -385,23 +386,12 @@ function copyShareLink() {
   const grid = document.getElementById('nebula-grid');
   const emptyState = document.getElementById('empty-state');
 
-  // Not configured — show empty state immediately
-  if (!supabase) {
-    loading.style.display = 'none';
-    emptyState.style.display = 'flex';
-    return;
-  }
-
   try {
-    const { data, error } = await supabase
-      .from('nebulas')
-      .select('id, name, city, birth_date, birth_time, lat, lon, thumbnail, share_url, created_at')
-      .order('created_at', { ascending: false })
-      .limit(50);
+    const data = await fetchNebulas();
 
     loading.style.display = 'none';
 
-    if (error || !data || data.length === 0) {
+    if (!data || data.length === 0) {
       emptyState.style.display = 'flex';
       return;
     }

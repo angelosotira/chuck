@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Transit Nebula I — Chuck.Neoteric.Art</title>
+  <meta name="description" content="A generative nebula whose color and form are shaped by the precise alignment of eight planets at your moment of birth — rendered fresh every day." />
+  <meta property="og:title" content="Transit Nebula I" />
+  <meta property="og:description" content="Your birth chart. Today's sky. One living image." />
+  <meta property="og:url" content="https://chuck.neoteric.art/transit/nebula-I/" />
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --mono: 'Courier New', 'Courier', monospace;
+      --sans: -apple-system, 'Helvetica Neue', Arial, sans-serif;
+      --sun:     #ff8c0d;
+      --moon:    #66a6ff;
+      --mercury: #00f2f2;
+      --venus:   #ff3399;
+      --mars:    #e61900;
+      --jupiter: #1ad64d;
+      --saturn:  #8019ff;
+      --uranus:  #cc00ff;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background: #000;
+      color: #fff;
+      font-family: var(--sans);
+      overflow-x: hidden;
+    }
+
+    /* ─── NEBULA IFRAME BACKGROUND ─── */
+    #nebula-bg {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      border: none;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* ─── GLOBAL OVERLAY (darkens as you scroll) ─── */
+    #scroll-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0);
+      z-index: 1;
+      pointer-events: none;
+      transition: background 0.1s ease;
+    }
+
+    /* ─── HERO ─── */
+    #hero {
+      position: relative;
+      z-index: 2;
+      height: 100vh;
+      min-height: 600px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: stretch;
+    }
+
+    /* subtle gradient so text is readable over nebula */
+    #hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.35);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .hero-top {
+      position: relative;
+      z-index: 1;
+      padding: 28px 36px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .site-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.38);
+    }
+
+    .hero-center {
+      position: relative;
+      z-index: 1;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 0 24px;
+    }
+
+    .eyebrow {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.32em;
+      text-transform: uppercase;
+      color: rgba(204, 102, 255, 0.75);
+      margin-bottom: 28px;
+    }
+
+    .hero-headline {
+      font-family: var(--sans);
+      font-size: clamp(42px, 7vw, 88px);
+      font-weight: 300;
+      line-height: 1.12;
+      letter-spacing: -0.02em;
+      color: #fff;
+      margin-bottom: 28px;
+      max-width: 860px;
+    }
+
+    .hero-headline em {
+      font-style: normal;
+      background: linear-gradient(135deg, #c084fc, #f472b6, #22d3ee);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-subhead {
+      font-family: var(--sans);
+      font-size: clamp(15px, 1.6vw, 19px);
+      font-weight: 300;
+      line-height: 1.6;
+      color: rgba(255, 255, 255, 0.6);
+      max-width: 560px;
+      margin-bottom: 44px;
+    }
+
+    .cta-btn {
+      display: inline-block;
+      text-decoration: none;
+      font-family: var(--sans);
+      font-size: 15px;
+      font-weight: 400;
+      letter-spacing: 0.04em;
+      color: #fff;
+      background: rgba(0, 0, 0, 0.45);
+      border: 1px solid rgba(176, 100, 255, 0.55);
+      border-radius: 40px;
+      padding: 14px 36px;
+      position: relative;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    .cta-btn::before {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      border-radius: 40px;
+      background: linear-gradient(135deg, rgba(192, 84, 252, 0.3), rgba(244, 114, 182, 0.2), rgba(34, 211, 238, 0.2));
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      z-index: -1;
+    }
+
+    .cta-btn:hover {
+      border-color: rgba(192, 84, 252, 0.85);
+      box-shadow: 0 0 28px rgba(192, 84, 252, 0.35), 0 0 60px rgba(192, 84, 252, 0.15);
+      background: rgba(0, 0, 0, 0.55);
+    }
+
+    .cta-btn:hover::before {
+      opacity: 1;
+    }
+
+    .hero-bottom {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      justify-content: center;
+      padding-bottom: 36px;
+    }
+
+    /* animated scroll dot */
+    .scroll-indicator {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .scroll-indicator span {
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 0.2em;
+      color: rgba(255,255,255,0.3);
+      text-transform: uppercase;
+    }
+
+    .scroll-dot {
+      width: 1px;
+      height: 36px;
+      background: linear-gradient(to bottom, rgba(192, 84, 252, 0.6), transparent);
+      animation: scrollPulse 2s ease-in-out infinite;
+      border-radius: 1px;
+    }
+
+    @keyframes scrollPulse {
+      0%, 100% { opacity: 0.3; transform: scaleY(0.7); }
+      50% { opacity: 1; transform: scaleY(1); }
+    }
+
+    /* ─── CONTENT SECTIONS ─── */
+    /* These have solid dark backgrounds so nebula fades behind them */
+    .content-section {
+      position: relative;
+      z-index: 3;
+      background: rgba(4, 2, 10, 0.97);
+    }
+
+    /* ─── SECTION: HOW IT WORKS ─── */
+    #how-it-works {
+      padding: 120px 48px;
+    }
+
+    .section-eyebrow {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: rgba(204, 102, 255, 0.6);
+      margin-bottom: 64px;
+      text-align: center;
+    }
+
+    .how-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 48px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .how-card {
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding-top: 32px;
+    }
+
+    .how-number {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.25em;
+      color: rgba(192, 84, 252, 0.5);
+      margin-bottom: 20px;
+      text-transform: uppercase;
+    }
+
+    .how-title {
+      font-family: var(--sans);
+      font-size: 20px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.92);
+      margin-bottom: 16px;
+      line-height: 1.3;
+    }
+
+    .how-body {
+      font-family: var(--sans);
+      font-size: 15px;
+      font-weight: 300;
+      line-height: 1.7;
+      color: rgba(255, 255, 255, 0.48);
+    }
+
+    /* ─── SECTION: EIGHT AXES ─── */
+    #eight-axes {
+      padding: 120px 48px;
+      background: rgba(2, 1, 8, 0.97);
+      border-top: 1px solid rgba(255,255,255,0.04);
+    }
+
+    .axes-header {
+      max-width: 1100px;
+      margin: 0 auto 72px;
+    }
+
+    .axes-headline {
+      font-family: var(--sans);
+      font-size: clamp(28px, 3.5vw, 46px);
+      font-weight: 300;
+      color: rgba(255,255,255,0.92);
+      letter-spacing: -0.01em;
+      margin-top: 20px;
+    }
+
+    .axes-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .axis-pill {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 12px;
+      padding: 20px 18px;
+      transition: background 0.25s, border-color 0.25s;
+    }
+
+    .axis-pill:hover {
+      background: rgba(255,255,255,0.06);
+      border-color: rgba(255,255,255,0.1);
+    }
+
+    .axis-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin-top: 5px;
+      box-shadow: 0 0 8px currentColor;
+    }
+
+    .axis-info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .axis-symbol-name {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.75);
+    }
+
+    .axis-domain {
+      font-family: var(--sans);
+      font-size: 12px;
+      font-weight: 300;
+      color: rgba(255,255,255,0.38);
+      line-height: 1.4;
+    }
+
+    /* ─── SECTION: THE SERIES ─── */
+    #the-series {
+      padding: 120px 48px;
+      border-top: 1px solid rgba(255,255,255,0.04);
+    }
+
+    .series-inner {
+      max-width: 680px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .series-copy {
+      font-family: var(--sans);
+      font-size: clamp(16px, 1.8vw, 20px);
+      font-weight: 300;
+      line-height: 1.75;
+      color: rgba(255,255,255,0.55);
+      margin-top: 20px;
+      margin-bottom: 40px;
+    }
+
+    .series-link {
+      display: inline-block;
+      font-family: var(--sans);
+      font-size: 15px;
+      font-weight: 400;
+      color: rgba(192, 84, 252, 0.85);
+      text-decoration: none;
+      border-bottom: 1px solid rgba(192, 84, 252, 0.3);
+      padding-bottom: 2px;
+      transition: color 0.2s, border-color 0.2s;
+    }
+
+    .series-link:hover {
+      color: #c084fc;
+      border-color: rgba(192, 84, 252, 0.7);
+    }
+
+    /* ─── FOOTER ─── */
+    footer {
+      position: relative;
+      z-index: 3;
+      background: rgba(2, 1, 8, 0.97);
+      border-top: 1px solid rgba(255,255,255,0.06);
+      padding: 36px 48px;
+    }
+
+    .footer-main {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    .footer-brand {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.28);
+    }
+
+    .footer-back {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.32);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .footer-back:hover {
+      color: rgba(255,255,255,0.6);
+    }
+
+    .footer-tech {
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      color: rgba(255,255,255,0.15);
+      text-align: center;
+    }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 900px) {
+      .how-grid {
+        grid-template-columns: 1fr;
+        gap: 40px;
+      }
+
+      .axes-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      #how-it-works,
+      #eight-axes,
+      #the-series {
+        padding: 80px 28px;
+      }
+
+      footer {
+        padding: 28px 24px;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .hero-top {
+        padding: 20px 20px;
+      }
+
+      .axes-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      .footer-main {
+        flex-direction: column;
+        gap: 12px;
+        text-align: center;
+      }
+
+      #how-it-works,
+      #eight-axes,
+      #the-series {
+        padding: 64px 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Live nebula background -->
+  <iframe
+    id="nebula-bg"
+    src="../nebula-art.html?birth=2002-06-17&time=12:00&lat=33.4484&lon=-112.0740"
+    title="Transit Nebula I — live generative background"
+    scrolling="no"
+    tabindex="-1"
+    aria-hidden="true"
+  ></iframe>
+
+  <!-- Scroll-reactive dark overlay -->
+  <div id="scroll-overlay"></div>
+
+  <!-- ════════════════════════════════
+       HERO
+  ════════════════════════════════ -->
+  <section id="hero">
+    <div class="hero-top">
+      <span class="site-label">Chuck.Neoteric.Art</span>
+      <div id="share-btn" onclick="toggleShareMenu()" style="font-family:'Courier New',monospace;font-size:0.58rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.6);cursor:pointer;transition:all 0.2s;user-select:none;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.12);padding:6px 12px;border-radius:2px;" onmouseenter="this.style.color='rgba(255,255,255,0.95)';this.style.background='rgba(0,0,0,0.65)'" onmouseleave="this.style.color='rgba(255,255,255,0.6)';this.style.background='rgba(0,0,0,0.45)'">share ↗</div>
+    </div>
+
+    <!-- Share menu -->
+    <div id="share-menu" style="position:fixed;top:0;right:0;width:260px;height:100vh;z-index:300;background:rgba(6,4,14,0.96);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);transform:translateX(100%);transition:transform 0.3s cubic-bezier(0.4,0,0.2,1);display:flex;flex-direction:column;padding:48px 28px;border-left:1px solid rgba(255,255,255,0.06);">
+      <div onclick="toggleShareMenu()" style="position:absolute;top:18px;right:20px;font-family:'Courier New',monospace;font-size:0.58rem;letter-spacing:0.12em;color:rgba(255,255,255,0.3);cursor:pointer;">✕ close</div>
+      <div style="font-family:'Courier New',monospace;font-size:0.55rem;letter-spacing:0.18em;color:rgba(255,255,255,0.25);text-transform:uppercase;margin-bottom:32px;">Transit Nebula I</div>
+      <div style="margin-bottom:28px;">
+        <div style="font-family:'Courier New',monospace;font-size:0.58rem;letter-spacing:0.1em;color:rgba(255,255,255,0.4);text-transform:uppercase;margin-bottom:10px;">Share this page</div>
+        <button onclick="copyShareLink()" id="copy-btn" style="background:none;border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.7);font-family:'Courier New',monospace;font-size:0.62rem;letter-spacing:0.08em;padding:9px 16px;cursor:pointer;width:100%;text-align:left;transition:all 0.2s;">Copy link ↗</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:3px;">
+        <a href="create.html" style="font-family:'Courier New',monospace;font-size:0.65rem;letter-spacing:0.06em;color:rgba(255,255,255,0.5);text-decoration:none;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06);transition:color 0.2s;" onmouseenter="this.style.color='rgba(255,255,255,0.9)'" onmouseleave="this.style.color='rgba(255,255,255,0.5)'">Make Your Nebula →</a>
+        <a href="browse.html" style="font-family:'Courier New',monospace;font-size:0.65rem;letter-spacing:0.06em;color:rgba(255,255,255,0.5);text-decoration:none;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06);transition:color 0.2s;" onmouseenter="this.style.color='rgba(255,255,255,0.9)'" onmouseleave="this.style.color='rgba(255,255,255,0.5)'">Browse All Nebulas →</a>
+        <a href="/nebula-about.html" style="font-family:'Courier New',monospace;font-size:0.65rem;letter-spacing:0.06em;color:rgba(255,255,255,0.5);text-decoration:none;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06);transition:color 0.2s;" onmouseenter="this.style.color='rgba(255,255,255,0.9)'" onmouseleave="this.style.color='rgba(255,255,255,0.5)'">About →</a>
+        <a href="nebula-II/" style="font-family:'Courier New',monospace;font-size:0.65rem;letter-spacing:0.06em;color:rgba(255,255,255,0.5);text-decoration:none;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06);transition:color 0.2s;" onmouseenter="this.style.color='rgba(255,255,255,0.9)'" onmouseleave="this.style.color='rgba(255,255,255,0.5)'">Transit Nebula II →</a>
+        <a href="../index.html" style="font-family:'Courier New',monospace;font-size:0.65rem;letter-spacing:0.06em;color:rgba(255,255,255,0.3);text-decoration:none;padding:10px 0;transition:color 0.2s;" onmouseenter="this.style.color='rgba(255,255,255,0.7)'" onmouseleave="this.style.color='rgba(255,255,255,0.3)'">← All Works</a>
+      </div>
+    </div>
+    <div id="share-overlay" onclick="toggleShareMenu()" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.4);backdrop-filter:blur(2px);"></div>
+
+    <div class="hero-center">
+      <p class="eyebrow">Transit Nebula I</p>
+      <h1 class="hero-headline">
+        Your birth chart.<br>
+        Today's sky.<br>
+        <em>One living image.</em>
+      </h1>
+      <p class="hero-subhead">
+        A generative nebula whose color and form are shaped by the precise alignment
+        of eight planets at your moment of birth — rendered fresh every day.
+      </p>
+      <a href="../nebula-config.html?ref=transit" class="cta-btn">
+        Enter Your Birth Data →
+      </a>
+    </div>
+
+    <div class="hero-bottom">
+      <div class="scroll-indicator">
+        <span>Scroll</span>
+        <div class="scroll-dot"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════
+       MAKE YOURS CTA
+  ════════════════════════════════ -->
+  <section id="make-yours" class="content-section" style="
+    padding: 96px 48px;
+    text-align: center;
+    background: rgba(4, 2, 10, 0.98);
+    border-top: 1px solid rgba(255,255,255,0.04);
+  ">
+    <p style="
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.32em;
+      text-transform: uppercase;
+      color: rgba(204,102,255,0.65);
+      margin-bottom: 24px;
+    ">Your Nebula Awaits</p>
+    <h2 style="
+      font-family: var(--sans);
+      font-size: clamp(28px, 4vw, 48px);
+      font-weight: 300;
+      letter-spacing: -0.02em;
+      color: #fff;
+      margin-bottom: 16px;
+      line-height: 1.15;
+    ">Make Your Transit Nebula</h2>
+    <p style="
+      font-family: var(--sans);
+      font-size: 16px;
+      font-weight: 300;
+      color: rgba(255,255,255,0.42);
+      line-height: 1.7;
+      max-width: 480px;
+      margin: 0 auto 44px;
+    ">Enter your birth details and generate a unique nebula — shaped by the precise alignment of planets at the moment you were born.</p>
+    <a href="create.html" style="
+      display: inline-block;
+      text-decoration: none;
+      font-family: var(--sans);
+      font-size: 15px;
+      font-weight: 400;
+      letter-spacing: 0.04em;
+      color: #fff;
+      background: rgba(128,25,255,0.18);
+      border: 1px solid rgba(176,100,255,0.55);
+      border-radius: 2px;
+      padding: 16px 40px;
+      transition: background 0.3s, border-color 0.3s, box-shadow 0.3s;
+      box-shadow: 0 0 20px rgba(128,25,255,0.3);
+    " onmouseenter="this.style.background='rgba(128,25,255,0.32)';this.style.borderColor='rgba(192,84,252,0.85)';this.style.boxShadow='0 0 32px rgba(128,25,255,0.4)'"
+       onmouseleave="this.style.background='rgba(128,25,255,0.18)';this.style.borderColor='rgba(176,100,255,0.55)';this.style.boxShadow='0 0 20px rgba(128,25,255,0.3)'">
+      Create My Nebula →
+    </a>
+  </section>
+
+  <!-- ════════════════════════════════
+       HOW IT WORKS
+  ════════════════════════════════ -->
+  <section id="how-it-works" class="content-section">
+    <p class="section-eyebrow">How It Works</p>
+    <div class="how-grid">
+
+      <div class="how-card">
+        <p class="how-number">01 — Your Natal Chart</p>
+        <h3 class="how-title">Your Natal Chart</h3>
+        <p class="how-body">Enter your birth date, time, and location. We calculate the exact position of the Sun, Moon, Mercury, Venus, Mars, Jupiter, Saturn, and Uranus at the moment you were born.</p>
+      </div>
+
+      <div class="how-card">
+        <p class="how-number">02 — Today's Transits</p>
+        <h3 class="how-title">Today's Transits</h3>
+        <p class="how-body">Each day, the planets move. We compare where they are now against where they were at your birth — producing eight unique resonance scores.</p>
+      </div>
+
+      <div class="how-card">
+        <p class="how-number">03 — The Nebula</p>
+        <h3 class="how-title">The Nebula</h3>
+        <p class="how-body">Those scores become color weights in a WebGL2 fragment shader. The swirling form is pure organic noise — only the palette reflects you, recalculated every sunrise.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════
+       THE EIGHT AXES
+  ════════════════════════════════ -->
+  <section id="eight-axes" class="content-section">
+    <div class="axes-header">
+      <p class="section-eyebrow" style="text-align:left; margin-bottom:0;">The Eight Axes</p>
+      <h2 class="axes-headline">Every planet.<br>Every domain of life.</h2>
+    </div>
+
+    <div class="axes-grid">
+
+      <div class="axis-pill">
+        <span class="axis-dot" style="background:#ff8c0d; color:#ff8c0d;"></span>
+        <div class="axis-info">
+          <span class="axis-symbol-name">☀ Sun</span>
+          <span class="axis-domain">Vitality &amp; Identity</span>
+        </div>
+      </div>
+
+      <div class="axis-pill">
+        <span class="axis-dot" style="background:#66a6ff; color:#66a6ff;"></span>
+        <div class="axis-info">
+          <span class="axis-symbol-name">☽ Moon</span>
+          <span class="axis-domain">Emotion &amp; Intuition</span>
+        </div>
+      </div>
+
+      <div class="axis-pill">
+        <span class="axis-dot" style="background:#00f2f2; color:#00f2f2;"></span>
+        <div class="axis-info">
+          <span class="axis-symbol-name">☿ Mercury</span>
+          <span class="axis-domain">Mind &amp; Communication</span>
+        </div>
+      </div>
+
+      <div class="axis-pill">
+        <span class="axis-dot" style="background:#ff3399; color:#ff3399;"></span>
+        <div class="axis-info">
+          <span class="axis-symbol-name">♀ Venus</span>
+          <span class="axis-domain">Love &amp; Beauty</span>
+        </div>
+      </div>
+
+      <div class="axis-pill">
+        <span class="axis-dot" style="background:#e61900; color:#e61900;"></span>
+        <div class="axis-info">
+          <span class="axis-symbol-name">♂ Mars</span>
+          <span class="axis-domain">Drive &amp; Action</span>
+        </div>
+      </div>
+
+      <div class="axis-pill">
+        <span class="axis-dot" style="background:#1ad64d; color:#1ad64d;"></span>
+        <div class="axis-info">
+          <span class="axis-symbol-name">♃ Jupiter</span>
+          <span class="axis-domain">Abundance &amp; Growth</span>
+        </div>
+      </div>
+
+      <div class="axis-pill">
+        <span class="axis-dot" style="background:#8019ff; color:#8019ff;"></span>
+        <div class="axis-info">
+          <span class="axis-symbol-name">♄ Saturn</span>
+          <span class="axis-domain">Structure &amp; Discipline</span>
+        </div>
+      </div>
+
+      <div class="axis-pill">
+        <span class="axis-dot" style="background:#cc00ff; color:#cc00ff;"></span>
+        <div class="axis-info">
+          <span class="axis-symbol-name">♅ Uranus</span>
+          <span class="axis-domain">Awakening &amp; Innovation</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════
+       ALIVE EVERY DAY
+  ════════════════════════════════ -->
+  <section id="alive-daily" class="content-section" style="background:rgba(80,20,160,0.07);border-top:1px solid rgba(180,120,255,0.08);border-bottom:1px solid rgba(180,120,255,0.08);">
+    <div style="max-width:760px;margin:0 auto;padding:0 40px;text-align:center;">
+      <p class="section-eyebrow" style="color:rgba(180,130,255,0.6);">Yours. Always changing.</p>
+      <h2 style="font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;font-size:clamp(28px,4vw,52px);font-weight:300;line-height:1.2;letter-spacing:-0.02em;color:#fff;margin-bottom:28px;">
+        Your nebula is anchored to the sky<br>at the exact moment you were born.
+      </h2>
+      <p style="font-size:clamp(15px,1.8vw,19px);line-height:1.85;color:rgba(255,255,255,0.52);max-width:580px;margin:0 auto 36px;">
+        That configuration is fixed — it's yours forever. But the planets keep moving. Every day, Transit Nebula I recalculates where each planet stands now, compares it against your birth sky, and generates a new reading. Same nebula. New conversation with the cosmos.
+      </p>
+      <div style="display:flex;justify-content:center;gap:48px;flex-wrap:wrap;margin-bottom:40px;">
+        <div style="text-align:center;">
+          <div style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(180,130,255,0.5);margin-bottom:10px;">Your Nebula</div>
+          <div style="font-size:clamp(13px,1.4vw,15px);color:rgba(255,255,255,0.7);line-height:1.6;">Fixed to your<br>birth moment</div>
+        </div>
+        <div style="display:flex;align-items:center;color:rgba(255,255,255,0.15);font-size:24px;">×</div>
+        <div style="text-align:center;">
+          <div style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(100,200,255,0.5);margin-bottom:10px;">Today's Sky</div>
+          <div style="font-size:clamp(13px,1.4vw,15px);color:rgba(255,255,255,0.7);line-height:1.6;">Recalculates<br>every sunrise</div>
+        </div>
+        <div style="display:flex;align-items:center;color:rgba(255,255,255,0.15);font-size:24px;">=</div>
+        <div style="text-align:center;">
+          <div style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(255,180,80,0.5);margin-bottom:10px;">Your Reading</div>
+          <div style="font-size:clamp(13px,1.4vw,15px);color:rgba(255,255,255,0.7);line-height:1.6;">Unique to you.<br>Changes daily.</div>
+        </div>
+      </div>
+      <p style="font-family:'Courier New',monospace;font-size:12px;letter-spacing:0.12em;color:rgba(255,255,255,0.2);text-transform:uppercase;">No two people share the same nebula. No two days produce the same reading.</p>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════
+       THE SERIES
+  ════════════════════════════════ -->
+  <section id="the-series" class="content-section">
+    <div class="series-inner">
+      <p class="section-eyebrow">The Series</p>
+      <p class="series-copy">
+        Transit is an ongoing series of generative art pieces built at the intersection
+        of astrology and computation. Each work in the series explores a different visual
+        language — nebulae, oscilloscopes, magnetic fields — all powered by the same
+        planetary engine.
+      </p>
+      <a href="../nebula-config.html" class="series-link" style="display:block;margin-bottom:14px;">
+        Transit Nebula I — the original. →
+      </a>
+      <a href="nebula-II/" class="series-link" style="color:rgba(160,80,255,0.75);border-color:rgba(160,80,255,0.25);">
+        Transit Nebula II — harmonic color clumping. →
+      </a>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════
+       BROWSE NEBULAS
+  ════════════════════════════════ -->
+  <section id="browse-preview" class="content-section" style="
+    padding: 96px 48px;
+    background: rgba(2,1,8,0.98);
+    border-top: 1px solid rgba(255,255,255,0.04);
+    display: none;
+  ">
+    <div style="max-width:1200px;margin:0 auto;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:48px;flex-wrap:wrap;gap:16px;">
+        <div>
+          <p style="font-family:var(--mono);font-size:10px;letter-spacing:0.32em;text-transform:uppercase;color:rgba(204,102,255,0.65);margin-bottom:16px;">Community</p>
+          <h2 style="font-family:var(--sans);font-size:clamp(24px,3vw,38px);font-weight:300;letter-spacing:-0.02em;color:#fff;">Recent Nebulas</h2>
+        </div>
+        <a href="browse.html" style="font-family:var(--mono);font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(192,84,252,0.8);text-decoration:none;border:1px solid rgba(192,84,252,0.3);padding:10px 20px;border-radius:2px;white-space:nowrap;transition:all 0.2s;"
+          onmouseenter="this.style.color='#fff';this.style.borderColor='rgba(192,84,252,0.7)';this.style.boxShadow='0 0 16px rgba(128,25,255,0.3)'"
+          onmouseleave="this.style.color='rgba(192,84,252,0.8)';this.style.borderColor='rgba(192,84,252,0.3)';this.style.boxShadow='none'">View All →</a>
+      </div>
+      <div id="preview-grid" style="
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 2px;
+      "></div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════
+       FOOTER
+  ════════════════════════════════ -->
+  <footer>
+    <div class="footer-main">
+      <span class="footer-brand">Transit Nebula I — Chuck.Neoteric.Art</span>
+      <a href="../index.html" class="footer-back">← All Works</a>
+    </div>
+    <p class="footer-tech">Built with WebGL2 · Jean Meeus ephemeris · Nominatim geocoding</p>
+  </footer>
+
+  <script>
+  // ── SUPABASE CONFIG ─────────────────────────────────────────────────────────
+  const SUPABASE_URL = 'https://iarmibcqsrlknptvzgkn.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlhcm1pYmNxc3Jsa25wdHZ6Z2tuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwMzA1NDEsImV4cCI6MjA4ODYwNjU0MX0.HOvdb-a9GFr0zUEgZqxPYgBEiiZUE9whch-cH0DRhnk';
+
+  // ── Load preview nebulas ────────────────────────────────────────────────────
+  (async function() {
+    try {
+      const res = await fetch(SUPABASE_URL + '/rest/v1/nebulas?select=id,name,city,birth_date,birth_time,lat,lon,thumbnail&order=created_at.desc&limit=6', {
+        headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY }
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (!data || data.length === 0) return;
+
+      const section = document.getElementById('browse-preview');
+      const grid = document.getElementById('preview-grid');
+      section.style.display = 'block';
+
+      // Responsive: on mobile collapse to 2 cols
+      if (window.innerWidth < 700) {
+        grid.style.gridTemplateColumns = 'repeat(2, 1fr)';
+      } else if (window.innerWidth < 1000) {
+        grid.style.gridTemplateColumns = 'repeat(3, 1fr)';
+      }
+
+      data.forEach(function(nebula) {
+        const params = new URLSearchParams({
+          birth: nebula.birth_date || '',
+          time: nebula.birth_time || '12:00',
+          lat: nebula.lat || 0,
+          lon: nebula.lon || 0,
+          name: nebula.name || ''
+        });
+        const href = '/nebula-art.html?' + params.toString();
+        const card = document.createElement('a');
+        card.href = href;
+        card.style.cssText = 'position:relative;aspect-ratio:3/2;overflow:hidden;display:block;background:rgba(8,6,20,0.9);text-decoration:none;color:inherit;';
+
+        if (nebula.thumbnail) {
+          const img = document.createElement('img');
+          img.src = nebula.thumbnail;
+          img.alt = nebula.name;
+          img.loading = 'lazy';
+          img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;transition:transform 0.4s,opacity 0.3s;';
+          img.onmouseenter = function(){ img.style.transform='scale(1.05)'; img.style.opacity='0.8'; };
+          img.onmouseleave = function(){ img.style.transform='scale(1)'; img.style.opacity='1'; };
+          card.appendChild(img);
+        } else {
+          card.innerHTML = '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,rgba(128,25,255,0.08),rgba(34,211,238,0.04));border:1px solid rgba(255,255,255,0.04);"><span style="font-size:1.5rem;opacity:0.2;">✦</span></div>';
+        }
+
+        const info = document.createElement('div');
+        info.style.cssText = 'position:absolute;bottom:0;left:0;right:0;padding:20px 12px 10px;background:linear-gradient(to top,rgba(0,0,0,0.8) 0%,transparent 100%);';
+        info.innerHTML = '<div style="font-family:\'Courier New\',monospace;font-size:9px;letter-spacing:0.1em;color:rgba(255,255,255,0.85);text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + (nebula.name || '') + '</div>';
+        card.appendChild(info);
+        grid.appendChild(card);
+      });
+    } catch(e) { /* silently hide on error */ }
+  })();
+  </script>
+  <script>
+    // Darken the nebula overlay as user scrolls past hero
+    (function() {
+      const overlay = document.getElementById('scroll-overlay');
+      const heroHeight = window.innerHeight;
+
+      function onScroll() {
+        const scrolled = window.scrollY;
+        const progress = Math.min(scrolled / (heroHeight * 0.6), 1);
+        // Fade from 0 → 0.82 opacity black
+        const alpha = progress * 0.82;
+        overlay.style.background = 'rgba(2, 1, 10, ' + alpha + ')';
+      }
+
+      window.addEventListener('scroll', onScroll, { passive: true });
+      onScroll();
+    })();
+  </script>
+  <script>
+    function toggleShareMenu() {
+      const menu = document.getElementById('share-menu');
+      const overlay = document.getElementById('share-overlay');
+      const isOpen = menu.style.transform === 'translateX(0%)';
+      menu.style.transform = isOpen ? 'translateX(100%)' : 'translateX(0%)';
+      overlay.style.display = isOpen ? 'none' : 'block';
+    }
+    function copyShareLink() {
+      navigator.clipboard.writeText(window.location.href).then(() => {
+        const btn = document.getElementById('copy-btn');
+        btn.textContent = 'Copied! ✓';
+        setTimeout(() => btn.textContent = 'Copy link ↗', 2000);
+      });
+    }
+  </script>
+
+</body>
+</html>

@@ -469,10 +469,45 @@ requestAnimationFrame(render);
 setTimeout(trySaveNebula, 3500);
 
 // ─── SHARE MENU FUNCTIONS ─────────────────────────────────────────────────────
-// Wire reading link to carry birth params
+// ─── MENU SETUP ───────────────────────────────────────────────────────────────
 (function(){
+  const AXIS_NAMES    = ['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus'];
+  const AXIS_DOMAINS  = ['Vitality','Intuition','Mind','Love','Drive','Abundance','Structure','Awakening'];
+  const AXIS_ENERGIES = [
+    'Solar energy is strong','The Moon is amplified','Mental clarity is elevated',
+    'Venus is well-lit','Drive and will are activated','Abundance flows easily',
+    'Structure and discipline are sharpened','Unexpected currents are live'
+  ];
+
+  // Build heuristic from SCORES
+  function buildHeuristic(scores) {
+    // Rank axes by score
+    const ranked = scores.map((s,i) => ({i, s})).sort((a,b) => b.s - a.s);
+    const top = ranked[0], second = ranked[1];
+    const low = ranked[ranked.length - 1];
+
+    const topPct = Math.round(top.s * 100);
+    const t1 = AXIS_ENERGIES[top.i];
+    const d1 = AXIS_DOMAINS[top.i];
+    const d2 = AXIS_DOMAINS[second.i];
+    const dLow = AXIS_DOMAINS[low.i];
+
+    if (topPct >= 70) {
+      return `${t1} in your chart today — ${d1} and ${d2} are the brightest channels. ${dLow} is quieter; conserve that energy rather than push against it.`;
+    } else if (topPct >= 45) {
+      return `${d1} and ${d2} are the most active currents today. The sky is balanced — a steady day where deliberate effort compounds.`;
+    } else {
+      return `The sky is subdued across your chart today. ${dLow} carries the most friction. A good day for reflection over action — the nebula shows you where stillness lives.`;
+    }
+  }
+
+  // Wire reading link with params
   const rl = document.getElementById('menu-reading-link');
   if (rl) rl.href = '/nebula-reading.html' + location.search;
+
+  // Populate heuristic
+  const hEl = document.getElementById('menu-heuristic');
+  if (hEl) hEl.textContent = buildHeuristic(SCORES);
 })();
 
 function toggleShareMenu() {
@@ -505,7 +540,10 @@ function copyShareLink() {
 })();
 </script>
 <!-- ── SHARE BUTTON ─────────────────────────────────────────────────────── -->
-<div id="share-btn" onclick="toggleShareMenu()" style="
+<!-- Hide menu button entirely when embedded in an iframe -->
+<script>if(window.self!==window.top)document.write('<style>#menu-btn,#share-menu,#share-overlay{display:none!important}</style>');</script>
+
+<div id="menu-btn" onclick="toggleShareMenu()" style="
   position:fixed; top:16px; right:18px; z-index:100;
   font-family:'Courier New',monospace; font-size:0.58rem;
   letter-spacing:0.14em; text-transform:uppercase;
@@ -516,39 +554,53 @@ function copyShareLink() {
   padding:6px 12px; border-radius:2px;
   " onmouseenter="this.style.color='rgba(255,255,255,0.95)';this.style.background='rgba(0,0,0,0.65)'"
     onmouseleave="this.style.color='rgba(255,255,255,0.6)';this.style.background='rgba(0,0,0,0.45)'">
-  share ↗
+  menu
 </div>
 
-<!-- ── SHARE MENU ──────────────────────────────────────────────────────────── -->
+<!-- ── MENU ──────────────────────────────────────────────────────────── -->
 <div id="share-menu" style="
-  position:fixed; top:0; right:0; width:260px; height:100vh; z-index:200;
-  background:rgba(6,4,14,0.94); backdrop-filter:blur(20px);
+  position:fixed; top:0; right:0; width:280px; height:100vh; z-index:200;
+  background:rgba(6,4,14,0.96); backdrop-filter:blur(20px);
   transform:translateX(100%); transition:transform 0.3s cubic-bezier(0.4,0,0.2,1);
   display:flex; flex-direction:column; padding:48px 28px; gap:0;
-  border-left:1px solid rgba(255,255,255,0.06);
+  border-left:1px solid rgba(255,255,255,0.06); overflow-y:auto;
   ">
   <div onclick="toggleShareMenu()" style="position:absolute;top:18px;right:20px;font-family:'Courier New',monospace;font-size:0.58rem;letter-spacing:0.12em;color:rgba(255,255,255,0.3);cursor:pointer;">✕ close</div>
-  <div style="font-family:'Courier New',monospace;font-size:0.55rem;letter-spacing:0.18em;color:rgba(255,255,255,0.25);text-transform:uppercase;margin-bottom:32px;">Transit Nebula I</div>
+  <div style="font-family:'Courier New',monospace;font-size:0.52rem;letter-spacing:0.2em;color:rgba(255,255,255,0.2);text-transform:uppercase;margin-bottom:24px;">Transit Nebula I</div>
 
-  <!-- Share link -->
-  <div style="margin-bottom:28px;">
-    <div style="font-family:'Courier New',monospace;font-size:0.58rem;letter-spacing:0.1em;color:rgba(255,255,255,0.4);text-transform:uppercase;margin-bottom:10px;">Share this nebula</div>
+  <!-- ── Reading heuristic ───────────────────────────────────────── -->
+  <div style="margin-bottom:28px;padding-bottom:28px;border-bottom:1px solid rgba(255,255,255,0.07);">
+    <div style="font-family:'Courier New',monospace;font-size:0.52rem;letter-spacing:0.16em;color:rgba(180,130,255,0.55);text-transform:uppercase;margin-bottom:10px;">Today's energy</div>
+    <p id="menu-heuristic" style="font-size:0.78rem;line-height:1.7;color:rgba(210,195,255,0.65);margin-bottom:16px;font-style:italic;"></p>
+    <a id="menu-reading-link" href="/nebula-reading.html" style="
+      display:block;font-family:'Courier New',monospace;font-size:0.62rem;
+      letter-spacing:0.1em;text-transform:uppercase;
+      color:rgba(180,130,255,0.9);text-decoration:none;
+      border:1px solid rgba(180,130,255,0.3);padding:10px 14px;
+      transition:all 0.2s;background:rgba(80,20,160,0.15);
+      " onmouseenter="this.style.color='#fff';this.style.background='rgba(100,40,200,0.3)';this.style.borderColor='rgba(180,130,255,0.6)'"
+        onmouseleave="this.style.color='rgba(180,130,255,0.9)';this.style.background='rgba(80,20,160,0.15)';this.style.borderColor='rgba(180,130,255,0.3)'">
+      View Today's Reading →
+    </a>
+  </div>
+
+  <!-- ── Share link ──────────────────────────────────────────────── -->
+  <div style="margin-bottom:24px;">
     <button onclick="copyShareLink()" id="copy-btn" style="
-      background:none;border:1px solid rgba(255,255,255,0.15);
-      color:rgba(255,255,255,0.7);font-family:'Courier New',monospace;
-      font-size:0.62rem;letter-spacing:0.08em;padding:9px 16px;
+      background:none;border:1px solid rgba(255,255,255,0.12);
+      color:rgba(255,255,255,0.5);font-family:'Courier New',monospace;
+      font-size:0.6rem;letter-spacing:0.08em;padding:9px 14px;
       cursor:pointer;width:100%;text-align:left;transition:all 0.2s;
       ">Copy link ↗</button>
   </div>
 
-  <!-- Nav links -->
+  <!-- ── Nav links ───────────────────────────────────────────────── -->
   <div style="display:flex;flex-direction:column;gap:3px;">
-    <a href="/transit/" style="font-family:'Courier New',monospace;font-size:0.65rem;letter-spacing:0.06em;color:rgba(255,255,255,0.5);text-decoration:none;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06);transition:color 0.2s;" onmouseenter="this.style.color='rgba(255,255,255,0.9)'" onmouseleave="this.style.color='rgba(255,255,255,0.5)'">Transit Nebula I →</a>
-    <a href="/transit/browse.html" style="font-family:'Courier New',monospace;font-size:0.65rem;letter-spacing:0.06em;color:rgba(255,255,255,0.5);text-decoration:none;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06);transition:color 0.2s;" onmouseenter="this.style.color='rgba(255,255,255,0.9)'" onmouseleave="this.style.color='rgba(255,255,255,0.5)'">Browse All Nebulas →</a>
-    <a href="/transit/create.html" style="font-family:'Courier New',monospace;font-size:0.65rem;letter-spacing:0.06em;color:rgba(255,255,255,0.5);text-decoration:none;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06);transition:color 0.2s;" onmouseenter="this.style.color='rgba(255,255,255,0.9)'" onmouseleave="this.style.color='rgba(255,255,255,0.5)'">Make Your Nebula →</a>
-    <a href="/nebula-about.html" style="font-family:'Courier New',monospace;font-size:0.65rem;letter-spacing:0.06em;color:rgba(255,255,255,0.5);text-decoration:none;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06);transition:color 0.2s;" onmouseenter="this.style.color='rgba(255,255,255,0.9)'" onmouseleave="this.style.color='rgba(255,255,255,0.5)'">About →</a>
-    <a id="menu-reading-link" href="/nebula-reading.html" style="font-family:'Courier New',monospace;font-size:0.65rem;letter-spacing:0.06em;color:rgba(255,255,255,0.5);text-decoration:none;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06);transition:color 0.2s;" onmouseenter="this.style.color='rgba(255,255,255,0.9)'" onmouseleave="this.style.color='rgba(255,255,255,0.5)'">Daily Reading →</a>
-    <a href="/" style="font-family:'Courier New',monospace;font-size:0.65rem;letter-spacing:0.06em;color:rgba(255,255,255,0.3);text-decoration:none;padding:10px 0;transition:color 0.2s;" onmouseenter="this.style.color='rgba(255,255,255,0.7)'" onmouseleave="this.style.color='rgba(255,255,255,0.3)'">← All Works</a>
+    <a href="/transit/" style="font-family:'Courier New',monospace;font-size:0.62rem;letter-spacing:0.06em;color:rgba(255,255,255,0.4);text-decoration:none;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.05);transition:color 0.2s;" onmouseenter="this.style.color='rgba(255,255,255,0.85)'" onmouseleave="this.style.color='rgba(255,255,255,0.4)'">Transit Nebula I →</a>
+    <a href="/transit/browse.html" style="font-family:'Courier New',monospace;font-size:0.62rem;letter-spacing:0.06em;color:rgba(255,255,255,0.4);text-decoration:none;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.05);transition:color 0.2s;" onmouseenter="this.style.color='rgba(255,255,255,0.85)'" onmouseleave="this.style.color='rgba(255,255,255,0.4)'">Browse All Nebulas →</a>
+    <a href="/transit/create.html" style="font-family:'Courier New',monospace;font-size:0.62rem;letter-spacing:0.06em;color:rgba(255,255,255,0.4);text-decoration:none;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.05);transition:color 0.2s;" onmouseenter="this.style.color='rgba(255,255,255,0.85)'" onmouseleave="this.style.color='rgba(255,255,255,0.4)'">Make Your Nebula →</a>
+    <a href="/nebula-about.html" style="font-family:'Courier New',monospace;font-size:0.62rem;letter-spacing:0.06em;color:rgba(255,255,255,0.4);text-decoration:none;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.05);transition:color 0.2s;" onmouseenter="this.style.color='rgba(255,255,255,0.85)'" onmouseleave="this.style.color='rgba(255,255,255,0.4)'">About →</a>
+    <a href="/" style="font-family:'Courier New',monospace;font-size:0.62rem;letter-spacing:0.06em;color:rgba(255,255,255,0.25);text-decoration:none;padding:9px 0;transition:color 0.2s;" onmouseenter="this.style.color='rgba(255,255,255,0.65)'" onmouseleave="this.style.color='rgba(255,255,255,0.25)'">← All Works</a>
   </div>
 </div>
 

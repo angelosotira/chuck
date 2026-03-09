@@ -92,9 +92,29 @@ input::placeholder{color:rgba(255,255,255,0.18);}
     <input type="text" id="inp-name" placeholder="Your name" autocomplete="name">
   </div>
 
-  <div class="field">
-    <label>Birth Date</label>
-    <input type="date" id="inp-birth">
+  <div style="margin-bottom: 28px;">
+    <label style="font-family:'Courier New',monospace; font-size:0.6rem; letter-spacing:0.18em; text-transform:uppercase; color:rgba(255,255,255,0.35); display:block; margin-bottom:10px;">
+      BIRTH DATE
+    </label>
+    <div style="display:grid; grid-template-columns:2fr 1fr 2fr; gap:10px;">
+      <select id="b-month" style="background:#0d0d0d; color:#fff; border:1px solid rgba(255,255,255,0.12); border-radius:6px; padding:14px 12px; font-size:0.88rem; font-family:inherit; appearance:none; -webkit-appearance:none; cursor:pointer; width:100%;">
+        <option value="">Month</option>
+        <option value="01">January</option>
+        <option value="02">February</option>
+        <option value="03">March</option>
+        <option value="04">April</option>
+        <option value="05">May</option>
+        <option value="06">June</option>
+        <option value="07">July</option>
+        <option value="08">August</option>
+        <option value="09">September</option>
+        <option value="10">October</option>
+        <option value="11">November</option>
+        <option value="12">December</option>
+      </select>
+      <select id="b-day" style="background:#0d0d0d; color:#fff; border:1px solid rgba(255,255,255,0.12); border-radius:6px; padding:14px 12px; font-size:0.88rem; font-family:inherit; appearance:none; -webkit-appearance:none; cursor:pointer; width:100%;"></select>
+      <select id="b-year" style="background:#0d0d0d; color:#fff; border:1px solid rgba(255,255,255,0.12); border-radius:6px; padding:14px 12px; font-size:0.88rem; font-family:inherit; appearance:none; -webkit-appearance:none; cursor:pointer; width:100%;"></select>
+    </div>
   </div>
 
   <div class="field">
@@ -136,12 +156,41 @@ const LS_KEY = 'nebula_config_v1';
 let resolvedLat = null, resolvedLon = null, resolvedCity = null;
 let lookupTimer = null;
 
+// Populate Day dropdown (1–31)
+(function(){
+  const daySelect = document.getElementById('b-day');
+  daySelect.innerHTML = '<option value="">Day</option>';
+  for (let d = 1; d <= 31; d++) {
+    const o = document.createElement('option');
+    o.value = String(d).padStart(2, '0');
+    o.textContent = d;
+    daySelect.appendChild(o);
+  }
+  // Populate Year dropdown — current year - 18 down to 1920, default = current year - 30
+  const yearSelect = document.getElementById('b-year');
+  yearSelect.innerHTML = '<option value="">Year</option>';
+  const currentYear = new Date().getFullYear();
+  const defaultYear = currentYear - 30;
+  for (let y = currentYear - 18; y >= 1920; y--) {
+    const o = document.createElement('option');
+    o.value = y;
+    o.textContent = y;
+    if (y === defaultYear) o.selected = true;
+    yearSelect.appendChild(o);
+  }
+})();
+
 // Load from localStorage
 (function(){
   try {
     const saved = JSON.parse(localStorage.getItem(LS_KEY) || '{}');
     if (saved.name) document.getElementById('inp-name').value = saved.name;
-    if (saved.birth) document.getElementById('inp-birth').value = saved.birth;
+    if (saved.birth) {
+      const parts = saved.birth.split('-');
+      if (parts[0]) document.getElementById('b-year').value  = parts[0];
+      if (parts[1]) document.getElementById('b-month').value = parts[1];
+      if (parts[2]) document.getElementById('b-day').value   = parts[2];
+    }
     if (saved.time) document.getElementById('inp-time').value = saved.time;
     if (saved.city) document.getElementById('inp-city').value = saved.city;
     if (saved.lat != null) { resolvedLat = saved.lat; resolvedLon = saved.lon; resolvedCity = saved.resolvedCity; }
@@ -187,7 +236,10 @@ async function lookupCity(q) {
 
 function buildParams() {
   const name = document.getElementById('inp-name').value.trim();
-  const birth = document.getElementById('inp-birth').value;
+  const month = document.getElementById('b-month').value;
+  const day   = document.getElementById('b-day').value;
+  const year  = document.getElementById('b-year').value;
+  const birth = (year && month && day) ? `${year}-${month}-${day}` : '';
   const time = document.getElementById('inp-time').value;
   const city = document.getElementById('inp-city').value.trim();
 

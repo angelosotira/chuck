@@ -557,7 +557,8 @@ function toggleLiveControls() {
     const todayEl = document.getElementById('menu-today');
     if (todayEl) todayEl.textContent = _today;
     // Initialise drift slider default
-    setDrift(32);
+    setAccretion(103);
+    setDrift(77);
   });
 })();
 
@@ -668,11 +669,11 @@ function copyShareLink() {
       <div style="margin-bottom:14px;">
         <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px;">
           <span style="font-family:'Courier New',monospace;font-size:0.52rem;letter-spacing:0.16em;text-transform:uppercase;color:rgba(180,130,255,0.7);">Accretion</span>
-          <span id="lc-accretion-val" style="font-family:'Courier New',monospace;font-size:0.52rem;color:rgba(255,255,255,0.3);">0</span>
+          <span id="lc-accretion-val" style="font-family:'Courier New',monospace;font-size:0.52rem;color:rgba(255,255,255,0.3);">103</span>
         </div>
         <div style="display:flex;align-items:center;gap:8px;">
           <span style="font-family:'Courier New',monospace;font-size:0.44rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.2);white-space:nowrap;">Nebula I</span>
-          <input type="range" id="lc-accretion" min="0" max="255" value="0"
+          <input type="range" id="lc-accretion" min="0" max="255" value="103"
             style="flex:1;height:2px;-webkit-appearance:none;appearance:none;background:rgba(255,255,255,0.1);outline:none;cursor:pointer;accent-color:rgba(180,130,255,0.9);"
             oninput="setAccretion(this.value)">
           <span style="font-family:'Courier New',monospace;font-size:0.44rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(180,130,255,0.45);white-space:nowrap;">Nebula X</span>
@@ -682,11 +683,11 @@ function copyShareLink() {
       <div>
         <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px;">
           <span style="font-family:'Courier New',monospace;font-size:0.52rem;letter-spacing:0.16em;text-transform:uppercase;color:rgba(180,130,255,0.7);">Drift</span>
-          <span id="lc-drift-val" style="font-family:'Courier New',monospace;font-size:0.52rem;color:rgba(255,255,255,0.3);">32</span>
+          <span id="lc-drift-val" style="font-family:'Courier New',monospace;font-size:0.52rem;color:rgba(255,255,255,0.3);">77</span>
         </div>
         <div style="display:flex;align-items:center;gap:8px;">
           <span style="font-family:'Courier New',monospace;font-size:0.44rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.2);white-space:nowrap;">Still</span>
-          <input type="range" id="lc-drift" min="0" max="255" value="32"
+          <input type="range" id="lc-drift" min="0" max="255" value="77"
             style="flex:1;height:2px;-webkit-appearance:none;appearance:none;background:rgba(255,255,255,0.1);outline:none;cursor:pointer;accent-color:rgba(180,130,255,0.9);"
             oninput="setDrift(this.value)">
           <span style="font-family:'Courier New',monospace;font-size:0.44rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(180,130,255,0.45);white-space:nowrap;">Fast</span>

@@ -501,14 +501,36 @@ setTimeout(trySaveNebula, 3500);
     }
   }
 
-  // Wire reading link + heuristic after DOM is ready
+  // Pre-compute values before DOM ready
   const _q = location.search;
   const _heuristic = buildHeuristic(SCORES);
+
+  // Build identity card values
+  const _name = pName || 'Unknown';
+  let _birthStr = '—';
+  if (pBirth) {
+    const [by, bm, bd] = pBirth.split('-').map(Number);
+    const bLabel = new Date(by, bm-1, bd).toLocaleDateString('en-US', {year:'numeric', month:'long', day:'numeric'});
+    const tStr = (pTime && pTime !== '12:00') ? ' · ' + pTime : '';
+    const city = P.get('city') ? ' · ' + P.get('city') : '';
+    _birthStr = bLabel + tStr + city;
+  }
+  const _today = new Date().toLocaleDateString('en-US', {weekday:'short', month:'long', day:'numeric', year:'numeric'});
+
   document.addEventListener('DOMContentLoaded', function() {
+    // Reading link
     const rl = document.getElementById('menu-reading-link');
     if (rl) rl.href = '/nebula-reading.html' + _q;
+    // Heuristic
     const hEl = document.getElementById('menu-heuristic');
     if (hEl) hEl.textContent = _heuristic;
+    // Identity card
+    const nameEl = document.getElementById('menu-name');
+    if (nameEl) nameEl.textContent = _name;
+    const birthEl = document.getElementById('menu-birth');
+    if (birthEl) birthEl.textContent = _birthStr;
+    const todayEl = document.getElementById('menu-today');
+    if (todayEl) todayEl.textContent = _today;
   });
 })();
 
@@ -568,7 +590,22 @@ function copyShareLink() {
   border-left:1px solid rgba(255,255,255,0.06); overflow-y:auto;
   ">
   <div onclick="toggleShareMenu()" style="position:absolute;top:18px;right:20px;font-family:'Courier New',monospace;font-size:0.58rem;letter-spacing:0.12em;color:rgba(255,255,255,0.3);cursor:pointer;">✕ close</div>
-  <div style="font-family:'Courier New',monospace;font-size:0.52rem;letter-spacing:0.2em;color:rgba(255,255,255,0.2);text-transform:uppercase;margin-bottom:24px;">Transit Nebula I</div>
+  <div style="font-family:'Courier New',monospace;font-size:0.52rem;letter-spacing:0.2em;color:rgba(255,255,255,0.2);text-transform:uppercase;margin-bottom:16px;">Transit Nebula I</div>
+
+  <!-- ── Identity card ──────────────────────────────────────────── -->
+  <div id="menu-identity" style="margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid rgba(255,255,255,0.07);">
+    <div id="menu-name" style="font-size:0.95rem;color:rgba(255,255,255,0.85);margin-bottom:8px;letter-spacing:0.01em;"></div>
+    <div style="display:flex;flex-direction:column;gap:0;">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
+        <span style="font-family:'Courier New',monospace;font-size:0.5rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.22);">This nebula</span>
+        <span id="menu-birth" style="font-size:0.68rem;color:rgba(180,130,255,0.75);text-align:right;"></span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline;padding:5px 0;">
+        <span style="font-family:'Courier New',monospace;font-size:0.5rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.22);">Today's reading</span>
+        <span id="menu-today" style="font-size:0.68rem;color:rgba(255,255,255,0.55);text-align:right;"></span>
+      </div>
+    </div>
+  </div>
 
   <!-- ── Reading heuristic ───────────────────────────────────────── -->
   <div style="margin-bottom:28px;padding-bottom:28px;border-bottom:1px solid rgba(255,255,255,0.07);">

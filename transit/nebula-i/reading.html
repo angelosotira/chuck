@@ -65,7 +65,7 @@ header h1{font-size:1.1rem;font-weight:normal;letter-spacing:.18em;text-transfor
 </head>
 <body>
 <div class="wrap">
-  <a class="back-link" id="back-art" href="nebula-art.html">← Your Nebula</a>
+  <a class="back-link" id="back-art" href="art.html">← Your Nebula</a>
   <header>
     <p class="eyebrow">Transit Nebula I — Daily Reading</p>
     <h1 id="reading-title">Your Astrological Weather</h1>
@@ -92,8 +92,8 @@ header h1{font-size:1.1rem;font-weight:normal;letter-spacing:.18em;text-transfor
   </div>
 
   <div class="nav-links">
-    <a id="link-art" href="nebula-art.html">View Nebula</a>
-    <a href="nebula-about.html">About this Work</a>
+    <a id="link-art" href="art.html">View Nebula</a>
+    <a href="about.html">About this Work</a>
     <a href="/">All Works</a>
   </div>
 </div>
@@ -259,8 +259,8 @@ function render(){
 
 
   const q = location.search;
-  document.getElementById('back-art').href = 'nebula-art.html' + q;
-  document.getElementById('link-art').href = 'nebula-art.html' + q;
+  document.getElementById('back-art').href = 'art.html' + q;
+  document.getElementById('link-art').href = 'art.html' + q;
 
   const container = document.getElementById('axes-container');
   container.innerHTML = '';

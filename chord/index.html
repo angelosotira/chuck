@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chord — Team Resonance</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #07070f;
+      color: #e0e0ec;
+      font-family: 'Georgia', serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      padding: 2rem 3rem 1.5rem;
+      display: flex;
+      align-items: baseline;
+      gap: 1.5rem;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    h1 {
+      font-size: 2rem;
+      letter-spacing: 0.4em;
+      font-weight: 300;
+      color: #fff;
+    }
+
+    .subtitle {
+      font-size: 0.7rem;
+      letter-spacing: 0.25em;
+      color: rgba(255,255,255,0.25);
+      text-transform: uppercase;
+    }
+
+    .main {
+      display: flex;
+      flex: 1;
+    }
+
+    /* ── Left: Diagram ── */
+    .diagram-panel {
+      flex: 0 0 460px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2.5rem 2rem;
+      position: relative;
+    }
+
+    canvas#ennea {
+      width: 380px;
+      height: 380px;
+      display: block;
+    }
+
+    .diagram-legend {
+      display: flex;
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.25);
+    }
+
+    .legend-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    /* ── Right: Team + Reading ── */
+    .right-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      border-left: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .team-section {
+      padding: 2rem 2.5rem;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .section-label {
+      font-size: 0.62rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.2);
+      margin-bottom: 1.25rem;
+    }
+
+    .team-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      min-height: 40px;
+      margin-bottom: 1.25rem;
+    }
+
+    .member-card {
+      padding: 0.55rem 0.9rem 0.55rem 0.6rem;
+      border-radius: 5px;
+      border: 1px solid rgba(255,255,255,0.08);
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(255,255,255,0.02);
+      user-select: none;
+    }
+
+    .member-card:hover {
+      border-color: rgba(255,255,255,0.2);
+    }
+
+    .member-card.active {
+      border-color: var(--tc);
+      background: rgba(var(--tr), 0.12);
+      box-shadow: 0 0 14px rgba(var(--tr), 0.15);
+    }
+
+    .type-badge {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: bold;
+      color: #000;
+      flex-shrink: 0;
+    }
+
+    .member-name {
+      font-size: 0.88rem;
+      color: rgba(255,255,255,0.75);
+    }
+
+    .member-remove {
+      margin-left: 0.25rem;
+      opacity: 0;
+      font-size: 0.65rem;
+      color: rgba(255,255,255,0.3);
+      transition: opacity 0.15s;
+      cursor: pointer;
+    }
+
+    .member-card:hover .member-remove {
+      opacity: 1;
+    }
+
+    .add-form {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    input, select {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.09);
+      color: #e0e0ec;
+      padding: 0.5rem 0.75rem;
+      border-radius: 4px;
+      font-size: 0.82rem;
+      font-family: 'Georgia', serif;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    input:focus, select:focus {
+      border-color: rgba(255,255,255,0.25);
+    }
+
+    input::placeholder { color: rgba(255,255,255,0.18); }
+    select option { background: #0f0f1e; }
+
+    .btn {
+      padding: 0.5rem 1.1rem;
+      border-radius: 4px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.04);
+      color: rgba(255,255,255,0.7);
+      cursor: pointer;
+      font-size: 0.82rem;
+      font-family: 'Georgia', serif;
+      transition: all 0.15s;
+    }
+
+    .btn:hover {
+      background: rgba(255,255,255,0.09);
+      color: #fff;
+    }
+
+    .btn-ghost {
+      border-color: transparent;
+      background: transparent;
+      color: rgba(255,255,255,0.25);
+      font-size: 0.75rem;
+    }
+
+    /* ── Reading ── */
+    .reading-panel {
+      flex: 1;
+      padding: 2rem 2.5rem;
+      overflow-y: auto;
+    }
+
+    .reading-empty {
+      color: rgba(255,255,255,0.18);
+      font-style: italic;
+      font-size: 0.88rem;
+      line-height: 1.7;
+      margin-top: 0.5rem;
+    }
+
+    .reading-title {
+      font-size: 1.1rem;
+      color: rgba(255,255,255,0.85);
+      margin-bottom: 0.35rem;
+      line-height: 1.4;
+    }
+
+    .reading-type-label {
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      color: rgba(255,255,255,0.25);
+      text-transform: uppercase;
+      margin-bottom: 1.5rem;
+    }
+
+    .reading-body {
+      font-size: 0.88rem;
+      color: rgba(255,255,255,0.55);
+      line-height: 1.9;
+    }
+
+    .reading-body strong {
+      color: rgba(255,255,255,0.7);
+      font-weight: normal;
+    }
+
+    .pair-block {
+      margin-top: 1.5rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .pair-header {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .pair-label {
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      padding: 0.15rem 0.6rem;
+      border-radius: 2px;
+    }
+
+    .label-harmony { background: rgba(100,200,120,0.15); color: #82cc94; }
+    .label-tension  { background: rgba(200,90,90,0.15);  color: #cc8282; }
+    .label-complex  { background: rgba(160,130,200,0.15); color: #b0a0cc; }
+
+    .pair-who {
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.25);
+    }
+
+    .gap-block {
+      margin-top: 1.5rem;
+      padding: 1rem 1.25rem;
+      border: 1px solid rgba(255,200,100,0.1);
+      border-radius: 4px;
+      background: rgba(255,180,50,0.04);
+    }
+
+    .gap-label {
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(255,200,100,0.4);
+      margin-bottom: 0.4rem;
+    }
+
+    .gap-text {
+      font-size: 0.82rem;
+      color: rgba(255,255,255,0.4);
+      line-height: 1.7;
+    }
+
+    .center-strip {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.25rem;
+      flex-wrap: wrap;
+    }
+
+    .center-pill {
+      font-size: 0.65rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 0.2rem 0.7rem;
+      border-radius: 20px;
+      border: 1px solid;
+    }
+
+    @media (max-width: 900px) {
+      .main { flex-direction: column; }
+      .diagram-panel { flex: 0 0 auto; }
+      .right-panel { border-left: none; border-top: 1px solid rgba(255,255,255,0.05); }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>CHORD</h1>
+  <span class="subtitle">Team Resonance &nbsp;·&nbsp; Enneagram</span>
+</header>
+
+<div class="main">
+
+  <!-- Diagram -->
+  <div class="diagram-panel">
+    <canvas id="ennea" width="380" height="380"></canvas>
+    <div class="diagram-legend">
+      <div class="legend-item">
+        <div class="legend-dot" style="background:#c8a96e"></div> Body
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background:#e8748a"></div> Heart
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background:#4a90d9"></div> Mind
+      </div>
+    </div>
+  </div>
+
+  <!-- Right -->
+  <div class="right-panel">
+
+    <div class="team-section">
+      <div class="section-label">Your Team</div>
+      <div class="team-grid" id="teamGrid"></div>
+      <div class="add-form">
+        <input type="text" id="memberName" placeholder="Name" style="width:130px" maxlength="24">
+        <select id="memberType">
+          <option value="">Type —</option>
+          <option value="1">1 · Reformer</option>
+          <option value="2">2 · Helper</option>
+          <option value="3">3 · Achiever</option>
+          <option value="4">4 · Individualist</option>
+          <option value="5">5 · Investigator</option>
+          <option value="6">6 · Loyalist</option>
+          <option value="7">7 · Enthusiast</option>
+          <option value="8">8 · Challenger</option>
+          <option value="9">9 · Peacemaker</option>
+        </select>
+        <button class="btn" onclick="addMember()">Add</button>
+        <button class="btn btn-ghost" onclick="clearAll()">Clear all</button>
+      </div>
+    </div>
+
+    <div class="reading-panel">
+      <div class="section-label">Reading</div>
+      <div id="reading">
+        <p class="reading-empty">Add your team members, then click to toggle them on and off. Chord reads the field between whoever is active.</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ─── Type Data ────────────────────────────────────────────────────────────────
+const T = {
+  1: { name:"The Reformer",      center:"body",  hex:"#c8a96e", rgb:"200,169,110", stress:4, growth:7,
+       essence:"Principled, exacting, and driven by an inner standard of rightness. At their best: discerning and wise. Under pressure: critical and rigid." },
+  2: { name:"The Helper",        center:"heart", hex:"#e8748a", rgb:"232,116,138", stress:8, growth:4,
+       essence:"Warm, generous, and tuned to others' needs. At their best: truly caring and empowering. Under pressure: possessive and martyr-like." },
+  3: { name:"The Achiever",      center:"heart", hex:"#e87449", rgb:"232,116,73",  stress:9, growth:6,
+       essence:"Driven, adaptable, and performance-oriented. At their best: inspiring and authentic. Under pressure: image-obsessed and emotionally detached." },
+  4: { name:"The Individualist", center:"heart", hex:"#9b74e8", rgb:"155,116,232", stress:2, growth:1,
+       essence:"Expressive, introspective, and hungry for authenticity. At their best: deeply creative and emotionally honest. Under pressure: withdrawn and envious." },
+  5: { name:"The Investigator",  center:"mind",  hex:"#4a90d9", rgb:"74,144,217",  stress:7, growth:8,
+       essence:"Analytical, observational, and resource-careful. At their best: visionary and deeply insightful. Under pressure: isolated and detached." },
+  6: { name:"The Loyalist",      center:"mind",  hex:"#4ab8c8", rgb:"74,184,200",  stress:3, growth:9,
+       essence:"Loyal, questioning, and safety-seeking. At their best: courageous and trustworthy. Under pressure: anxious and suspicious." },
+  7: { name:"The Enthusiast",    center:"mind",  hex:"#74c87a", rgb:"116,200,122", stress:1, growth:5,
+       essence:"Spontaneous, optimistic, and possibility-chasing. At their best: joyful and deeply present. Under pressure: scattered and commitment-avoidant." },
+  8: { name:"The Challenger",    center:"body",  hex:"#e84a4a", rgb:"232,74,74",   stress:5, growth:2,
+       essence:"Powerful, direct, and justice-seeking. At their best: protective and magnanimous. Under pressure: domineering and combative." },
+  9: { name:"The Peacemaker",    center:"body",  hex:"#8fa8c8", rgb:"143,168,200", stress:6, growth:3,
+       essence:"Receptive, steady, and harmony-seeking. At their best: grounded and inclusive. Under pressure: complacent and conflict-avoidant." },
+};
+
+// Center reading blocks
+const CENTER_TEXT = {
+  body: {
+    color: "#c8a96e",
+    label: "Body Center",
+    text: "Instinctive, somatic, present-tense. This group acts from the gut — which is a genuine strength. The risk: reactive decisions and unspoken power dynamics. The invitation: slow down enough to let the mind and heart catch up."
+  },
+  heart: {
+    color: "#e8748a",
+    label: "Heart Center",
+    text: "Relational, feeling-first, attuned to image and emotion. This group reads the room naturally. The risk: decisions made through an emotional lens, or performance of feelings rather than the real thing. The invitation: ground in something beyond how things look."
+  },
+  mind: {
+    color: "#4a90d9",
+    label: "Mind Center",
+    text: "Analytical, questioning, future-oriented. This group thinks before it moves. The risk: over-analysis, decision paralysis, or scanning for what could go wrong. The invitation: trust accumulated enough to act before certainty arrives."
+  },
+  mixed: {
+    color: "#a0a0cc",
+    label: "Mixed Centers",
+    text: "Body, heart, and mind are all represented here — this team has full-spectrum intelligence. Gut instinct, emotional attunement, and analytical reasoning are all in the room. The gift is breadth. The challenge: different centers process reality differently, which can feel like misalignment. It's not — it's coverage."
+  }
+};
+
+// Pair dynamics
+const PAIRS = {
+  "1,2": { label:"Harmony", cls:"label-harmony", note:"The principled reformer and the generous helper make natural collaborators — 1 sets the standard; 2 makes sure people feel cared for along the way. Tension surfaces when 1 becomes critical and 2 feels unappreciated for all it gives." },
+  "1,3": { label:"Complex", cls:"label-complex", note:"Two achievement-oriented types, both driven by standards — but from different places. 1 by inner principle; 3 by outer success. They can accomplish a great deal together, but may disagree about what 'done right' actually means." },
+  "1,4": { label:"Growth", cls:"label-harmony", note:"4's growth path leads toward 1's discernment and structure. 1's growth path leads toward 7's freedom — but 4 helps 1 access feeling and depth. Creative tension: 1 wants to improve; 4 wants to be understood." },
+  "1,5": { label:"Complex", cls:"label-complex", note:"Both careful, exacting, and private — but 1 acts on principle while 5 acts on knowledge. They respect each other's precision. May struggle to make bold moves that require emotional risk." },
+  "1,6": { label:"Harmony", cls:"label-harmony", note:"Both rule-conscious and responsibility-driven. 1 holds the standard; 6 holds the team together. They naturally trust each other. Watch for shared anxiety and collective over-cautiousness." },
+  "1,7": { label:"Growth", cls:"label-harmony", note:"1's growth direction leads toward 7. 7 loosens 1's grip on how things should be; 1 helps 7 follow through. This is one of the most generative pairings for both types when it's working well." },
+  "1,8": { label:"Tension", cls:"label-tension", note:"Two types with profound conviction — but 1 leads through principle and 8 through force. Formidable when aligned. Combustive when they disagree on the *how*. The argument about the right way to do things can overshadow the doing." },
+  "1,9": { label:"Complex", cls:"label-complex", note:"1 and 9 share a body center and are wings of each other. 1 is critical and exacting; 9 is accepting and slow to act. They complement beautifully, but 1 can frustrate 9 with intensity, and 9 can frustrate 1 with inertia." },
+  "2,3": { label:"Complex", cls:"label-complex", note:"Both heart-center types focused outward — 2 on people, 3 on performance. They can build together effectively. Risk: neither may slow down to ask what they actually feel underneath the doing." },
+  "2,4": { label:"Tension", cls:"label-tension", note:"2's stress path leads toward 4 — which means 2 under pressure can suddenly go deep, dramatic, and self-focused in ways that surprise everyone, including themselves. When healthy, 4's depth and 2's warmth are a remarkable combination." },
+  "2,5": { label:"Tension", cls:"label-tension", note:"The helper and the observer operate from opposite instincts: 2 moves toward people; 5 pulls back. 2 may read 5's distance as rejection. 5 may experience 2's warmth as intrusive. With awareness, they offer each other exactly what they lack." },
+  "2,6": { label:"Harmony", cls:"label-harmony", note:"Both loyal, other-focused, and security-seeking in their own ways. Warm, dependable pair — they show up for each other and for the team. May avoid hard truths together in the name of keeping the peace." },
+  "2,7": { label:"Harmony", cls:"label-harmony", note:"Upbeat, generous, people-loving energy. This pairing brings lightness to any room. Risk: both can over-promise, over-give, and avoid sitting with difficulty." },
+  "2,8": { label:"Tension", cls:"label-tension", note:"2's stress path leads toward 8 — dramatic, surprising combustion when pushed too far. Day-to-day: 8 appreciates 2's genuine care; 2 can be overwhelmed by 8's bluntness. When healthy, 8 protects what 2 nurtures." },
+  "2,9": { label:"Harmony", cls:"label-harmony", note:"Deeply warm, accommodating, and attuned pair. Tremendous empathy and natural harmony between them. The risk: both types can lose themselves in others' needs, and between two of them, no one may be steering." },
+  "3,4": { label:"Complex", cls:"label-complex", note:"Two heart types with very different orientations: 3 performs for the world; 4 resists performing at all. 4 challenges 3's authenticity; 3 challenges 4 to actually ship things. When it works, it's electric." },
+  "3,5": { label:"Complex", cls:"label-complex", note:"Efficient achiever meets precise analyst. Together they can build quietly powerful things. 3 keeps moving; 5 keeps thinking. The friction comes when 3 wants to launch before 5 is ready." },
+  "3,6": { label:"Growth", cls:"label-harmony", note:"3's growth path leads toward 6 — toward loyalty, doubt-processing, and genuine relationship. 6 grounds 3 in what actually matters; 3 helps 6 move through anxiety into action." },
+  "3,7": { label:"Complex", cls:"label-complex", note:"High energy. High output. Both optimistic, fast-moving, and future-facing. Tremendous momentum together. Risk: a lot gets started, less gets finished. Neither type naturally slows down." },
+  "3,8": { label:"Tension", cls:"label-tension", note:"The power duo. When aligned, these two are formidable — driven, decisive, magnetic. Risk: they can steamroll people and miss the emotional terrain entirely. The room may get results and feel steamrolled simultaneously." },
+  "3,9": { label:"Tension", cls:"label-tension", note:"3's stress direction leads toward 9 — toward numbing out and going through the motions. When healthy: 9's steadiness slows 3 down in the best way. When stressed: 3 becomes performatively busy while internally checked out." },
+  "4,5": { label:"Complex", cls:"label-complex", note:"Two withdrawn types who go deep. Together they can reach places of creative and intellectual depth that others can't access. The risk: disappearing into their own world and losing touch with the rest of the team." },
+  "4,6": { label:"Complex", cls:"label-complex", note:"4's search for authentic identity meets 6's search for safety and certainty. They understand each other's anxiety. Can support each other beautifully — or amplify each other's fear." },
+  "4,7": { label:"Complex", cls:"label-complex", note:"Opposite approaches to feeling: 4 goes in; 7 goes out. 4 is drawn to depth and melancholy; 7 avoids pain through possibility. They can balance each other or frustrate each other profoundly." },
+  "4,8": { label:"Tension", cls:"label-tension", note:"Raw. Neither of these types does surface-level. 8 respects 4's refusal to pretend; 4 respects 8's refusal to be controlled. Explosively creative together — and explosively conflictual. No one in this pair performs." },
+  "4,9": { label:"Complex", cls:"label-complex", note:"Both withdrawn, both in search of something — 4 for authentic identity, 9 for inner peace. They can sit together in stillness better than most. May avoid action indefinitely." },
+  "5,6": { label:"Harmony", cls:"label-harmony", note:"Two mind-center types who value knowledge and security. 5 provides the insight; 6 stress-tests it. They build robust, well-examined ideas together. Can be slow to move without a body or heart type in the room." },
+  "5,7": { label:"Tension", cls:"label-tension", note:"5's stress path leads toward 7's frantic energy. Under pressure, 5 can scatter and overextend. Day-to-day: 7's enthusiasm can feel like noise to 5; 5's withdrawal can feel like rejection to 7. When healthy, 7 opens 5 up; 5 deepens 7." },
+  "5,8": { label:"Growth", cls:"label-harmony", note:"5's growth path leads toward 8 — toward action, decisiveness, and being willing to be seen. 8 draws 5 out of the observatory and into the field. 5 provides the strategic depth 8 needs but rarely builds alone." },
+  "5,9": { label:"Harmony", cls:"label-harmony", note:"Quiet, self-contained, observant. These two don't need the spotlight and won't fight for it. Excellent thinking partners. May collectively under-communicate their value to the broader team." },
+  "6,7": { label:"Complex", cls:"label-complex", note:"Both mind-center types — but 6 scans for danger, 7 scans for possibility. 6's skepticism checks 7's over-enthusiasm; 7's optimism loosens 6's anxiety. A useful friction, if managed with humor." },
+  "6,8": { label:"Complex", cls:"label-complex", note:"6's loyalty and 8's protection make for a formidable trust bond — once it's established. Getting there can be rocky, since 6 tests and 8 doesn't like being tested. When it lands, this is one of the most reliable pairings." },
+  "6,9": { label:"Harmony", cls:"label-harmony", note:"Both oriented toward safety, loyalty, and steadiness. This pairing is warm, reliable, and deeply supportive. Risk: both can avoid necessary conflict for so long that small things become structural." },
+  "7,8": { label:"Tension", cls:"label-tension", note:"Force of nature. These two create momentum faster than almost any other pairing. Energetic, bold, charismatic. The challenge: staying in the room long enough to finish what they start, and making space for quieter voices." },
+  "7,9": { label:"Harmony", cls:"label-harmony", note:"Easy, pleasant energy. 7 brings possibility; 9 brings steadiness. Both avoid conflict. Both are adaptive and easygoing. Risk: neither will push when pushing is necessary." },
+  "8,9": { label:"Complex", cls:"label-complex", note:"8 and 9 are wings of each other and share the body center. 8 moves toward; 9 merges away. This creates a peculiar gravity — 8 can feel like 9 is never fully present; 9 can feel like 8 never turns down the volume." },
+};
+
+// ─── State ────────────────────────────────────────────────────────────────────
+let team = [];
+let active = new Set();
+
+// ─── Canvas ───────────────────────────────────────────────────────────────────
+const canvas = document.getElementById('ennea');
+const ctx = canvas.getContext('2d');
+
+// 9 at top, clockwise: 9,1,2,3,4,5,6,7,8
+const POS = { 9:0, 1:1, 2:2, 3:3, 4:4, 5:5, 6:6, 7:7, 8:8 };
+
+function typeAngle(t) {
+  return -Math.PI / 2 + POS[t] * (2 * Math.PI / 9);
+}
+
+function typeXY(t, cx, cy, r) {
+  const a = typeAngle(t);
+  return { x: cx + r * Math.cos(a), y: cy + r * Math.sin(a) };
+}
+
+const TRIANGLE = [3, 6, 9];
+const HEXAD    = [1, 7, 5, 8, 2, 4];
+
+function draw() {
+  const W = canvas.width, H = canvas.height;
+  const cx = W / 2, cy = H / 2;
+  const R = 155, NR = 16;
+
+  ctx.clearRect(0, 0, W, H);
+
+  const activeTypes = getActiveTypes();
+
+  // Outer ring
+  ctx.beginPath();
+  ctx.arc(cx, cy, R, 0, Math.PI * 2);
+  ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  // Internal lines (structural, very faint)
+  function polyline(types, close) {
+    ctx.beginPath();
+    types.forEach((t, i) => {
+      const p = typeXY(t, cx, cy, R);
+      i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y);
+    });
+    if (close) ctx.closePath();
+    ctx.strokeStyle = 'rgba(255,255,255,0.035)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+  polyline(TRIANGLE, true);
+  polyline(HEXAD, true);
+
+  // Active connection lines
+  if (activeTypes.length >= 2) {
+    for (let i = 0; i < activeTypes.length; i++) {
+      for (let j = i + 1; j < activeTypes.length; j++) {
+        const t1 = activeTypes[i], t2 = activeTypes[j];
+        const p1 = typeXY(t1, cx, cy, R);
+        const p2 = typeXY(t2, cx, cy, R);
+
+        const key = [Math.min(t1,t2), Math.max(t1,t2)].join(',');
+        const pair = PAIRS[key];
+        const harmony = pair ? (pair.cls === 'label-harmony' ? 0.8 : pair.cls === 'label-tension' ? 0.35 : 0.55) : 0.5;
+
+        const grad = ctx.createLinearGradient(p1.x, p1.y, p2.x, p2.y);
+        const hexToRgb = h => parseInt(h, 16);
+        const a1 = Math.round((0.1 + harmony * 0.3) * 255).toString(16).padStart(2,'0');
+        grad.addColorStop(0, T[t1].hex + a1);
+        grad.addColorStop(1, T[t2].hex + a1);
+
+        ctx.beginPath();
+        ctx.moveTo(p1.x, p1.y);
+        ctx.lineTo(p2.x, p2.y);
+        ctx.strokeStyle = grad;
+        ctx.lineWidth = 0.8 + harmony * 2;
+        ctx.stroke();
+      }
+    }
+  }
+
+  // Nodes
+  for (let t = 1; t <= 9; t++) {
+    const p = typeXY(t, cx, cy, R);
+    const on = activeTypes.includes(t);
+    const col = T[t].hex;
+
+    if (on) {
+      // Outer glow
+      const grd = ctx.createRadialGradient(p.x, p.y, NR, p.x, p.y, NR + 18);
+      grd.addColorStop(0, col + '33');
+      grd.addColorStop(1, col + '00');
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, NR + 18, 0, Math.PI * 2);
+      ctx.fillStyle = grd;
+      ctx.fill();
+    }
+
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, NR, 0, Math.PI * 2);
+    ctx.fillStyle = on ? col : 'rgba(255,255,255,0.03)';
+    ctx.fill();
+    ctx.strokeStyle = on ? col : 'rgba(255,255,255,0.08)';
+    ctx.lineWidth = on ? 1.5 : 1;
+    ctx.stroke();
+
+    ctx.fillStyle   = on ? '#000' : 'rgba(255,255,255,0.18)';
+    ctx.font        = `${on ? 'bold' : 'normal'} 12px Georgia`;
+    ctx.textAlign   = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(t, p.x, p.y);
+  }
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+function getActiveTypes() {
+  return [...active].map(id => {
+    const m = team.find(m => m.id === id);
+    return m ? m.type : null;
+  }).filter(Boolean);
+}
+
+function getActiveMembers() {
+  return [...active].map(id => team.find(m => m.id === id)).filter(Boolean);
+}
+
+// ─── Reading ──────────────────────────────────────────────────────────────────
+function updateReading() {
+  const members = getActiveMembers();
+  const types   = members.map(m => m.type);
+  const el      = document.getElementById('reading');
+
+  if (members.length === 0) {
+    el.innerHTML = '<p class="reading-empty">Activate team members to read the field between you.</p>';
+    return;
+  }
+
+  if (members.length === 1) {
+    const m = members[0];
+    const t = T[m.type];
+    el.innerHTML = `
+      <div class="reading-title">${m.name}</div>
+      <div class="reading-type-label">Type ${m.type} &nbsp;·&nbsp; ${t.name} &nbsp;·&nbsp; ${t.center} center</div>
+      <div class="reading-body">
+        ${t.essence}<br><br>
+        Growth direction: Type ${t.growth} &nbsp;·&nbsp; Stress direction: Type ${t.stress}<br><br>
+        <em style="color:rgba(255,255,255,0.22)">Activate others to read the space between you.</em>
+      </div>
+    `;
+    return;
+  }
+
+  // Center analysis
+  const centerCount = {};
+  types.forEach(t => { const c = T[t].center; centerCount[c] = (centerCount[c]||0)+1; });
+  const allCenters = Object.keys(centerCount);
+  const dominant   = allCenters.sort((a,b) => centerCount[b]-centerCount[a])[0];
+  const centerKey  = allCenters.length === 1 ? dominant : 'mixed';
+  const centerData = CENTER_TEXT[centerKey];
+
+  // Center pills
+  let centerHtml = '<div class="center-strip">';
+  allCenters.forEach(c => {
+    const col = CENTER_TEXT[c].color;
+    centerHtml += `<span class="center-pill" style="color:${col};border-color:${col}44;background:${col}11">${CENTER_TEXT[c].label} ×${centerCount[c]}</span>`;
+  });
+  centerHtml += '</div>';
+
+  // Missing center gap
+  const missingCenters = ['body','heart','mind'].filter(c => !allCenters.includes(c));
+  let gapHtml = '';
+  if (missingCenters.length > 0) {
+    const descriptions = { body:"gut instinct, somatic knowing, and decisive action", heart:"emotional attunement and interpersonal warmth", mind:"analysis, strategic thinking, and anticipating what could go wrong" };
+    const missing = missingCenters.map(c => descriptions[c]).join('; ');
+    gapHtml = `
+      <div class="gap-block">
+        <div class="gap-label">Gap</div>
+        <div class="gap-text">No ${missingCenters.map(c=>c).join(' or ')} center represented. Consider who brings <em>${missing}</em> to the room — or build in a process that compensates.</div>
+      </div>
+    `;
+  }
+
+  // Pair dynamics
+  let pairsHtml = '';
+  for (let i = 0; i < members.length; i++) {
+    for (let j = i+1; j < members.length; j++) {
+      const t1 = members[i].type, t2 = members[j].type;
+      const key = [Math.min(t1,t2), Math.max(t1,t2)].join(',');
+      const pair = PAIRS[key];
+      if (pair) {
+        pairsHtml += `
+          <div class="pair-block">
+            <div class="pair-header">
+              <span class="pair-label ${pair.cls}">${pair.label}</span>
+              <span class="pair-who">${members[i].name} (${t1}) + ${members[j].name} (${t2})</span>
+            </div>
+            <div class="reading-body">${pair.note}</div>
+          </div>
+        `;
+      }
+    }
+  }
+
+  const names = members.map(m => m.name).join(' · ');
+
+  el.innerHTML = `
+    <div class="reading-title">${names}</div>
+    <div class="reading-type-label">${types.map(t => `${t} · ${T[t].name.split(' ')[1]}`).join('&nbsp;&nbsp;')}</div>
+    ${centerHtml}
+    <div class="reading-body">${centerData.text}</div>
+    ${gapHtml}
+    ${pairsHtml}
+  `;
+}
+
+// ─── Team Management ──────────────────────────────────────────────────────────
+function addMember() {
+  const name = document.getElementById('memberName').value.trim();
+  const type = parseInt(document.getElementById('memberType').value);
+  if (!name || !type) return;
+
+  const id = Date.now() + Math.random();
+  team.push({ id, name, type });
+  active.add(id);
+
+  document.getElementById('memberName').value = '';
+  document.getElementById('memberType').value = '';
+  document.getElementById('memberName').focus();
+
+  renderTeam();
+  updateReading();
+  draw();
+}
+
+function toggleMember(id) {
+  active.has(id) ? active.delete(id) : active.add(id);
+  renderTeam();
+  updateReading();
+  draw();
+}
+
+function removeMember(id, e) {
+  e.stopPropagation();
+  team = team.filter(m => m.id !== id);
+  active.delete(id);
+  renderTeam();
+  updateReading();
+  draw();
+}
+
+function clearAll() {
+  team = [];
+  active.clear();
+  renderTeam();
+  updateReading();
+  draw();
+}
+
+function renderTeam() {
+  const grid = document.getElementById('teamGrid');
+  grid.innerHTML = '';
+  team.forEach(m => {
+    const t = T[m.type];
+    const on = active.has(m.id);
+    const card = document.createElement('div');
+    card.className = 'member-card' + (on ? ' active' : '');
+    card.style.setProperty('--tc', t.hex);
+    card.style.setProperty('--tr', t.rgb);
+    card.onclick = () => toggleMember(m.id);
+    card.innerHTML = `
+      <div class="type-badge" style="background:${t.hex}">${m.type}</div>
+      <span class="member-name">${m.name}</span>
+      <span class="member-remove" onclick="removeMember(${m.id}, event)">✕</span>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+// ─── Keyboard shortcut ────────────────────────────────────────────────────────
+document.getElementById('memberName').addEventListener('keydown', e => {
+  if (e.key === 'Enter') addMember();
+});
+document.getElementById('memberType').addEventListener('keydown', e => {
+  if (e.key === 'Enter') addMember();
+});
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+draw();
+renderTeam();
+updateReading();
+document.getElementById('memberName').focus();
+</script>
+</body>
+</html>

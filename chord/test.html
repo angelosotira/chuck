@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chord — Find Your Type</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #07070f;
+      color: #e0e0ec;
+      font-family: 'Georgia', serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      padding: 1.75rem 3rem;
+      display: flex;
+      align-items: baseline;
+      gap: 1.5rem;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .logo { font-size: 1.5rem; letter-spacing: 0.4em; font-weight: 300; color: #fff; text-decoration: none; }
+    .subtitle { font-size: 0.65rem; letter-spacing: 0.25em; color: rgba(255,255,255,0.2); text-transform: uppercase; }
+
+    .container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 2rem;
+    }
+
+    /* ── Intro ── */
+    #intro {
+      max-width: 560px;
+      text-align: center;
+    }
+
+    .intro-title {
+      font-size: 1.6rem;
+      font-weight: 300;
+      color: rgba(255,255,255,0.9);
+      margin-bottom: 1rem;
+      letter-spacing: 0.05em;
+    }
+
+    .intro-body {
+      font-size: 0.9rem;
+      color: rgba(255,255,255,0.4);
+      line-height: 1.9;
+      margin-bottom: 0.75rem;
+    }
+
+    .intro-note {
+      font-size: 0.78rem;
+      color: rgba(255,255,255,0.2);
+      font-style: italic;
+      margin-bottom: 2.5rem;
+      line-height: 1.7;
+    }
+
+    .name-row {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: center;
+      margin-bottom: 1rem;
+    }
+
+    input.name-input {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: #e0e0ec;
+      padding: 0.65rem 1rem;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      font-family: 'Georgia', serif;
+      outline: none;
+      width: 220px;
+      text-align: center;
+      transition: border-color 0.15s;
+    }
+
+    input.name-input:focus { border-color: rgba(255,255,255,0.25); }
+    input.name-input::placeholder { color: rgba(255,255,255,0.18); }
+
+    .btn-start {
+      padding: 0.7rem 2rem;
+      border-radius: 4px;
+      border: 1px solid rgba(255,255,255,0.15);
+      background: rgba(255,255,255,0.05);
+      color: rgba(255,255,255,0.8);
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-family: 'Georgia', serif;
+      transition: all 0.15s;
+      letter-spacing: 0.05em;
+    }
+
+    .btn-start:hover { background: rgba(255,255,255,0.1); color: #fff; }
+
+    /* ── Progress ── */
+    #progress-bar-wrap {
+      width: 100%;
+      max-width: 620px;
+      margin-bottom: 3rem;
+      display: none;
+    }
+
+    .progress-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.2);
+      margin-bottom: 0.6rem;
+    }
+
+    .progress-track {
+      height: 2px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: rgba(255,255,255,0.25);
+      border-radius: 2px;
+      transition: width 0.3s ease;
+    }
+
+    /* ── Question ── */
+    #question-screen {
+      display: none;
+      width: 100%;
+      max-width: 620px;
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .question-prompt {
+      font-size: 0.65rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.18);
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .option {
+      padding: 1.5rem 1.75rem;
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.18s;
+      background: rgba(255,255,255,0.02);
+      font-size: 0.95rem;
+      line-height: 1.7;
+      color: rgba(255,255,255,0.65);
+      position: relative;
+    }
+
+    .option:hover {
+      border-color: rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.05);
+      color: rgba(255,255,255,0.9);
+    }
+
+    .option.selected {
+      border-color: rgba(255,255,255,0.35);
+      background: rgba(255,255,255,0.07);
+      color: #fff;
+    }
+
+    .option-letter {
+      display: inline-block;
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.18);
+      margin-bottom: 0.5rem;
+    }
+
+    .skip-row {
+      display: flex;
+      justify-content: center;
+      margin-top: 1.5rem;
+    }
+
+    .btn-skip {
+      background: none;
+      border: none;
+      color: rgba(255,255,255,0.15);
+      font-size: 0.75rem;
+      cursor: pointer;
+      font-family: 'Georgia', serif;
+      letter-spacing: 0.1em;
+      transition: color 0.15s;
+      padding: 0.25rem 0.5rem;
+    }
+
+    .btn-skip:hover { color: rgba(255,255,255,0.35); }
+
+    /* ── Results ── */
+    #results-screen {
+      display: none;
+      width: 100%;
+      max-width: 560px;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .result-greeting {
+      font-size: 0.7rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.2);
+      margin-bottom: 0.75rem;
+    }
+
+    .result-name {
+      font-size: 1.8rem;
+      font-weight: 300;
+      color: #fff;
+      margin-bottom: 2rem;
+      letter-spacing: 0.05em;
+    }
+
+    .result-type-display {
+      margin-bottom: 2rem;
+    }
+
+    .result-number {
+      font-size: 5rem;
+      font-weight: 300;
+      line-height: 1;
+      margin-bottom: 0.25rem;
+    }
+
+    .result-type-name {
+      font-size: 0.85rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.4);
+    }
+
+    .result-essence {
+      font-size: 0.9rem;
+      color: rgba(255,255,255,0.45);
+      line-height: 1.85;
+      margin-bottom: 2rem;
+      max-width: 480px;
+    }
+
+    .score-bars {
+      width: 100%;
+      margin-bottom: 2.5rem;
+    }
+
+    .score-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .score-type-label {
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.3);
+      width: 12px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .score-track {
+      flex: 1;
+      height: 3px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .score-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.5s ease;
+    }
+
+    .score-pct {
+      font-size: 0.65rem;
+      color: rgba(255,255,255,0.2);
+      width: 32px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .result-actions {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .btn-add {
+      padding: 0.75rem 1.75rem;
+      border-radius: 4px;
+      border: 1px solid var(--tc);
+      background: rgba(var(--tr), 0.12);
+      color: var(--tc);
+      cursor: pointer;
+      font-size: 0.88rem;
+      font-family: 'Georgia', serif;
+      transition: all 0.15s;
+      letter-spacing: 0.05em;
+    }
+
+    .btn-add:hover { background: rgba(var(--tr), 0.2); }
+
+    .btn-retake {
+      padding: 0.75rem 1.75rem;
+      border-radius: 4px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: transparent;
+      color: rgba(255,255,255,0.35);
+      cursor: pointer;
+      font-size: 0.88rem;
+      font-family: 'Georgia', serif;
+      transition: all 0.15s;
+    }
+
+    .btn-retake:hover { border-color: rgba(255,255,255,0.2); color: rgba(255,255,255,0.6); }
+
+    .result-caveat {
+      font-size: 0.72rem;
+      color: rgba(255,255,255,0.15);
+      font-style: italic;
+      margin-top: 2rem;
+      line-height: 1.6;
+      max-width: 420px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <a class="logo" href="./index.html">CHORD</a>
+  <span class="subtitle">Find Your Type</span>
+</header>
+
+<div class="container">
+
+  <!-- Intro -->
+  <div id="intro">
+    <div class="intro-title">What's your type?</div>
+    <p class="intro-body">36 questions. Each one presents two statements — pick the one that resonates more deeply, not the one you aspire to. Answer as you are, not as you'd like to be.</p>
+    <p class="intro-note">The Enneagram describes your core motivation — why you do what you do, not just what you do. There are no good or bad types.</p>
+    <div class="name-row">
+      <input class="name-input" id="userName" type="text" placeholder="Your name" maxlength="30">
+    </div>
+    <button class="btn-start" onclick="startTest()">Begin</button>
+  </div>
+
+  <!-- Progress bar -->
+  <div id="progress-bar-wrap">
+    <div class="progress-meta">
+      <span id="progress-label">Question 1 of 36</span>
+      <span id="progress-pct">0%</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+  </div>
+
+  <!-- Question -->
+  <div id="question-screen">
+    <div class="question-prompt">Which resonates more deeply?</div>
+    <div class="options" id="options-container"></div>
+    <div class="skip-row">
+      <button class="btn-skip" onclick="skipQuestion()">Neither fits well — skip</button>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div id="results-screen">
+    <div class="result-greeting">Your type</div>
+    <div class="result-name" id="result-name"></div>
+    <div class="result-type-display">
+      <div class="result-number" id="result-number"></div>
+      <div class="result-type-name" id="result-type-name"></div>
+    </div>
+    <p class="result-essence" id="result-essence"></p>
+    <div class="score-bars" id="score-bars"></div>
+    <div class="result-actions">
+      <button class="btn-add" id="btn-add-to-chord" onclick="addToChord()">Add me to Chord</button>
+      <button class="btn-retake" onclick="retake()">Retake</button>
+    </div>
+    <p class="result-caveat">Types with close scores are worth reading too — the Enneagram rewards self-inquiry over certainty. Read your top 2–3.</p>
+  </div>
+
+</div>
+
+<script>
+// ─── Type Data ────────────────────────────────────────────────────────────────
+const T = {
+  1: { name:"The Reformer",      hex:"#c8a96e", rgb:"200,169,110",
+       essence:"You carry an inner compass that never quite turns off. You see what could be better — in systems, in others, in yourself — and feel a quiet responsibility to improve it. At your best you're discerning and principled. The shadow: an inner critic that's harder on you than on anyone else." },
+  2: { name:"The Helper",        hex:"#e8748a", rgb:"232,116,138",
+       essence:"You're wired for connection. You read others naturally, anticipate what's needed, and give generously — sometimes before anyone asks. At your best you're genuinely warm and empowering. The shadow: worth that's too tightly tied to being needed." },
+  3: { name:"The Achiever",      hex:"#e87449", rgb:"232,116,73",
+       essence:"You move toward goals with uncommon focus. You adapt, optimize, and succeed — and you want others to see it. At your best you're inspiring and genuinely excellent. The shadow: an identity so built on achievement that failure feels existential." },
+  4: { name:"The Individualist", hex:"#9b74e8", rgb:"155,116,232",
+       essence:"You experience life at greater depth and intensity than most. You're drawn to what's authentic, what's missing, what's true beneath the surface. At your best you're creatively honest and deeply feeling. The shadow: a persistent sense that something others have is lacking in you." },
+  5: { name:"The Investigator",  hex:"#4a90d9", rgb:"74,144,217",
+       essence:"You observe more than you participate — taking in, analyzing, building a complete picture before you act. At your best you're visionary and quietly brilliant. The shadow: withdrawing from the world to protect finite energy, sometimes at the cost of living it." },
+  6: { name:"The Loyalist",      hex:"#4ab8c8", rgb:"74,184,200",
+       essence:"You think ahead, test for danger, and commit fiercely to those who've earned your trust. At your best you're courageous, loyal, and deeply reliable. The shadow: a mind that runs threat scenarios even when the ground is safe." },
+  7: { name:"The Enthusiast",    hex:"#74c87a", rgb:"116,200,122",
+       essence:"You're energized by possibility. New ideas, new experiences, new directions — you move toward the horizon naturally. At your best you're joyful and genuinely generative. The shadow: an avoidance of pain and limitation that can keep you from going deep." },
+  8: { name:"The Challenger",    hex:"#e84a4a", rgb:"232,74,74",
+       essence:"You take up space without apology. You move toward power, protect what's yours, and speak the thing no one else will. At your best you're protective and magnanimous. The shadow: an armor built so thick it can be hard for others — and you — to find what's underneath." },
+  9: { name:"The Peacemaker",    hex:"#8fa8c8", rgb:"143,168,200",
+       essence:"You have a rare capacity to hold space for others, to see all sides, and to keep the peace. At your best you're grounding and deeply wise. The shadow: a tendency to merge with others' agendas and lose track of your own." },
+};
+
+// ─── Questions ────────────────────────────────────────────────────────────────
+// Each question: { a: {type, text}, b: {type, text} }
+const QUESTIONS = [
+  // 1 vs 2
+  { a: {t:1, s:"I hold myself to a high internal standard — I notice my mistakes more than my wins."},
+    b: {t:2, s:"My sense of worth is connected to how much I give and whether people feel cared for by me."} },
+  // 1 vs 3
+  { a: {t:1, s:"I tend to be my own harshest critic — doing things the right way matters as much as doing them."},
+    b: {t:3, s:"I'm motivated by succeeding and being recognized — I want to be seen as competent and effective."} },
+  // 1 vs 4
+  { a: {t:1, s:"I feel a quiet responsibility to improve things, even when no one asked me to."},
+    b: {t:4, s:"I often feel like something essential is missing — in my life or in who I am."} },
+  // 1 vs 5
+  { a: {t:1, s:"I believe in doing things correctly even when the easier path is available."},
+    b: {t:5, s:"I need time alone to process and think — I find it hard to act before I fully understand something."} },
+  // 1 vs 6
+  { a: {t:1, s:"I have a clear sense of right and wrong, and I feel it when I violate my own standards."},
+    b: {t:6, s:"I often find myself running through worst-case scenarios and preparing for what could go wrong."} },
+  // 1 vs 7
+  { a: {t:1, s:"I tend to focus on what's wrong or incomplete more than what's already good."},
+    b: {t:7, s:"I'm energized by new ideas and possibilities — I get restless when things feel too fixed or routine."} },
+  // 1 vs 8
+  { a: {t:1, s:"I try to be principled and consistent, even when it costs me something."},
+    b: {t:8, s:"I resist being controlled or directed by others — I need to be the one who decides."} },
+  // 1 vs 9
+  { a: {t:1, s:"I push toward improvement even when it creates friction or discomfort."},
+    b: {t:9, s:"I prefer harmony — I tend to accommodate others to keep the peace."} },
+  // 2 vs 3
+  { a: {t:2, s:"I feel most alive when I'm genuinely helping someone and they feel it."},
+    b: {t:3, s:"I adapt how I present myself to be seen in the best possible light in any situation."} },
+  // 2 vs 4
+  { a: {t:2, s:"I instinctively tune into what others need — sometimes before they know themselves."},
+    b: {t:4, s:"I often feel misunderstood, like the real me is rarely fully seen by others."} },
+  // 2 vs 5
+  { a: {t:2, s:"I'm drawn toward people — I naturally move in when someone is struggling."},
+    b: {t:5, s:"I'm more comfortable observing from a step back than being in the center of things."} },
+  // 2 vs 6
+  { a: {t:2, s:"I often anticipate what others need and offer it without being asked."},
+    b: {t:6, s:"Loyalty and reliability matter deeply to me — I show up for the people I've committed to."} },
+  // 2 vs 7
+  { a: {t:2, s:"People tend to come to me when they need support, and I genuinely want to be there for them."},
+    b: {t:7, s:"I like keeping my options open — being locked in or limited feels uncomfortable."} },
+  // 2 vs 8
+  { a: {t:2, s:"Asking for help doesn't come naturally — I'd rather give than receive."},
+    b: {t:8, s:"I have a strong need to be in charge of my own life and choices."} },
+  // 2 vs 9
+  { a: {t:2, s:"I find meaning in being there for people — I'm oriented toward others' needs."},
+    b: {t:9, s:"I'm good at seeing all sides and tend not to push my own view very hard."} },
+  // 3 vs 4
+  { a: {t:3, s:"I work hard to be seen as successful and capable — results matter to me."},
+    b: {t:4, s:"I'd rather be authentic than liked — I won't perform a version of myself I don't mean."} },
+  // 3 vs 5
+  { a: {t:3, s:"I set ambitious goals and adjust my approach until I hit them."},
+    b: {t:5, s:"I'd rather know one thing deeply than skim across many — breadth doesn't interest me."} },
+  // 3 vs 6
+  { a: {t:3, s:"Failure feels personal to me — my sense of value is tied to what I achieve."},
+    b: {t:6, s:"I often question whether I'm reading a situation correctly — I second-guess my own judgment."} },
+  // 3 vs 7
+  { a: {t:3, s:"I'm driven to be the best at what I do — I want to win, not just participate."},
+    b: {t:7, s:"I'm more excited by the possibilities ahead than by any single goal or achievement."} },
+  // 3 vs 8
+  { a: {t:3, s:"I'm aware of how I come across and work to project confidence and competence."},
+    b: {t:8, s:"I say what I think directly — I don't soften things to manage how I'm perceived."} },
+  // 3 vs 9
+  { a: {t:3, s:"I push myself hard and measure my worth by what I produce."},
+    b: {t:9, s:"I'm not driven by external achievement — inner peace matters more to me than status."} },
+  // 4 vs 5
+  { a: {t:4, s:"I feel things deeply and spend a lot of time exploring what those feelings mean."},
+    b: {t:5, s:"I tend to analyze my emotional experience more than sit inside it."} },
+  // 4 vs 6
+  { a: {t:4, s:"I long for something I can't quite name — a sense of deep belonging or authentic meaning."},
+    b: {t:6, s:"I want to feel like the ground beneath me is stable and the people around me are reliable."} },
+  // 4 vs 7
+  { a: {t:4, s:"I'm drawn to melancholy, depth, and complexity — I don't avoid dark emotions."},
+    b: {t:7, s:"I tend to reframe difficulties into positives — I don't like staying in pain longer than I have to."} },
+  // 4 vs 8
+  { a: {t:4, s:"I'm sensitive to criticism — it lands personally even when I know it shouldn't."},
+    b: {t:8, s:"Criticism rolls off me easily — I'd rather have directness than careful handling."} },
+  // 4 vs 9
+  { a: {t:4, s:"I have a strong need to be seen as unique and understood on my own terms."},
+    b: {t:9, s:"I tend to blend into situations — I don't often assert a strong personal identity."} },
+  // 5 vs 6
+  { a: {t:5, s:"I need significant time alone to recharge — too much social contact depletes me."},
+    b: {t:6, s:"I find real safety in people and communities I trust — belonging matters a lot."} },
+  // 5 vs 7
+  { a: {t:5, s:"I prefer going deep into one subject over being broadly curious about many."},
+    b: {t:7, s:"I get bored when things become repetitive — I'm always looking toward the next horizon."} },
+  // 5 vs 8
+  { a: {t:5, s:"I'm comfortable stepping back and observing — I don't need to dominate the room."},
+    b: {t:8, s:"I naturally take up space in a room — I'm comfortable being direct and forceful when needed."} },
+  // 5 vs 9
+  { a: {t:5, s:"I need to fully understand something before I feel confident acting on it."},
+    b: {t:9, s:"I sometimes go along with things just to keep the peace, even when I'm not fully on board."} },
+  // 6 vs 7
+  { a: {t:6, s:"I tend to imagine what could go wrong and prepare for it — optimism doesn't come easily."},
+    b: {t:7, s:"I tend to imagine what could go right and stay focused on possibility — I'm naturally optimistic."} },
+  // 6 vs 8
+  { a: {t:6, s:"I'm deeply loyal once trust is earned — but I test for trustworthiness carefully before committing."},
+    b: {t:8, s:"I test people's trustworthiness by being direct and seeing how they handle the truth."} },
+  // 6 vs 9
+  { a: {t:6, s:"I worry — about safety, about whether I'm making the right call, about whether people are really with me."},
+    b: {t:9, s:"I don't worry much — I tend to trust that things will work themselves out."} },
+  // 7 vs 8
+  { a: {t:7, s:"I avoid pain and limitation by focusing on what's possible and exciting."},
+    b: {t:8, s:"I move toward difficulty rather than away from it — I don't back down."} },
+  // 7 vs 9
+  { a: {t:7, s:"I fill my life with experiences, plans, and options — stagnation feels like a kind of death."},
+    b: {t:9, s:"I'm content with a quieter life — I'm not driven to constantly seek more."} },
+  // 8 vs 9
+  { a: {t:8, s:"I have a strong will and I'm willing to be blunt when something needs to be said."},
+    b: {t:9, s:"I rarely impose my will on others — I prefer everyone to find their own space."} },
+];
+
+// ─── State ────────────────────────────────────────────────────────────────────
+let userName = '';
+let scores = {1:0, 2:0, 3:0, 4:0, 5:0, 6:0, 7:0, 8:0, 9:0};
+let current = 0;
+let resultType = null;
+
+// ─── UI Helpers ───────────────────────────────────────────────────────────────
+function show(id) { document.getElementById(id).style.display = 'flex'; }
+function hide(id) { document.getElementById(id).style.display = 'none'; }
+
+function startTest() {
+  userName = document.getElementById('userName').value.trim() || 'You';
+  scores = {1:0, 2:0, 3:0, 4:0, 5:0, 6:0, 7:0, 8:0, 9:0};
+  current = 0;
+  hide('intro');
+  show('progress-bar-wrap');
+  show('question-screen');
+  renderQuestion();
+}
+
+function renderQuestion() {
+  if (current >= QUESTIONS.length) { showResults(); return; }
+
+  const q = QUESTIONS[current];
+  const pct = Math.round((current / QUESTIONS.length) * 100);
+
+  document.getElementById('progress-label').textContent = `Question ${current + 1} of ${QUESTIONS.length}`;
+  document.getElementById('progress-pct').textContent = `${pct}%`;
+  document.getElementById('progress-fill').style.width = `${pct}%`;
+
+  const container = document.getElementById('options-container');
+  container.innerHTML = '';
+
+  [q.a, q.b].forEach((opt, idx) => {
+    const div = document.createElement('div');
+    div.className = 'option';
+    div.innerHTML = `<div class="option-letter">${idx === 0 ? 'A' : 'B'}</div><div>${opt.s}</div>`;
+    div.onclick = () => choose(opt.t);
+    container.appendChild(div);
+  });
+}
+
+function choose(type) {
+  scores[type]++;
+  current++;
+  // Brief flash feedback
+  setTimeout(renderQuestion, 80);
+}
+
+function skipQuestion() {
+  current++;
+  renderQuestion();
+}
+
+function showResults() {
+  hide('question-screen');
+  document.getElementById('progress-bar-wrap').style.display = 'none';
+
+  // Find winner
+  const sorted = Object.entries(scores).sort((a,b) => b[1]-a[1]);
+  resultType = parseInt(sorted[0][0]);
+  const t = T[resultType];
+
+  document.getElementById('result-name').textContent = userName;
+  document.getElementById('result-number').textContent = resultType;
+  document.getElementById('result-number').style.color = t.hex;
+  document.getElementById('result-type-name').textContent = t.name.toUpperCase();
+  document.getElementById('result-essence').textContent = t.essence;
+
+  // Score bars
+  const max = sorted[0][1] || 1;
+  const barsEl = document.getElementById('score-bars');
+  barsEl.innerHTML = '';
+  sorted.forEach(([type, score]) => {
+    const pct = Math.round((score / max) * 100);
+    const col = T[parseInt(type)].hex;
+    const isTop = parseInt(type) === resultType;
+    barsEl.innerHTML += `
+      <div class="score-row">
+        <div class="score-type-label" style="color:${isTop ? col : ''}">${type}</div>
+        <div class="score-track">
+          <div class="score-fill" style="width:${pct}%;background:${isTop ? col : 'rgba(255,255,255,0.12)'}"></div>
+        </div>
+        <div class="score-pct" style="color:${isTop ? col : ''}">${score}</div>
+      </div>
+    `;
+  });
+
+  // Add to chord button styling
+  const btn = document.getElementById('btn-add-to-chord');
+  btn.style.setProperty('--tc', t.hex);
+  btn.style.setProperty('--tr', t.rgb);
+
+  show('results-screen');
+}
+
+function addToChord() {
+  // Pass result to index.html via URL params
+  const params = new URLSearchParams({ add: userName, type: resultType });
+  window.location.href = `./index.html?${params.toString()}`;
+}
+
+function retake() {
+  hide('results-screen');
+  scores = {1:0, 2:0, 3:0, 4:0, 5:0, 6:0, 7:0, 8:0, 9:0};
+  current = 0;
+  show('progress-bar-wrap');
+  show('question-screen');
+  renderQuestion();
+}
+
+// ─── Keyboard ─────────────────────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.key === 'a' || e.key === 'A') {
+    const opts = document.querySelectorAll('.option');
+    if (opts[0]) opts[0].click();
+  }
+  if (e.key === 'b' || e.key === 'B') {
+    const opts = document.querySelectorAll('.option');
+    if (opts[1]) opts[1].click();
+  }
+  if (e.key === 's' || e.key === 'S') skipQuestion();
+  if (e.key === 'Enter' && document.getElementById('intro').style.display !== 'none') startTest();
+});
+
+document.getElementById('userName').addEventListener('keydown', e => {
+  if (e.key === 'Enter') startTest();
+});
+</script>
+</body>
+</html>

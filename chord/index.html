@@ -336,6 +336,7 @@
 <header>
   <h1>CHORD</h1>
   <span class="subtitle">Team Resonance &nbsp;·&nbsp; Enneagram</span>
+  <a href="./test.html" style="margin-left:auto;font-size:0.72rem;letter-spacing:0.15em;text-transform:uppercase;color:rgba(255,255,255,0.25);text-decoration:none;transition:color 0.15s" onmouseover="this.style.color='rgba(255,255,255,0.6)'" onmouseout="this.style.color='rgba(255,255,255,0.25)'">Find your type →</a>
 </header>
 
 <div class="main">
@@ -770,6 +771,23 @@ draw();
 renderTeam();
 updateReading();
 document.getElementById('memberName').focus();
+
+// Auto-add from test result
+(function() {
+  const params = new URLSearchParams(window.location.search);
+  const name = params.get('add');
+  const type = parseInt(params.get('type'));
+  if (name && type && T[type]) {
+    const id = Date.now() + Math.random();
+    team.push({ id, name, type });
+    active.add(id);
+    renderTeam();
+    updateReading();
+    draw();
+    // Clean URL
+    window.history.replaceState({}, '', window.location.pathname);
+  }
+})();
 </script>
 </body>
 </html>

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Redirecting…</title>
+<script>
+// GitHub Pages runs on Linux (case-sensitive).
+// If the requested path has uppercase letters, redirect to the lowercase version.
+// If the path is already lowercase and still 404s, go home.
+(function () {
+  var path   = window.location.pathname;
+  var lower  = path.toLowerCase();
+  var search = window.location.search;
+  var hash   = window.location.hash;
+  if (path !== lower) {
+    window.location.replace(lower + search + hash);
+  } else {
+    window.location.replace('/');
+  }
+})();
+</script>
+</head>
+<body></body>
+</html>

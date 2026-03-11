@@ -533,11 +533,14 @@ function setSpace(val) {
   if (el) el.textContent = val;
 }
 function toggleLiveControls() {
-  const panel = document.getElementById('lc-panel');
-  const arrow = document.getElementById('lc-arrow');
-  const open = panel.style.display !== 'none';
+  const panel   = document.getElementById('lc-panel');
+  const arrow   = document.getElementById('lc-arrow');
+  const overlay = document.getElementById('share-overlay');
+  const open    = panel.style.display !== 'none';
   panel.style.display = open ? 'none' : 'block';
   if (arrow) arrow.textContent = open ? '▼' : '▲';
+  // Hide blur overlay while live controls are open so you can see changes
+  if (overlay) overlay.style.display = open ? 'block' : 'none';
 }
 
 // ─── SHARE MENU FUNCTIONS ─────────────────────────────────────────────────────

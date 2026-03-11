@@ -469,10 +469,10 @@ let liveBlack     = 0.0;  // 0.0 = none, 1.0 = full nebulaic black
 
 // ─── RESIZE ──────────────────────────────────────────────────────────────────
 function resize() {
-  // Render at 65% of screen — CSS upscales smoothly; nebula is naturally soft
-  const PX = 0.65;
-  const w  = Math.floor(window.innerWidth  * PX);
-  const h  = Math.floor(window.innerHeight * PX);
+  // Full resolution — use device pixel ratio for crisp Retina rendering
+  const DPR = Math.min(window.devicePixelRatio || 1, 2);
+  const w   = Math.floor(window.innerWidth  * DPR);
+  const h   = Math.floor(window.innerHeight * DPR);
   canvas.width  = w;
   canvas.height = h;
   gl.viewport(0, 0, w, h);

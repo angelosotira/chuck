@@ -1,6 +1,22 @@
 # MEMORY.md — Vaynerchuck's Long-Term Memory
 
-_Last updated: 2026-03-10 (evening)_
+_Last updated: 2026-03-10 (evening) — ALL SESSIONS READ THIS_
+
+---
+
+## ⚠️ Twitter Follow — READ THIS FIRST (corrects old info)
+
+The Twitter follow cron **does NOT run once at 10am**. That was the old setup, deleted on 2026-03-10.
+
+**Current setup (as of 2026-03-10 ~5pm PT):**
+- Runs **every 16 minutes**, 24/7
+- Does 40 follows per window, exits, next cron fires 16 min later
+- Daily cap: 990 — hits it in ~6.6 hours, then idles until midnight
+- Three crons active:
+  - `86076fbe` — follow every 16 min
+  - `e37b87b0` — Notion sync every hour
+  - `1ac32d95` — status update to Angelo on Telegram every 6 hours
+- Script: `/Users/vaynerchuck/.openclaw/workspace/twitter-follow.mjs` (committed to git)
 
 ---
 

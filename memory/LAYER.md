@@ -158,6 +158,10 @@ Conversations about p5.js, openFrameworks, TouchDesigner, generative systems, sh
 **Fine art + technology intersection:**
 Collectors or gallery people asking about the future of digital art in homes, private collections, institutions → Layer is the answer.
 
+### ⚠️ Casey Reas — DO NOT ENGAGE, EVER
+
+Casey Reas (@REAS) is a Layer artist but also has a significant relationship with **Feral File (FF)**, which is a competing platform. Angelo deliberately avoids engaging around Casey Reas content on Twitter to avoid creating tension with Feral File. **Never surface Casey Reas tweets as Layer engagement opportunities.** Skip him entirely, regardless of how relevant the conversation looks.
+
 ### ❌ Do NOT engage on Layer's behalf when:
 
 - The conversation is purely speculative (crypto price talk, NFT flipping)

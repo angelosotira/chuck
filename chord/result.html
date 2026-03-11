@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chord — Type Report</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #07070f;
+      color: #e0e0ec;
+      font-family: 'Georgia', serif;
+      min-height: 100vh;
+    }
+
+    header {
+      padding: 1.5rem 3rem;
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .logo { font-size: 1.4rem; letter-spacing: 0.4em; font-weight: 300; color: #fff; text-decoration: none; }
+    .header-sub { font-size: 0.65rem; letter-spacing: 0.25em; color: rgba(255,255,255,0.2); text-transform: uppercase; }
+
+    /* ── Loading ── */
+    #loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 60vh;
+      font-size: 0.8rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.2);
+    }
+
+    #error-state {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      min-height: 60vh;
+      flex-direction: column;
+      gap: 1rem;
+      color: rgba(255,255,255,0.3);
+      font-size: 0.9rem;
+    }
+
+    /* ── Report ── */
+    #report {
+      display: none;
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 3rem 3rem 5rem;
+    }
+
+    /* Hero */
+    .report-hero {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 3.5rem;
+      padding-bottom: 2.5rem;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .hero-left {}
+
+    .hero-name {
+      font-size: 2rem;
+      font-weight: 300;
+      color: #fff;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.25rem;
+    }
+
+    .hero-date {
+      font-size: 0.68rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.2);
+      margin-bottom: 2rem;
+    }
+
+    .hero-type-number {
+      font-size: 5.5rem;
+      font-weight: 300;
+      line-height: 1;
+      margin-bottom: 0.1rem;
+    }
+
+    .hero-type-name {
+      font-size: 0.7rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.35);
+      margin-bottom: 0.6rem;
+    }
+
+    .hero-keyword {
+      font-size: 0.65rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.18);
+    }
+
+    .hero-keyword span {
+      letter-spacing: 0.3em;
+      font-size: 0.75rem;
+    }
+
+    .hero-right {
+      text-align: right;
+    }
+
+    .report-label {
+      font-size: 0.6rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.12);
+      margin-bottom: 0.5rem;
+    }
+
+    /* Section */
+    .section {
+      margin-bottom: 2.75rem;
+    }
+
+    .section-title {
+      font-size: 0.6rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.18);
+      margin-bottom: 1.25rem;
+      padding-bottom: 0.6rem;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    /* Profile bars */
+    .profile-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.65rem;
+    }
+
+    .profile-num {
+      font-size: 0.72rem;
+      color: rgba(255,255,255,0.2);
+      width: 14px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .profile-label {
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.3);
+      width: 110px;
+      flex-shrink: 0;
+    }
+
+    .profile-track {
+      flex: 1;
+      height: 4px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .profile-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.6s ease;
+    }
+
+    .profile-score {
+      font-size: 0.72rem;
+      width: 36px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    /* Tri-section bars (centers, interaction, conflict) */
+    .tri-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 1.5rem;
+    }
+
+    .tri-item {}
+
+    .tri-label {
+      font-size: 0.65rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.25);
+      margin-bottom: 0.5rem;
+    }
+
+    .tri-bar-wrap {
+      height: 3px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 0.4rem;
+    }
+
+    .tri-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+    }
+
+    .tri-pct {
+      font-size: 1.4rem;
+      font-weight: 300;
+      color: rgba(255,255,255,0.6);
+    }
+
+    /* Description */
+    .description-text {
+      font-size: 0.9rem;
+      line-height: 1.95;
+      color: rgba(255,255,255,0.5);
+    }
+
+    .description-text strong {
+      color: rgba(255,255,255,0.75);
+      font-weight: normal;
+    }
+
+    /* Wings */
+    .wings-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+    }
+
+    .wing-card {
+      padding: 1.1rem 1.25rem;
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 5px;
+      background: rgba(255,255,255,0.02);
+    }
+
+    .wing-label {
+      font-size: 0.62rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.18);
+      margin-bottom: 0.3rem;
+    }
+
+    .wing-name {
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.55);
+      margin-bottom: 0.5rem;
+    }
+
+    .wing-text {
+      font-size: 0.78rem;
+      line-height: 1.7;
+      color: rgba(255,255,255,0.28);
+    }
+
+    /* Actions */
+    .report-actions {
+      display: flex;
+      gap: 0.75rem;
+      padding-top: 2rem;
+      border-top: 1px solid rgba(255,255,255,0.05);
+      margin-top: 3rem;
+    }
+
+    .btn {
+      padding: 0.65rem 1.5rem;
+      border-radius: 4px;
+      border: 1px solid;
+      cursor: pointer;
+      font-size: 0.82rem;
+      font-family: 'Georgia', serif;
+      transition: all 0.15s;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn-primary {
+      color: var(--tc, #e8748a);
+      border-color: var(--tc, #e8748a);
+      background: rgba(var(--tr, 232,116,138), 0.1);
+    }
+
+    .btn-primary:hover { background: rgba(var(--tr, 232,116,138), 0.2); }
+
+    .btn-ghost {
+      color: rgba(255,255,255,0.3);
+      border-color: rgba(255,255,255,0.1);
+      background: transparent;
+    }
+
+    .btn-ghost:hover { color: rgba(255,255,255,0.6); border-color: rgba(255,255,255,0.2); }
+
+    .confidential-note {
+      font-size: 0.62rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.08);
+      margin-top: 1.5rem;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <a class="logo" href="./index.html">CHORD</a>
+  <span class="header-sub">Type Report</span>
+</header>
+
+<div id="loading">Loading report…</div>
+<div id="error-state"><p>Report not found.</p><a href="./test.html" style="color:rgba(255,255,255,0.3);font-size:0.8rem">Take the test →</a></div>
+
+<div id="report"></div>
+
+<script>
+const SUPABASE_URL = 'https://iarmibcqsrlknptvzgkn.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlhcm1pYmNxc3Jsa25wdHZ6Z2tuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwMzA1NDEsImV4cCI6MjA4ODYwNjU0MX0.HOvdb-a9GFr0zUEgZqxPYgBEiiZUE9whch-cH0DRhnk';
+
+const T = {
+  1: { name:"The Reformer",      short:"Reformer",      hex:"#c8a96e", rgb:"200,169,110", keyword:"INTEGRITY",
+       wings: {
+         w9: { name:"1w9 — The Idealist",    text:"More introverted and philosophical. The idealism is quieter but no less deep. Inclined toward reflection, teaching, and reform through example rather than force." },
+         w2: { name:"1w2 — The Advocate",    text:"Warmer and more interpersonally engaged. The drive for improvement extends directly to helping people. More likely to advocate, mentor, and involve others in change." }
+       },
+       description: `<strong>You carry an inner compass that never quite turns off.</strong> You see what could be better — in systems, in processes, in yourself — and you feel a quiet responsibility to close that gap. This isn't perfectionism as vanity. It's a deep moral seriousness, a commitment to integrity and excellence that most people simply don't carry at this level.<br><br>You hold yourself to standards that are often harder than anything you'd impose on others. At your best, this makes you extraordinarily reliable, principled, and trustworthy — someone others look to when the quality of the work actually matters. You improve things. You notice what's been overlooked. You finish what others leave half-done.<br><br><strong>The shadow is the inner critic.</strong> That voice that never quite quiets — that notices every mistake, every shortcut, every moment you fell short of your own ideal. Learning to direct your standard outward, toward meaningful work, rather than inward, toward relentless self-assessment, is the central work of this type.` },
+  2: { name:"The Helper",        short:"Helper",        hex:"#e8748a", rgb:"232,116,138", keyword:"GENEROSITY",
+       wings: {
+         w1: { name:"2w1 — The Servant",    text:"More principled and self-restrained. Giving comes from a strong sense of duty and moral responsibility. Less emotionally expressive, more methodical in care." },
+         w3: { name:"2w3 — The Host",       text:"More outwardly charming and socially aware. Combines warmth with an instinct for making people feel seen and welcome. Tends toward helping through connection and presence." }
+       },
+       description: `<strong>You're wired for connection.</strong> You read people naturally — their moods, their needs, what they're not saying — and your instinct is to respond. Giving comes easily; receiving is harder. Your sense of self is deeply relational: you feel most alive when you're genuinely useful to someone who matters to you, and most unsettled when you sense you're not needed or appreciated.<br><br>At your best, you're remarkably warm, perceptive, and empowering. You make people feel seen in a way that's rare. You anticipate what's needed before anyone asks. You hold space for people in ways that genuinely change things for them.<br><br><strong>The shadow is worth that's too tightly tethered to being needed.</strong> When you give in order to ensure you'll be loved in return — even unconsciously — it creates a transaction beneath the surface of generosity. Learning to give freely, without keeping an emotional ledger, and learning to ask for what you need as directly as you give to others: that's the work.` },
+  3: { name:"The Achiever",      short:"Achiever",      hex:"#e87449", rgb:"232,116,73",  keyword:"ACHIEVEMENT",
+       wings: {
+         w2: { name:"3w2 — The Charmer",    text:"More interpersonally oriented. Success is pursued in part through relationship and influence. Naturally warm, socially skilled, and attuned to how they're landing with others." },
+         w4: { name:"3w4 — The Professional", text:"More introspective and image-conscious in a deeper way. Driven to achieve but also to be seen as distinctive and authentic. The inner life is richer and sometimes at odds with the performer." }
+       },
+       description: `<strong>You move toward goals with uncommon focus and efficiency.</strong> You read environments quickly, adapt your approach, and find a way to succeed — in whatever terms matter in that context. Success, recognition, and competence aren't optional for you. They feel essential.<br><br>At your best, you're inspiring. You lead by example. You make difficult things look achievable and pull people along with you. You have a rare ability to package complex ideas into compelling, credible form — and to actually deliver on what you promise.<br><br><strong>The shadow is an identity so built around achievement that failure feels existential.</strong> When your worth is tied to your output, slowing down feels like falling behind, and stopping — even briefly — can feel like disappearing. Underneath the performance, there's often a question you rarely let yourself sit with: <em>who am I when I'm not succeeding?</em> The answer is almost always richer than the achievement.` },
+  4: { name:"The Individualist", short:"Individualist",  hex:"#9b74e8", rgb:"155,116,232", keyword:"AUTHENTICITY",
+       wings: {
+         w3: { name:"4w3 — The Aristocrat",  text:"More ambitious and externally engaged. Wants to be seen and recognized for their uniqueness. Combines creative depth with a drive to make an impression on the world." },
+         w5: { name:"4w5 — The Bohemian",    text:"More introverted and cerebral. The creative impulse goes inward — into ideas, obsessions, artistic depth. Often unconventional, private, and intensely individualistic." }
+       },
+       description: `<strong>You experience life at a depth and intensity that most people don't access.</strong> You're drawn toward what's real, what's authentic underneath the surface — and you're acutely sensitive to anything that feels false, performed, or ordinary. There's often a persistent sense of longing — not as self-pity, but as a kind of existential hunger for meaning, beauty, and genuine connection.<br><br>At your best, you're creatively honest and emotionally courageous. You say the things that others can't find words for. You make art, or work, or conversation that touches something real in people. You're a powerful presence for others who feel unseen — because you know what that's like.<br><br><strong>The shadow is comparison.</strong> The habit of measuring your interior experience against others' exterior — and finding yourself lacking. The sense that whatever others have, some essential thing is missing in you. Learning to trust that your depth is the gift, not evidence of deficiency, is the central journey.` },
+  5: { name:"The Investigator",  short:"Investigator",  hex:"#4a90d9", rgb:"74,144,217",  keyword:"INSIGHT",
+       wings: {
+         w4: { name:"5w4 — The Iconoclast",  text:"More creative, expressive, and emotionally complex. The investigative drive turns toward art, imagination, and meaning. Often intensely original and unconventional." },
+         w6: { name:"5w6 — The Problem Solver", text:"More practical and systems-oriented. The analytical drive is applied to real-world problems. More socially engaged and reliable, more likely to commit to teams and structures." }
+       },
+       description: `<strong>You observe more than you participate.</strong> You take things in — information, patterns, systems — and build understanding before you commit to action. Your inner world is rich and active; your outer expression is measured and deliberate. You're careful with your energy, your time, and your attention in a way others sometimes read as aloofness, but is actually a form of self-preservation.<br><br>At your best, you're genuinely visionary — capable of seeing things others miss entirely, of building the kind of quiet expertise that people come to rely on. You're one of the most interesting people in any room, once you let someone in.<br><br><strong>The shadow is withdrawal.</strong> The tendency to step back from the world in order to understand it — at the cost of actually living it. At some point, preparation becomes a substitute for participation. The move toward engagement, toward vulnerability, toward being in the room rather than analyzing it from outside: that's where growth lives.` },
+  6: { name:"The Loyalist",      short:"Loyalist",      hex:"#4ab8c8", rgb:"74,184,200",  keyword:"LOYALTY",
+       wings: {
+         w5: { name:"6w5 — The Defender",   text:"More introverted and self-reliant. The loyalty is quieter; the independence stronger. Trust is built slowly and tested carefully. Often quietly brilliant and fiercely principled." },
+         w7: { name:"6w7 — The Buddy",      text:"More outgoing and optimistic. Counterbalances anxiety with warmth and humor. Often charming and socially adept, while still carrying a strong need for trusted community." }
+       },
+       description: `<strong>You're always running a background process.</strong> Scanning for danger. Testing for trustworthiness. Preparing for what might go wrong. This isn't anxiety as weakness — it's a form of intelligence, a risk-awareness that keeps you and the people you're responsible for safe. You anticipate problems others don't see until they arrive.<br><br>At your best, you're among the most loyal and reliable people someone will ever know. Once trust is established, you show up completely — for the team, the project, the person. You're the one who thinks it through, who asks the hard questions, who holds things together when the pressure comes.<br><br><strong>The shadow is a mind that's hard to quiet.</strong> A vigilance that can mistake preparation for security, and that sometimes has trouble trusting its own judgment even when that judgment is exactly right. The work is learning to distinguish real danger from phantom danger — and trusting yourself to handle whatever comes.` },
+  7: { name:"The Enthusiast",    short:"Enthusiast",    hex:"#74c87a", rgb:"116,200,122", keyword:"FREEDOM",
+       wings: {
+         w6: { name:"7w6 — The Entertainer", text:"More loyal, warm, and relationship-oriented. The enthusiasm is directed toward people and shared experience. Funnier, more grounded, and more aware of others' needs." },
+         w8: { name:"7w8 — The Realist",     text:"More forceful, driven, and worldly. Combines enthusiasm with ambition and directness. More comfortable with confrontation and more likely to pursue big visions aggressively." }
+       },
+       description: `<strong>You're oriented toward possibility.</strong> New ideas, new experiences, new directions — the horizon is more alive to you than where you're standing. You're naturally optimistic, generative, and energizing. You make things feel expansive. You find options where others see limits.<br><br>At your best, you're genuinely joyful and creative — someone who keeps the energy alive, who helps people see what's possible, who makes the future feel worth moving toward. You spark things. You connect disparate ideas. You say yes when others hesitate.<br><br><strong>The shadow is the avoidance of pain.</strong> It's so natural and so fast that you often don't recognize it as avoidance — it just looks like optimism, reframing, moving on. But the things that get avoided — grief, limitation, depth, commitment — don't disappear. They accumulate. Learning to stay in discomfort long enough for it to teach you something is the work.` },
+  8: { name:"The Challenger",    short:"Challenger",    hex:"#e84a4a", rgb:"232,74,74",   keyword:"STRENGTH",
+       wings: {
+         w7: { name:"8w7 — The Maverick",   text:"More energetic, entrepreneurial, and pleasure-seeking. Takes risks with enthusiasm and moves fast. More charming and expansive, though equally direct and forceful." },
+         w9: { name:"8w9 — The Bear",        text:"More controlled, steady, and strategically patient. The power is quieter but no less real. Often deeply protective and surprisingly gentle with the people they trust." }
+       },
+       description: `<strong>You take up space without apology.</strong> You're direct, forceful, and oriented toward power — not necessarily power over others, but the power to act, to decide, to protect, to not be controlled. You have a finely calibrated sense for weakness and inauthenticity, and very little patience for either.<br><br>At your best, you're fiercely protective of the people and causes you believe in — magnanimous, generous, and one of the most reliable presences in a crisis. When things fall apart, you're the one who steps forward. You say the thing no one else will. You carry weight without asking anyone to notice.<br><br><strong>The shadow is the armor.</strong> Built over years of learning — often in early life — that vulnerability is dangerous, that showing softness invites attack. Underneath the force, there's usually a tenderness that gets very little air. The people closest to you know it. The work is letting more people that close.` },
+  9: { name:"The Peacemaker",    short:"Peacemaker",    hex:"#8fa8c8", rgb:"143,168,200", keyword:"HARMONY",
+       wings: {
+         w8: { name:"9w8 — The Referee",     text:"More assertive, grounded, and self-assured. The peacemaking has force behind it. More willing to step in, set limits, and hold ground when necessary — though still fundamentally conciliatory." },
+         w1: { name:"9w1 — The Dreamer",     text:"More principled, idealistic, and quietly purposeful. The harmony sought is more than personal peace — it extends to justice and a better world. More self-critical and thoughtful." }
+       },
+       description: `<strong>You have a rare capacity to hold space.</strong> To see all sides. To make room for everyone. To resist the pull of reactive emotion when the people around you are losing theirs. You move through the world with a steadiness that others find genuinely grounding.<br><br>At your best, you're deeply wise — the person who can bring disparate perspectives together, who doesn't lose their head in a crisis, who makes people feel genuinely met and heard. You notice what others miss because you're not pushing your own agenda.<br><br><strong>The shadow is self-forgetting.</strong> A tendency to merge with others' agendas and priorities at the expense of your own. To accommodate, defer, and go along — and to lose track of what you actually want in the effort to keep everything calm. The work is learning that your presence, your preferences, your direction — these matter. Naming them isn't disruption. It's contribution.` },
+};
+
+function deriveMetrics(scores) {
+  const s = scores;
+
+  // Centers
+  const body  = s[8] + s[9] + s[1];
+  const heart = s[2] + s[3] + s[4];
+  const mind  = s[5] + s[6] + s[7];
+  const cTotal = body + heart + mind || 1;
+
+  // Hornevian (interaction style)
+  const assertive = s[3] + s[7] + s[8];
+  const compliant = s[1] + s[2] + s[6];
+  const withdrawn = s[4] + s[5] + s[9];
+  const hTotal = assertive + compliant + withdrawn || 1;
+
+  // Harmonic (conflict style)
+  const competency     = s[1] + s[3] + s[5];
+  const positiveOutlook = s[2] + s[7] + s[9];
+  const reactive       = s[4] + s[6] + s[8];
+  const hmTotal = competency + positiveOutlook + reactive || 1;
+
+  return {
+    centers: {
+      body:  { label: "Action (Body)",   pct: Math.round(body  / cTotal * 100) },
+      heart: { label: "Feeling (Heart)", pct: Math.round(heart / cTotal * 100) },
+      mind:  { label: "Thinking (Mind)", pct: Math.round(mind  / cTotal * 100) },
+    },
+    hornevian: {
+      assertive: { label: "Assertive", pct: Math.round(assertive / hTotal * 100) },
+      compliant: { label: "Compliant", pct: Math.round(compliant / hTotal * 100) },
+      withdrawn: { label: "Withdrawn", pct: Math.round(withdrawn / hTotal * 100) },
+    },
+    harmonic: {
+      competency:     { label: "Competency",      pct: Math.round(competency     / hmTotal * 100) },
+      positiveOutlook:{ label: "Positive Outlook", pct: Math.round(positiveOutlook / hmTotal * 100) },
+      reactive:       { label: "Reactive",        pct: Math.round(reactive       / hmTotal * 100) },
+    }
+  };
+}
+
+function formatDate(iso) {
+  return new Date(iso).toLocaleDateString('en-US', { day:'numeric', month:'long', year:'numeric' }).toUpperCase();
+}
+
+function renderBar(pct, color, alpha) {
+  return `<div class="tri-bar-wrap"><div class="tri-bar-fill" style="width:${pct}%;background:${color};opacity:${alpha||1}"></div></div>`;
+}
+
+function render(data) {
+  const { name, top_type, scores, created_at } = data;
+  const t = T[top_type];
+  const metrics = deriveMetrics(scores);
+  const maxScore = Math.max(...Object.values(scores));
+
+  // Wings (adjacent types, wrapping 1↔9)
+  const wingA = top_type === 1 ? 9 : top_type - 1;
+  const wingB = top_type === 9 ? 1 : top_type + 1;
+  const wingAData = t.wings[`w${wingA}`];
+  const wingBData = t.wings[`w${wingB}`];
+
+  // Sort profile by score desc
+  const profileSorted = Object.entries(scores)
+    .map(([type, score]) => ({ type: parseInt(type), score }))
+    .sort((a, b) => b.score - a.score);
+
+  const profileRows = profileSorted.map(({ type, score }) => {
+    const isTop = type === top_type;
+    const pct = maxScore > 0 ? Math.round(score / maxScore * 100) : 0;
+    const col = T[type].hex;
+    const rawPct = Math.round(score / 8 * 100); // out of 8 possible
+    return `
+      <div class="profile-row">
+        <div class="profile-num" style="color:${isTop ? col : ''}">${type}</div>
+        <div class="profile-label" style="color:${isTop ? 'rgba(255,255,255,0.6)' : ''}">${T[type].short}</div>
+        <div class="profile-track">
+          <div class="profile-fill" style="width:${pct}%;background:${isTop ? col : 'rgba(255,255,255,0.1)'}"></div>
+        </div>
+        <div class="profile-score" style="color:${isTop ? col : 'rgba(255,255,255,0.2)'}">
+          ${rawPct}${isTop ? '<span style="font-size:0.6rem">%</span>' : '%'}
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  function triSection(items, colors) {
+    return Object.values(items).map((item, i) => `
+      <div class="tri-item">
+        <div class="tri-label">${item.label}</div>
+        ${renderBar(item.pct, colors[i], 0.8)}
+        <div class="tri-pct">${item.pct}<span style="font-size:0.8rem;color:rgba(255,255,255,0.2)">%</span></div>
+      </div>
+    `).join('');
+  }
+
+  document.getElementById('report').innerHTML = `
+    <div class="report-hero">
+      <div class="hero-left">
+        <div class="hero-name">${name}</div>
+        <div class="hero-date">${formatDate(created_at)}</div>
+        <div class="hero-type-number" style="color:${t.hex}">${top_type}</div>
+        <div class="hero-type-name">${t.name.toUpperCase()}</div>
+        <div class="hero-keyword">Keyword &nbsp;<span style="color:${t.hex}">${t.keyword}</span></div>
+      </div>
+      <div class="hero-right">
+        <div class="report-label">Chord</div>
+        <div class="report-label">Type Report</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Enneagram Profile</div>
+      ${profileRows}
+    </div>
+
+    <div class="section">
+      <div class="section-title">Centers of Expression</div>
+      <div class="tri-grid">
+        ${triSection(metrics.centers, ['#c8a96e','#e8748a','#4a90d9'])}
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Interaction Style</div>
+      <div class="tri-grid">
+        ${triSection(metrics.hornevian, ['#e87449','#74c87a','#9b74e8'])}
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Conflict Style</div>
+      <div class="tri-grid">
+        ${triSection(metrics.harmonic, ['#4ab8c8','#74c87a','#e84a4a'])}
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Type Description</div>
+      <div class="description-text">${t.description}</div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Wings</div>
+      <div class="wings-grid">
+        <div class="wing-card">
+          <div class="wing-label">Wing ${wingA}</div>
+          <div class="wing-name">${wingAData ? wingAData.name : 'Type ' + wingA}</div>
+          <div class="wing-text">${wingAData ? wingAData.text : ''}</div>
+        </div>
+        <div class="wing-card">
+          <div class="wing-label">Wing ${wingB}</div>
+          <div class="wing-name">${wingBData ? wingBData.name : 'Type ' + wingB}</div>
+          <div class="wing-text">${wingBData ? wingBData.text : ''}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="report-actions">
+      <a class="btn btn-primary" href="./index.html?add=${encodeURIComponent(name)}&type=${top_type}"
+         style="--tc:${t.hex};--tr:${t.rgb}">Add ${name} to Chord</a>
+      <a class="btn btn-ghost" href="./test.html">Take again</a>
+      <a class="btn btn-ghost" href="./index.html">Open Chord</a>
+    </div>
+    <div class="confidential-note">Chord · Type Report · ${name} · ${formatDate(created_at)}</div>
+  `;
+
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('report').style.display = 'block';
+  document.title = `Chord — ${name} · Type ${top_type}`;
+}
+
+// ─── Fetch & render ───────────────────────────────────────────────────────────
+(async () => {
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get('id');
+
+  if (!id) {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('error-state').style.display = 'flex';
+    return;
+  }
+
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/chord_results?id=eq.${id}&select=*`,
+      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } }
+    );
+    const data = await res.json();
+    if (!data || !data.length) throw new Error('not found');
+    render(data[0]);
+  } catch(e) {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('error-state').style.display = 'flex';
+  }
+})();
+</script>
+</body>
+</html>

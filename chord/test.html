@@ -561,14 +561,15 @@ async function saveResult(name, topType, scores, answers) {
         'apikey': SUPABASE_KEY,
         'Authorization': `Bearer ${SUPABASE_KEY}`,
         'Content-Type': 'application/json',
-        'Prefer': 'return=minimal'
+        'Prefer': 'return=representation'
       },
       body: JSON.stringify({ name, top_type: topType, scores, answers })
     });
-    return res.ok;
+    const data = await res.json();
+    return data && data[0] ? data[0].id : null;
   } catch(e) {
     console.warn('Supabase save failed:', e);
-    return false;
+    return null;
   }
 }
 
@@ -669,8 +670,14 @@ function showResults() {
 
   show('results-screen');
 
-  // Save to Supabase (fire and forget)
-  saveResult(userName, resultType, scores, answers);
+  // Save to Supabase then redirect to full report
+  saveResult(userName, resultType, scores, answers).then(id => {
+    if (id) {
+      setTimeout(() => {
+        window.location.href = `./result.html?id=${id}`;
+      }, 1800); // brief pause so they see their top type before redirect
+    }
+  });
 }
 
 function addToChord() {

@@ -218,9 +218,11 @@ precision highp float;
 uniform float u_time;
 uniform vec2  u_resolution;
 uniform float u_scores[8];
-uniform float u_accretion; // 0.0=Nebula I style ... 1.0=Nebula X style
-uniform float u_drift;     // animation speed multiplier
+uniform float u_accretion;  // 0.0=Nebula I style ... 1.0=Nebula X style
+uniform float u_drift;      // animation speed multiplier
 uniform float u_timeScaled; // = u_time * 0.006 * u_drift (precomputed CPU-side)
+uniform float u_core;       // 0.0=off ... 1.0=current max brightness
+uniform float u_space;      // 0.0=current ... 1.0=deepest black
 
 out vec4 fragColor;
 
@@ -360,7 +362,7 @@ void main() {
   float totalScore = 0.0;
   for (int i = 0; i < 8; i++) { coreColor += col[i] * u_scores[i]; totalScore += u_scores[i]; }
   if (totalScore > 0.0) coreColor /= totalScore;
-  nebulaColor += core * (coreColor * 0.4 + vec3(0.7, 0.65, 0.6)) * 0.8;
+  nebulaColor += core * (coreColor * 0.4 + vec3(0.7, 0.65, 0.6)) * 0.8 * u_core;
 
   // Filaments — more pronounced as accretion increases
   float filFreq = mix(2.0, 3.2, u_accretion);
@@ -381,7 +383,9 @@ void main() {
   // ── Tone mapping ──────────────────────────────────────────────────────────
   float lum = dot(nebulaColor, vec3(0.2126, 0.7152, 0.0722));
   nebulaColor = nebulaColor / (1.0 + lum * 0.6);
-  nebulaColor = pow(nebulaColor, vec3(0.88));
+  // Space depth: u_space=0 → current gamma 0.88; u_space=1 → gamma 1.55 (deep blacks)
+  float gamma = mix(0.88, 1.55, u_space);
+  nebulaColor = pow(max(nebulaColor, vec3(0.0)), vec3(gamma));
 
   // ── Stars — very sparse ───────────────────────────────────────────────────
   vec2 sid = floor(uv * 200.0);
@@ -438,6 +442,8 @@ const uScores     = gl.getUniformLocation(prog, 'u_scores[0]');
 const uAccretion  = gl.getUniformLocation(prog, 'u_accretion');
 const uDrift      = gl.getUniformLocation(prog, 'u_drift');
 const uTimeScaled = gl.getUniformLocation(prog, 'u_timeScaled');
+const uCore       = gl.getUniformLocation(prog, 'u_core');
+const uSpace      = gl.getUniformLocation(prog, 'u_space');
 
 // Upload scores (static — they don't change per frame)
 gl.uniform1fv(uScores, new Float32Array(SCORES));
@@ -445,6 +451,8 @@ gl.uniform1fv(uScores, new Float32Array(SCORES));
 // ─── LIVE CONTROLS STATE ─────────────────────────────────────────────────────
 let liveAccretion = 0.0;
 let liveDrift     = 1.0;
+let liveCore      = 1.0;  // 1.0 = current max
+let liveSpace     = 0.0;  // 0.0 = current feel
 
 // ─── RESIZE ──────────────────────────────────────────────────────────────────
 function resize() {
@@ -473,6 +481,8 @@ function render(timestamp) {
   gl.uniform1f(uAccretion, liveAccretion);
   gl.uniform1f(uDrift, liveDrift);
   gl.uniform1f(uTimeScaled, timestamp * 0.001 * 0.006 * liveDrift);
+  gl.uniform1f(uCore,  liveCore);
+  gl.uniform1f(uSpace, liveSpace);
   gl.drawArrays(gl.TRIANGLES, 0, 6);
 }
 
@@ -511,6 +521,16 @@ function setDrift(val) {
   const pct = (parseInt(val) / 255 * 100).toFixed(1) + '%';
   const tr = document.getElementById('lc-drift');
   if (tr) tr.style.setProperty('--pct', pct);
+}
+function setCore(val) {
+  liveCore = parseInt(val) / 255;
+  const el = document.getElementById('lc-core-val');
+  if (el) el.textContent = val;
+}
+function setSpace(val) {
+  liveSpace = parseInt(val) / 255;
+  const el = document.getElementById('lc-space-val');
+  if (el) el.textContent = val;
 }
 function toggleLiveControls() {
   const panel = document.getElementById('lc-panel');
@@ -777,6 +797,34 @@ function copyShareLink() {
             style="flex:1;height:2px;-webkit-appearance:none;appearance:none;background:rgba(255,255,255,0.1);outline:none;cursor:pointer;accent-color:rgba(180,130,255,0.9);"
             oninput="setDrift(this.value)">
           <span style="font-family:'Courier New',monospace;font-size:0.44rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(180,130,255,0.45);white-space:nowrap;">Fast</span>
+        </div>
+      </div>
+      <!-- CORE -->
+      <div style="margin-top:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px;">
+          <span style="font-family:'Courier New',monospace;font-size:0.52rem;letter-spacing:0.16em;text-transform:uppercase;color:rgba(180,130,255,0.7);">Core Light</span>
+          <span id="lc-core-val" style="font-family:'Courier New',monospace;font-size:0.52rem;color:rgba(255,255,255,0.3);">255</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-family:'Courier New',monospace;font-size:0.44rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.2);white-space:nowrap;">Off</span>
+          <input type="range" id="lc-core" min="0" max="255" value="255"
+            style="flex:1;height:2px;-webkit-appearance:none;appearance:none;background:rgba(255,255,255,0.1);outline:none;cursor:pointer;accent-color:rgba(180,130,255,0.9);"
+            oninput="setCore(this.value)">
+          <span style="font-family:'Courier New',monospace;font-size:0.44rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(180,130,255,0.45);white-space:nowrap;">Max</span>
+        </div>
+      </div>
+      <!-- SPACE -->
+      <div style="margin-top:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px;">
+          <span style="font-family:'Courier New',monospace;font-size:0.52rem;letter-spacing:0.16em;text-transform:uppercase;color:rgba(180,130,255,0.7);">Space</span>
+          <span id="lc-space-val" style="font-family:'Courier New',monospace;font-size:0.52rem;color:rgba(255,255,255,0.3);">0</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-family:'Courier New',monospace;font-size:0.44rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.2);white-space:nowrap;">Diffuse</span>
+          <input type="range" id="lc-space" min="0" max="255" value="0"
+            style="flex:1;height:2px;-webkit-appearance:none;appearance:none;background:rgba(255,255,255,0.1);outline:none;cursor:pointer;accent-color:rgba(180,130,255,0.9);"
+            oninput="setSpace(this.value)">
+          <span style="font-family:'Courier New',monospace;font-size:0.44rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(180,130,255,0.45);white-space:nowrap;">Deep</span>
         </div>
       </div>
       <!-- SAVE CURRENT LOOK -->

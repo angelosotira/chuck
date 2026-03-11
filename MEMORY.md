@@ -66,17 +66,31 @@ GitHub repo: https://github.com/angelosotira/chuck (user: angelosotira)
 - `memory/rebuild-progress.mjs` — reconstructs progress.json from Notion if lost
 
 ### Active Cron Jobs
-- **Follow:** `86076fbe-3279-41ed-898b-0e41f19c84d3` — every 16 min, 240s timeout
+- **Follow:** `86076fbe-3279-41ed-898b-0e41f19c84d3` — every 16 min, 300s timeout
 - **Notion sync:** `e37b87b0-af62-4081-873d-873501c7b91f` — hourly at :05, 600s timeout
+- **Status update:** `1ac32d95-ee7f-49af-98fa-3b8610d2435f` — every 6h, announces to Telegram (356245797)
 - Campaign ends: `2026-03-19`
+
+### API Rate Limit Math (important)
+- `POST /2/users/:id/following` bottleneck: **50 requests per 15-min window**
+- Old script: 3 API calls/follow (/me + lookup + follow) → hit /me rate limit fast
+- Current script: ~1.025 calls/follow (batch lookup 100 handles in 1 call, /me cached once)
+- Window size: 40 follows × 3s delay ≈ 200s — fits in 300s cron timeout
+- Daily expected: **990 follows** (hits cap in ~6.6 hours, cron idles rest of day)
+- Days to finish: ~5,400 remaining ÷ 990/day = ~5.5 days from now
+
+### Status Update Protocol
+- Every 6 hours: auto-update sent to Angelo via Telegram
+- Rolling log: `memory/twitter-status-updates.jsonl` (appended after each window)
+- **When Angelo asks for status:** read the last 4 entries from `twitter-status-updates.jsonl` (= 1 day of 6h updates) + current progress.json
 
 ### Critical Lessons (do not forget)
 1. **exec requires `host=gateway, security=allowlist`** — sandbox is blocked. Always explicit.
-2. **git reset --hard wipes uncommitted files** — always commit AND push before any git pull/reset.
+2. **Always commit AND push immediately** — git reset --hard wipes uncommitted files.
 3. **Notion is source of truth** — if progress.json lost, run `memory/rebuild-progress.mjs`.
-4. **Cron timeout is 240s** — WINDOW_SIZE=15 × ~13s/follow ≈ 195s. Fits safely.
-5. **Never run Notion sync inside follow cron** — too slow, causes timeout. Separate hourly cron.
-6. **User ID cache** — script fetches /me once at startup. Never per-follow (burns rate limit).
+4. **Never run Notion sync inside follow cron** — too slow, causes timeout. Separate hourly cron.
+5. **User ID cache** — script fetches /me once at startup. Batch-resolves handles. Never per-follow.
+6. **Script logs to `twitter-status-updates.jsonl`** — read last 4 entries for status updates.
 
 ### Notion DBs
 - Blackdove X Followers: `31f189d9-98ae-8051-a2b1-f34c9b27fbf9` (5,814 rows)

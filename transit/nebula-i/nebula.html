@@ -218,17 +218,19 @@ precision highp float;
 uniform float u_time;
 uniform vec2  u_resolution;
 uniform float u_scores[8];
-uniform float u_accretion; // 0.0=Nebula I style ... 1.0=Nebula X style
-uniform float u_drift;     // animation speed multiplier
-uniform float u_timeScaled; // = u_time * 0.006 * u_drift (precomputed CPU-side)
+uniform float u_accretion;
+uniform float u_drift;
+uniform float u_timeScaled;
+uniform float u_core;
+uniform float u_space;
+uniform float u_black;
 
 out vec4 fragColor;
 
-// ─── Simplex noise (Stefan Gustavson) ────────────────────────────────────────
+// ─── Simplex noise (Stefan Gustavson — hardware optimized) ───────────────────
 vec3 mod289(vec3 x) { return x - floor(x * (1.0/289.0)) * 289.0; }
 vec4 mod289(vec4 x) { return x - floor(x * (1.0/289.0)) * 289.0; }
 vec4 permute(vec4 x) { return mod289(((x*34.0)+1.0)*x); }
-vec4 taylorInvSqrt(vec4 r) { return 1.79284291400159 - 0.85373472095314 * r; }
 
 float snoise(vec3 v) {
   const vec2 C = vec2(1.0/6.0, 1.0/3.0);
@@ -255,8 +257,8 @@ float snoise(vec3 v) {
   vec4 x  = x_ * ns.x + ns.yyyy;
   vec4 y  = y_ * ns.x + ns.yyyy;
   vec4 h  = 1.0 - abs(x) - abs(y);
-  vec4 b0 = vec4(x.xy,  y.xy);
-  vec4 b1 = vec4(x.zw,  y.zw);
+  vec4 b0 = vec4(x.xy, y.xy);
+  vec4 b1 = vec4(x.zw, y.zw);
   vec4 s0 = floor(b0)*2.0 + 1.0;
   vec4 s1 = floor(b1)*2.0 + 1.0;
   vec4 sh = -step(h, vec4(0.0));
@@ -266,7 +268,8 @@ float snoise(vec3 v) {
   vec3 p1 = vec3(a0.zw, h.y);
   vec3 p2 = vec3(a1.xy, h.z);
   vec3 p3 = vec3(a1.zw, h.w);
-  vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2,p2), dot(p3,p3)));
+  // Native hardware inverse square root — faster than taylorInvSqrt approximation
+  vec4 norm = inversesqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2,p2), dot(p3,p3)));
   p0 *= norm.x; p1 *= norm.y; p2 *= norm.z; p3 *= norm.w;
   vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);
   m = m * m;
@@ -287,8 +290,8 @@ float fbm(vec2 p, float seed) {
 
 // ─── Double domain warp ──────────────────────────────────────────────────────
 float warpedFbm(vec2 p, float seed) {
-  vec2 q = vec2(fbm(p,                      seed + 0.0),
-                fbm(p + vec2(5.2, 1.3),     seed + 1.7));
+  vec2 q = vec2(fbm(p,                          seed + 0.0),
+                fbm(p + vec2(5.2, 1.3),         seed + 1.7));
   vec2 r = vec2(fbm(p + 4.0*q + vec2(1.7, 9.2), seed + 3.4),
                 fbm(p + 4.0*q + vec2(8.3, 2.8), seed + 5.1));
   return fbm(p + 4.5*r, seed + 7.3);
@@ -299,7 +302,6 @@ void main() {
   vec2 uv = (gl_FragCoord.xy / u_resolution) * 2.0 - 1.0;
   uv.x *= u_resolution.x / u_resolution.y;
 
-  // Accretion drives UV scale — wider view = larger cloud structures
   float uvScale = mix(0.72, 0.28, u_accretion);
   uv *= uvScale;
 
@@ -317,7 +319,6 @@ void main() {
   seeds[0] = 0.0; seeds[1] = 17.3; seeds[2] = 34.6; seeds[3] = 51.9;
   seeds[4] = 69.2; seeds[5] = 86.5; seeds[6] = 103.8; seeds[7] = 121.1;
 
-  // Per-axis spatial offsets — accretion controls how far colors drift apart
   vec2 axisOffsets[8];
   axisOffsets[0] = vec2( 0.00,  0.00);
   axisOffsets[1] = vec2( 1.70,  0.65);
@@ -328,7 +329,6 @@ void main() {
   axisOffsets[6] = vec2(-1.55,  0.25);
   axisOffsets[7] = vec2( 0.35,  1.65);
 
-  // Accretion-interpolated shader parameters
   float offsetStrength = mix(0.00, 3.20, u_accretion);
   float axisScale      = mix(0.55, 0.44, u_accretion);
   float threshold      = mix(0.10, 0.40, u_accretion);
@@ -349,20 +349,19 @@ void main() {
     nebulaColor += axisField * col[i];
   }
 
-  // ── Bright core — hottest part of the nebula (center) ────────────────────
+  // ── Bright core ───────────────────────────────────────────────────────────
   float coreDist = length(uv);
   float core = exp(-coreDist * coreDist / (0.18 * 0.18));
   float coreFbm = warpedFbm(uv * 1.5, 200.0) * 0.5 + 0.5;
   core *= coreFbm * 1.5;
 
-  // core color = average of all axis colors weighted by score
   vec3 coreColor = vec3(0.0);
   float totalScore = 0.0;
   for (int i = 0; i < 8; i++) { coreColor += col[i] * u_scores[i]; totalScore += u_scores[i]; }
   if (totalScore > 0.0) coreColor /= totalScore;
-  nebulaColor += core * (coreColor * 0.4 + vec3(0.7, 0.65, 0.6)) * 0.8;
+  nebulaColor += core * (coreColor * 0.4 + vec3(0.7, 0.65, 0.6)) * 0.8 * u_core;
 
-  // Filaments — more pronounced as accretion increases
+  // ── Filaments ─────────────────────────────────────────────────────────────
   float filFreq = mix(2.0, 3.2, u_accretion);
   float filament = abs(warpedFbm(uv * filFreq, 300.0));
   float filThresh = mix(0.18, 0.12, u_accretion);
@@ -378,12 +377,24 @@ void main() {
   dust = smoothstep(0.5, 0.72, dust) * envelope * 0.65;
   nebulaColor *= 1.0 - dust;
 
+  // ── Nebulaic black — 9th axis ─────────────────────────────────────────────
+  if (u_black > 0.005) {
+    float blackNoise  = warpedFbm(uv * 0.75 + vec2(3.3, 8.1), 550.0);
+    float blackNoise2 = warpedFbm(uv * 1.6  + vec2(9.7, 2.2), 620.0);
+    blackNoise = (blackNoise * 0.5 + 0.5) * 0.65 + (blackNoise2 * 0.5 + 0.5) * 0.35;
+    float blackLo    = mix(0.78, 0.38, u_black);
+    float blackHi    = mix(0.92, 0.58, u_black);
+    float blackLayer = smoothstep(blackLo, blackHi, blackNoise);
+    nebulaColor *= 1.0 - blackLayer * u_black * 0.92;
+  }
+
   // ── Tone mapping ──────────────────────────────────────────────────────────
   float lum = dot(nebulaColor, vec3(0.2126, 0.7152, 0.0722));
   nebulaColor = nebulaColor / (1.0 + lum * 0.6);
-  nebulaColor = pow(nebulaColor, vec3(0.88));
+  float gamma = mix(0.88, 1.55, u_space);
+  nebulaColor = pow(max(nebulaColor, vec3(0.0)), vec3(gamma));
 
-  // ── Stars — very sparse ───────────────────────────────────────────────────
+  // ── Stars ─────────────────────────────────────────────────────────────────
   vec2 sid = floor(uv * 200.0);
   vec2 slc = fract(uv * 200.0) - 0.5;
   float sh = fract(sin(dot(sid, vec2(127.1, 311.7))) * 43758.5453);
@@ -438,6 +449,9 @@ const uScores     = gl.getUniformLocation(prog, 'u_scores[0]');
 const uAccretion  = gl.getUniformLocation(prog, 'u_accretion');
 const uDrift      = gl.getUniformLocation(prog, 'u_drift');
 const uTimeScaled = gl.getUniformLocation(prog, 'u_timeScaled');
+const uCore       = gl.getUniformLocation(prog, 'u_core');
+const uSpace      = gl.getUniformLocation(prog, 'u_space');
+const uBlack      = gl.getUniformLocation(prog, 'u_black');
 
 // Upload scores (static — they don't change per frame)
 gl.uniform1fv(uScores, new Float32Array(SCORES));
@@ -445,15 +459,23 @@ gl.uniform1fv(uScores, new Float32Array(SCORES));
 // ─── LIVE CONTROLS STATE ─────────────────────────────────────────────────────
 let liveAccretion = 0.0;
 let liveDrift     = 1.0;
+let liveCore      = 0.0;  // 0.0 = off (default)
+let liveSpace     = 0.0;  // 0.0 = current feel
+let liveBlack     = 0.0;  // 0.0 = none, 1.0 = full nebulaic black
 
 // ─── RESIZE ──────────────────────────────────────────────────────────────────
 function resize() {
-  // Render at 65% of screen — CSS upscales smoothly; nebula is naturally soft
-  const PX = 0.65;
-  const w  = Math.floor(window.innerWidth  * PX);
-  const h  = Math.floor(window.innerHeight * PX);
+  const DPR = Math.min(window.devicePixelRatio || 1, 2);
+  // 0.5 = 4x perf boost, perceptually soft — good for nebula
+  // 0.75 = 2x perf boost, sharper stars
+  // 1.0 = full quality baseline
+  const renderScale = 0.5;
+  const w = Math.floor(window.innerWidth  * DPR * renderScale);
+  const h = Math.floor(window.innerHeight * DPR * renderScale);
   canvas.width  = w;
   canvas.height = h;
+  canvas.style.width  = window.innerWidth  + 'px';
+  canvas.style.height = window.innerHeight + 'px';
   gl.viewport(0, 0, w, h);
   gl.uniform2f(uResolution, w, h);
 }
@@ -473,6 +495,9 @@ function render(timestamp) {
   gl.uniform1f(uAccretion, liveAccretion);
   gl.uniform1f(uDrift, liveDrift);
   gl.uniform1f(uTimeScaled, timestamp * 0.001 * 0.006 * liveDrift);
+  gl.uniform1f(uCore,  liveCore);
+  gl.uniform1f(uSpace, liveSpace);
+  gl.uniform1f(uBlack, liveBlack);
   gl.drawArrays(gl.TRIANGLES, 0, 6);
 }
 
@@ -512,12 +537,30 @@ function setDrift(val) {
   const tr = document.getElementById('lc-drift');
   if (tr) tr.style.setProperty('--pct', pct);
 }
+function setCore(val) {
+  liveCore = parseInt(val) / 255;
+  const el = document.getElementById('lc-core-val');
+  if (el) el.textContent = val;
+}
+function setSpace(val) {
+  liveSpace = parseInt(val) / 255;
+  const el = document.getElementById('lc-space-val');
+  if (el) el.textContent = val;
+}
+function setBlack(val) {
+  liveBlack = parseInt(val) / 255;
+  const el = document.getElementById('lc-black-val');
+  if (el) el.textContent = val;
+}
 function toggleLiveControls() {
-  const panel = document.getElementById('lc-panel');
-  const arrow = document.getElementById('lc-arrow');
-  const open = panel.style.display !== 'none';
+  const panel   = document.getElementById('lc-panel');
+  const arrow   = document.getElementById('lc-arrow');
+  const overlay = document.getElementById('share-overlay');
+  const open    = panel.style.display !== 'none';
   panel.style.display = open ? 'none' : 'block';
   if (arrow) arrow.textContent = open ? '▼' : '▲';
+  // Hide blur overlay while live controls are open so you can see changes
+  if (overlay) overlay.style.display = open ? 'block' : 'none';
 }
 
 // ─── SHARE MENU FUNCTIONS ─────────────────────────────────────────────────────
@@ -777,6 +820,48 @@ function copyShareLink() {
             style="flex:1;height:2px;-webkit-appearance:none;appearance:none;background:rgba(255,255,255,0.1);outline:none;cursor:pointer;accent-color:rgba(180,130,255,0.9);"
             oninput="setDrift(this.value)">
           <span style="font-family:'Courier New',monospace;font-size:0.44rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(180,130,255,0.45);white-space:nowrap;">Fast</span>
+        </div>
+      </div>
+      <!-- CORE -->
+      <div style="margin-top:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px;">
+          <span style="font-family:'Courier New',monospace;font-size:0.52rem;letter-spacing:0.16em;text-transform:uppercase;color:rgba(180,130,255,0.7);">Core Light</span>
+          <span id="lc-core-val" style="font-family:'Courier New',monospace;font-size:0.52rem;color:rgba(255,255,255,0.3);">0</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-family:'Courier New',monospace;font-size:0.44rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.2);white-space:nowrap;">Off</span>
+          <input type="range" id="lc-core" min="0" max="255" value="0"
+            style="flex:1;height:2px;-webkit-appearance:none;appearance:none;background:rgba(255,255,255,0.1);outline:none;cursor:pointer;accent-color:rgba(180,130,255,0.9);"
+            oninput="setCore(this.value)">
+          <span style="font-family:'Courier New',monospace;font-size:0.44rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(180,130,255,0.45);white-space:nowrap;">Max</span>
+        </div>
+      </div>
+      <!-- EXPOSURE -->
+      <div style="margin-top:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px;">
+          <span style="font-family:'Courier New',monospace;font-size:0.52rem;letter-spacing:0.16em;text-transform:uppercase;color:rgba(180,130,255,0.7);">Exposure</span>
+          <span id="lc-space-val" style="font-family:'Courier New',monospace;font-size:0.52rem;color:rgba(255,255,255,0.3);">0</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-family:'Courier New',monospace;font-size:0.44rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.2);white-space:nowrap;">Dim</span>
+          <input type="range" id="lc-space" min="0" max="255" value="0"
+            style="flex:1;height:2px;-webkit-appearance:none;appearance:none;background:rgba(255,255,255,0.1);outline:none;cursor:pointer;accent-color:rgba(180,130,255,0.9);"
+            oninput="setSpace(this.value)">
+          <span style="font-family:'Courier New',monospace;font-size:0.44rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(180,130,255,0.45);white-space:nowrap;">Bright</span>
+        </div>
+      </div>
+      <!-- NEBULAIC BLACK -->
+      <div style="margin-top:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px;">
+          <span style="font-family:'Courier New',monospace;font-size:0.52rem;letter-spacing:0.16em;text-transform:uppercase;color:rgba(180,130,255,0.7);">Black</span>
+          <span id="lc-black-val" style="font-family:'Courier New',monospace;font-size:0.52rem;color:rgba(255,255,255,0.3);">0</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-family:'Courier New',monospace;font-size:0.44rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.2);white-space:nowrap;">None</span>
+          <input type="range" id="lc-black" min="0" max="255" value="0"
+            style="flex:1;height:2px;-webkit-appearance:none;appearance:none;background:rgba(255,255,255,0.1);outline:none;cursor:pointer;accent-color:rgba(180,130,255,0.9);"
+            oninput="setBlack(this.value)">
+          <span style="font-family:'Courier New',monospace;font-size:0.44rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(180,130,255,0.45);white-space:nowrap;">Full</span>
         </div>
       </div>
       <!-- SAVE CURRENT LOOK -->

@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Transit Nebula I</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;height:100%;background:#000;}
+canvas{display:block;position:fixed;top:0;left:0;width:100vw;height:100vh;}
+#c{image-rendering:pixelated;}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+
+// ── SUPABASE — direct REST fetch, no CDN dependency ──────────────────────────
+const SUPABASE_URL = 'https://iarmibcqsrlknptvzgkn.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlhcm1pYmNxc3Jsa25wdHZ6Z2tuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwMzA1NDEsImV4cCI6MjA4ODYwNjU0MX0.HOvdb-a9GFr0zUEgZqxPYgBEiiZUE9whch-cH0DRhnk';
+
+function showSaveStatus(msg, state) { // state: 'saving'|'ok'|'error'
+  let el = document.getElementById('save-status');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'save-status';
+    el.style.cssText = 'position:fixed;bottom:52px;left:50%;transform:translateX(-50%);font-family:"Courier New",monospace;font-size:0.52rem;letter-spacing:0.1em;text-transform:uppercase;padding:5px 14px;background:rgba(0,0,0,0.75);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.45);z-index:999;backdrop-filter:blur(8px);transition:opacity 0.6s;pointer-events:none;';
+    document.body.appendChild(el);
+  }
+  el.style.opacity = '1';
+  el.textContent = msg;
+  if (state === 'ok') {
+    el.style.color = 'rgba(80,255,140,0.75)';
+    el.style.borderColor = 'rgba(80,255,140,0.15)';
+    setTimeout(() => { el.style.opacity = '0'; }, 3500);
+  } else if (state === 'error') {
+    el.style.color = 'rgba(255,90,90,0.75)';
+  } else {
+    el.style.color = 'rgba(255,255,255,0.45)';
+    el.style.borderColor = 'rgba(255,255,255,0.1)';
+  }
+}
+
+async function saveNebulaEntry(payload) {
+  const res = await fetch(SUPABASE_URL + '/rest/v1/nebulas', {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation'
+    },
+    body: JSON.stringify(payload)
+  });
+  if (!res.ok) {
+    const err = await res.text().catch(() => String(res.status));
+    throw new Error('HTTP ' + res.status + ': ' + err);
+  }
+  return await res.json();
+}
+
+async function trySaveNebula() {
+  const pendingStr = localStorage.getItem('transit_pending_save');
+  if (!pendingStr) return;
+  let pending;
+  try { pending = JSON.parse(pendingStr); } catch(e) { localStorage.removeItem('transit_pending_save'); return; }
+
+  // Capture thumbnail from live WebGL canvas
+  let thumbnail = null;
+  try {
+    const cvs = document.querySelector('canvas');
+    const off = document.createElement('canvas');
+    off.width = 400; off.height = 267;
+    off.getContext('2d').drawImage(cvs, 0, 0, 400, 267);
+    thumbnail = off.toDataURL('image/jpeg', 0.75);
+  } catch(e) { console.warn('Thumbnail capture failed:', e); }
+
+  const payload = {
+    name: pending.name,
+    email: pending.email,
+    birth_date: pending.birth_date,
+    birth_time: pending.birth_time || '12:00',
+    lat: pending.lat,
+    lon: pending.lon,
+    city: pending.city || '',
+    thumbnail: thumbnail,
+    share_url: window.location.href
+  };
+
+  const RETRIES = 4;
+  const DELAYS  = [0, 5000, 10000, 20000];
+  for (let i = 0; i < RETRIES; i++) {
+    if (i > 0) {
+      showSaveStatus('Retrying save (' + i + '/' + (RETRIES-1) + ')...', 'saving');
+      await new Promise(r => setTimeout(r, DELAYS[i]));
+    } else {
+      showSaveStatus('Saving your nebula...', 'saving');
+    }
+    try {
+      const result = await saveNebulaEntry(payload);
+      if (result && result.length > 0) {
+        localStorage.removeItem('transit_pending_save');
+        localStorage.setItem('transit_last_id', result[0].id);
+        showSaveStatus('Nebula saved ✓', 'ok');
+        return;
+      }
+    } catch(e) {
+      console.warn('Save attempt ' + (i+1) + ' failed:', e.message);
+    }
+  }
+  showSaveStatus('Save failed — try reloading', 'error');
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ─── URL PARAMS ──────────────────────────────────────────────────────────────
+const P = new URLSearchParams(location.search);
+const pName      = P.get('name')      || null;
+const pBirth     = P.get('birth')     || null; // YYYY-MM-DD
+const pTime      = P.get('time')      || '12:00';
+const pLat       = parseFloat(P.get('lat')       || '0');
+const pLon       = parseFloat(P.get('lon')       || '0');
+const pAccretion = parseInt(P.get('accretion')   || '103');
+const pDrift     = parseInt(P.get('drift')       || '77');
+
+// ─── ASTRONOMY (Jean Meeus) ───────────────────────────────────────────────────
+function jd(y, m, d, h) {
+  if (m <= 2) { y--; m += 12; }
+  const A = Math.floor(y / 100), B = 2 - A + Math.floor(A / 4);
+  return Math.floor(365.25 * (y + 4716)) + Math.floor(30.6001 * (m + 1)) + d + h / 24 + B - 1524.5;
+}
+function n360(x) { return ((x % 360) + 360) % 360; }
+function sLon(j) {
+  const n = j - 2451545;
+  const L = n360(280.46646 + 0.9856474 * n);
+  const g = n360(357.52911 + 0.9856003 * n) * Math.PI / 180;
+  return n360(L + 1.914602 * Math.sin(g) + 0.019993 * Math.sin(2 * g));
+}
+function mLon(j) {
+  const T = (j - 2451545) / 36525;
+  const L  = n360(218.3165 + 481267.8813 * T);
+  const M  = n360(357.5291 + 35999.0503  * T) * Math.PI / 180;
+  const Mm = n360(134.9634 + 477198.8676 * T) * Math.PI / 180;
+  const F  = n360(93.2721  + 483202.0175 * T) * Math.PI / 180;
+  const D  = n360(297.8502 + 445267.1115 * T) * Math.PI / 180;
+  return n360(L + 6.288*Math.sin(Mm) + 1.274*Math.sin(2*D-Mm)
+               + 0.658*Math.sin(2*D) + 0.214*Math.sin(2*Mm)
+               - 0.186*Math.sin(M)   - 0.114*Math.sin(2*F)
+               + 0.059*Math.sin(2*D-2*Mm));
+}
+const PL_ORB = {
+  Mercury: {L0:252.25032, dm:4.09235555},
+  Venus:   {L0:181.97971, dm:1.60213034},
+  Mars:    {L0:355.45332, dm:0.52402068},
+  Jupiter: {L0: 34.35484, dm:0.08308453},
+  Saturn:  {L0: 50.07742, dm:0.03344395},
+  Uranus:  {L0:314.055,   dm:0.01172834},
+};
+const PLANET_NAMES = ['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus'];
+function plLon(nm, j) {
+  if (nm === 'Sun')  return sLon(j);
+  if (nm === 'Moon') return mLon(j);
+  const p = PL_ORB[nm];
+  return n360(p.L0 + p.dm * (j - 2451545));
+}
+function allPos(j) {
+  const r = {};
+  for (const nm of PLANET_NAMES) r[nm] = plLon(nm, j);
+  return r;
+}
+
+// ─── COMPUTE SCORES ──────────────────────────────────────────────────────────
+function computeScores() {
+  // Fallback: equal scores if no birth info
+  if (!pBirth) return [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5];
+
+  // Parse birth date
+  const [by, bm, bd] = pBirth.split('-').map(Number);
+  const [bh, bmin]   = pTime.split(':').map(Number);
+  const birthH = bh + (bmin || 0) / 60;
+  const bJD = jd(by, bm, bd, birthH);
+  const natalPos = allPos(bJD);
+
+  // Today's positions
+  const now = new Date();
+  const todayJD = jd(now.getFullYear(), now.getMonth()+1, now.getDate(),
+                     now.getUTCHours() + now.getUTCMinutes()/60);
+  const todayPos = allPos(todayJD);
+
+  // Angular separation → score  (0=opposition, 1=conjunction)
+  return PLANET_NAMES.map(nm => {
+    const diff = Math.abs(n360(todayPos[nm] - natalPos[nm]));
+    const angularDiff = Math.min(diff, 360 - diff); // 0–180
+    return Math.max(0, Math.min(1, 1.0 - angularDiff / 180.0));
+  });
+}
+
+const SCORES = computeScores();
+
+// ─── WEBGL2 SETUP ─────────────────────────────────────────────────────────────
+const canvas = document.getElementById('c');
+const gl = canvas.getContext('webgl2', {antialias: false, alpha: false, preserveDrawingBuffer: true});
+if (!gl) {
+  document.body.innerHTML = '<p style="color:#fff;padding:40px;font-family:monospace">WebGL2 is required.</p>';
+  throw new Error('no webgl2');
+}
+
+// ─── SHADERS ─────────────────────────────────────────────────────────────────
+const VS = `#version 300 es
+in vec2 a_pos;
+void main() {
+  gl_Position = vec4(a_pos, 0.0, 1.0);
+}`;
+
+// Stefan Gustavson's 3D simplex noise — permutation-table approach
+const FS = `#version 300 es
+precision highp float;
+
+uniform float u_time;
+uniform vec2  u_resolution;
+uniform float u_scores[8];
+uniform float u_accretion;  // 0.0=Nebula I style ... 1.0=Nebula X style
+uniform float u_drift;      // animation speed multiplier
+uniform float u_timeScaled; // = u_time * 0.006 * u_drift (precomputed CPU-side)
+uniform float u_core;       // 0.0=off ... 1.0=current max brightness
+uniform float u_space;      // 0.0=current ... 1.0=deepest black
+
+out vec4 fragColor;
+
+// ─── Simplex noise (Stefan Gustavson) ────────────────────────────────────────
+vec3 mod289(vec3 x) { return x - floor(x * (1.0/289.0)) * 289.0; }
+vec4 mod289(vec4 x) { return x - floor(x * (1.0/289.0)) * 289.0; }
+vec4 permute(vec4 x) { return mod289(((x*34.0)+1.0)*x); }
+vec4 taylorInvSqrt(vec4 r) { return 1.79284291400159 - 0.85373472095314 * r; }
+
+float snoise(vec3 v) {
+  const vec2 C = vec2(1.0/6.0, 1.0/3.0);
+  const vec4 D = vec4(0.0, 0.5, 1.0, 2.0);
+  vec3 i  = floor(v + dot(v, C.yyy));
+  vec3 x0 = v - i + dot(i, C.xxx);
+  vec3 g  = step(x0.yzx, x0.xyz);
+  vec3 l  = 1.0 - g;
+  vec3 i1 = min(g.xyz, l.zxy);
+  vec3 i2 = max(g.xyz, l.zxy);
+  vec3 x1 = x0 - i1 + C.xxx;
+  vec3 x2 = x0 - i2 + C.yyy;
+  vec3 x3 = x0 - D.yyy;
+  i = mod289(i);
+  vec4 p = permute(permute(permute(
+      i.z + vec4(0.0, i1.z, i2.z, 1.0))
+    + i.y + vec4(0.0, i1.y, i2.y, 1.0))
+    + i.x + vec4(0.0, i1.x, i2.x, 1.0));
+  float n_ = 0.142857142857;
+  vec3 ns = n_ * D.wyz - D.xzx;
+  vec4 j  = p - 49.0 * floor(p * ns.z * ns.z);
+  vec4 x_ = floor(j * ns.z);
+  vec4 y_ = floor(j - 7.0 * x_);
+  vec4 x  = x_ * ns.x + ns.yyyy;
+  vec4 y  = y_ * ns.x + ns.yyyy;
+  vec4 h  = 1.0 - abs(x) - abs(y);
+  vec4 b0 = vec4(x.xy,  y.xy);
+  vec4 b1 = vec4(x.zw,  y.zw);
+  vec4 s0 = floor(b0)*2.0 + 1.0;
+  vec4 s1 = floor(b1)*2.0 + 1.0;
+  vec4 sh = -step(h, vec4(0.0));
+  vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy;
+  vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww;
+  vec3 p0 = vec3(a0.xy, h.x);
+  vec3 p1 = vec3(a0.zw, h.y);
+  vec3 p2 = vec3(a1.xy, h.z);
+  vec3 p3 = vec3(a1.zw, h.w);
+  vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2,p2), dot(p3,p3)));
+  p0 *= norm.x; p1 *= norm.y; p2 *= norm.z; p3 *= norm.w;
+  vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);
+  m = m * m;
+  return 42.0 * dot(m*m, vec4(dot(p0,x0), dot(p1,x1), dot(p2,x2), dot(p3,x3)));
+}
+
+// ─── fBm — 8 octaves ─────────────────────────────────────────────────────────
+float fbm(vec2 p, float seed) {
+  float v = 0.0, a = 0.5, f = 1.0;
+  mat2 R = mat2(0.8, 0.6, -0.6, 0.8);
+  for (int i = 0; i < 8; i++) {
+    v += a * snoise(vec3(p * f, seed + u_timeScaled));
+    p  = R * p;
+    a *= 0.5; f *= 2.07;
+  }
+  return v;
+}
+
+// ─── Double domain warp ──────────────────────────────────────────────────────
+float warpedFbm(vec2 p, float seed) {
+  vec2 q = vec2(fbm(p,                      seed + 0.0),
+                fbm(p + vec2(5.2, 1.3),     seed + 1.7));
+  vec2 r = vec2(fbm(p + 4.0*q + vec2(1.7, 9.2), seed + 3.4),
+                fbm(p + 4.0*q + vec2(8.3, 2.8), seed + 5.1));
+  return fbm(p + 4.5*r, seed + 7.3);
+}
+
+// ─── Main ────────────────────────────────────────────────────────────────────
+void main() {
+  vec2 uv = (gl_FragCoord.xy / u_resolution) * 2.0 - 1.0;
+  uv.x *= u_resolution.x / u_resolution.y;
+
+  // Accretion drives UV scale — wider view = larger cloud structures
+  float uvScale = mix(0.72, 0.28, u_accretion);
+  uv *= uvScale;
+
+  vec3 col[8];
+  col[0] = vec3(1.00, 0.55, 0.05);
+  col[1] = vec3(0.40, 0.65, 1.00);
+  col[2] = vec3(0.00, 0.95, 0.95);
+  col[3] = vec3(1.00, 0.20, 0.60);
+  col[4] = vec3(0.90, 0.10, 0.00);
+  col[5] = vec3(0.10, 0.85, 0.30);
+  col[6] = vec3(0.50, 0.10, 1.00);
+  col[7] = vec3(0.80, 0.00, 1.00);
+
+  float seeds[8];
+  seeds[0] = 0.0; seeds[1] = 17.3; seeds[2] = 34.6; seeds[3] = 51.9;
+  seeds[4] = 69.2; seeds[5] = 86.5; seeds[6] = 103.8; seeds[7] = 121.1;
+
+  // Per-axis spatial offsets — accretion controls how far colors drift apart
+  vec2 axisOffsets[8];
+  axisOffsets[0] = vec2( 0.00,  0.00);
+  axisOffsets[1] = vec2( 1.70,  0.65);
+  axisOffsets[2] = vec2(-1.30,  1.10);
+  axisOffsets[3] = vec2( 0.55, -1.50);
+  axisOffsets[4] = vec2(-0.75, -1.20);
+  axisOffsets[5] = vec2( 1.45, -0.45);
+  axisOffsets[6] = vec2(-1.55,  0.25);
+  axisOffsets[7] = vec2( 0.35,  1.65);
+
+  // Accretion-interpolated shader parameters
+  float offsetStrength = mix(0.00, 3.20, u_accretion);
+  float axisScale      = mix(0.55, 0.44, u_accretion);
+  float threshold      = mix(0.10, 0.40, u_accretion);
+  float expo           = mix(1.50, 5.50, u_accretion);
+  float scoreAmp       = mix(2.50, 9.00, u_accretion);
+
+  float envelope = 1.0;
+  vec3 nebulaColor = vec3(0.0, 0.0, mix(0.01, 0.002, u_accretion));
+
+  for (int i = 0; i < 8; i++) {
+    float score = u_scores[i];
+    if (score < 0.02) continue;
+    vec2 axisUv = (uv + axisOffsets[i] * offsetStrength) * axisScale;
+    float axisField = warpedFbm(axisUv, seeds[i]);
+    axisField = axisField * 0.5 + 0.5;
+    axisField = pow(max(0.0, axisField - threshold), expo);
+    axisField *= score * scoreAmp;
+    nebulaColor += axisField * col[i];
+  }
+
+  // ── Bright core — hottest part of the nebula (center) ────────────────────
+  float coreDist = length(uv);
+  float core = exp(-coreDist * coreDist / (0.18 * 0.18));
+  float coreFbm = warpedFbm(uv * 1.5, 200.0) * 0.5 + 0.5;
+  core *= coreFbm * 1.5;
+
+  // core color = average of all axis colors weighted by score
+  vec3 coreColor = vec3(0.0);
+  float totalScore = 0.0;
+  for (int i = 0; i < 8; i++) { coreColor += col[i] * u_scores[i]; totalScore += u_scores[i]; }
+  if (totalScore > 0.0) coreColor /= totalScore;
+  nebulaColor += core * (coreColor * 0.4 + vec3(0.7, 0.65, 0.6)) * 0.8 * u_core;
+
+  // Filaments — more pronounced as accretion increases
+  float filFreq = mix(2.0, 3.2, u_accretion);
+  float filament = abs(warpedFbm(uv * filFreq, 300.0));
+  float filThresh = mix(0.18, 0.12, u_accretion);
+  filament = (1.0 - smoothstep(0.0, filThresh, filament)) * mix(0.25, 0.42, u_accretion);
+  nebulaColor += filament * mix(coreColor, vec3(0.8, 0.9, 1.0), 0.4);
+
+  float filament2 = abs(warpedFbm(uv * 4.2, 450.0));
+  filament2 = (1.0 - smoothstep(0.0, 0.10, filament2)) * 0.15 * u_accretion;
+  nebulaColor += filament2 * mix(coreColor, vec3(1.0, 0.95, 0.9), 0.4);
+
+  // ── Dark dust lanes ───────────────────────────────────────────────────────
+  float dust = warpedFbm(uv * 1.1 + vec2(4.7, 2.3), 400.0);
+  dust = smoothstep(0.5, 0.72, dust) * envelope * 0.65;
+  nebulaColor *= 1.0 - dust;
+
+  // ── Tone mapping ──────────────────────────────────────────────────────────
+  float lum = dot(nebulaColor, vec3(0.2126, 0.7152, 0.0722));
+  nebulaColor = nebulaColor / (1.0 + lum * 0.6);
+  // Space depth: u_space=0 → current gamma 0.88; u_space=1 → gamma 1.55 (deep blacks)
+  float gamma = mix(0.88, 1.55, u_space);
+  nebulaColor = pow(max(nebulaColor, vec3(0.0)), vec3(gamma));
+
+  // ── Stars — very sparse ───────────────────────────────────────────────────
+  vec2 sid = floor(uv * 200.0);
+  vec2 slc = fract(uv * 200.0) - 0.5;
+  float sh = fract(sin(dot(sid, vec2(127.1, 311.7))) * 43758.5453);
+  if (sh > 0.997) {
+    float sb = fract(sin(dot(sid, vec2(269.5, 183.3))) * 17375.32);
+    float sr = length(slc);
+    float starBright = exp(-sr * 90.0) * sb * 2.0;
+    starBright += exp(-abs(slc.x)*180.0)*exp(-sr*6.0)*sb*0.5;
+    starBright += exp(-abs(slc.y)*180.0)*exp(-sr*6.0)*sb*0.5;
+    nebulaColor += starBright * vec3(1.0, 0.97, 0.9);
+  }
+
+  fragColor = vec4(nebulaColor, 1.0);
+}`;
+
+// ─── COMPILE & LINK ──────────────────────────────────────────────────────────
+function compileShader(type, src) {
+  const s = gl.createShader(type);
+  gl.shaderSource(s, src);
+  gl.compileShader(s);
+  if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
+    console.error(gl.getShaderInfoLog(s));
+    throw new Error('shader compile failed');
+  }
+  return s;
+}
+const prog = gl.createProgram();
+gl.attachShader(prog, compileShader(gl.VERTEX_SHADER,   VS));
+gl.attachShader(prog, compileShader(gl.FRAGMENT_SHADER, FS));
+gl.linkProgram(prog);
+if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
+  console.error(gl.getProgramInfoLog(prog));
+  throw new Error('program link failed');
+}
+gl.useProgram(prog);
+
+// ─── FULL-SCREEN QUAD ────────────────────────────────────────────────────────
+const vbo = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+  -1,-1,  1,-1,  -1,1,
+  -1, 1,  1,-1,   1,1,
+]), gl.STATIC_DRAW);
+const aPos = gl.getAttribLocation(prog, 'a_pos');
+gl.enableVertexAttribArray(aPos);
+gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
+
+// ─── UNIFORMS ────────────────────────────────────────────────────────────────
+const uTime       = gl.getUniformLocation(prog, 'u_time');
+const uResolution = gl.getUniformLocation(prog, 'u_resolution');
+const uScores     = gl.getUniformLocation(prog, 'u_scores[0]');
+const uAccretion  = gl.getUniformLocation(prog, 'u_accretion');
+const uDrift      = gl.getUniformLocation(prog, 'u_drift');
+const uTimeScaled = gl.getUniformLocation(prog, 'u_timeScaled');
+const uCore       = gl.getUniformLocation(prog, 'u_core');
+const uSpace      = gl.getUniformLocation(prog, 'u_space');
+
+// Upload scores (static — they don't change per frame)
+gl.uniform1fv(uScores, new Float32Array(SCORES));
+
+// ─── LIVE CONTROLS STATE ─────────────────────────────────────────────────────
+let liveAccretion = 0.0;
+let liveDrift     = 1.0;
+let liveCore      = 1.0;  // 1.0 = current max
+let liveSpace     = 0.0;  // 0.0 = current feel
+
+// ─── RESIZE ──────────────────────────────────────────────────────────────────
+function resize() {
+  // Render at 65% of screen — CSS upscales smoothly; nebula is naturally soft
+  const PX = 0.65;
+  const w  = Math.floor(window.innerWidth  * PX);
+  const h  = Math.floor(window.innerHeight * PX);
+  canvas.width  = w;
+  canvas.height = h;
+  gl.viewport(0, 0, w, h);
+  gl.uniform2f(uResolution, w, h);
+}
+window.addEventListener('resize', resize);
+resize();
+
+// ─── RENDER LOOP ─────────────────────────────────────────────────────────────
+const FRAME_MS = 1000 / 30; // cap at 30fps — nebula moves imperceptibly slow
+let _lastFrame = 0;
+let _rafId = 0;
+
+function render(timestamp) {
+  _rafId = requestAnimationFrame(render);
+  if (timestamp - _lastFrame < FRAME_MS) return;
+  _lastFrame = timestamp;
+  gl.uniform1f(uTime, timestamp * 0.001);
+  gl.uniform1f(uAccretion, liveAccretion);
+  gl.uniform1f(uDrift, liveDrift);
+  gl.uniform1f(uTimeScaled, timestamp * 0.001 * 0.006 * liveDrift);
+  gl.uniform1f(uCore,  liveCore);
+  gl.uniform1f(uSpace, liveSpace);
+  gl.drawArrays(gl.TRIANGLES, 0, 6);
+}
+
+// Pause when tab is backgrounded
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    cancelAnimationFrame(_rafId);
+  } else {
+    _lastFrame = 0;
+    _rafId = requestAnimationFrame(render);
+  }
+});
+
+_rafId = requestAnimationFrame(render);
+
+// ─── CANVAS CAPTURE + SUPABASE SAVE ──────────────────────────────────────────
+// Only save when loaded as a real page, not embedded as an iframe background
+if (window.self === window.top) {
+  setTimeout(trySaveNebula, 3500);
+}
+
+// ─── LIVE CONTROLS FUNCTIONS ──────────────────────────────────────────────────
+function setAccretion(val) {
+  liveAccretion = parseInt(val) / 255;
+  const pct = (liveAccretion * 100).toFixed(1) + '%';
+  const el = document.getElementById('lc-accretion-val');
+  if (el) el.textContent = val;
+  const tr = document.getElementById('lc-accretion');
+  if (tr) tr.style.setProperty('--pct', pct);
+}
+function setDrift(val) {
+  // Log curve: 0=nearly still, 255=fast
+  liveDrift = 0.02 + Math.pow(parseInt(val) / 255, 1.8) * 4.0;
+  const el = document.getElementById('lc-drift-val');
+  if (el) el.textContent = val;
+  const pct = (parseInt(val) / 255 * 100).toFixed(1) + '%';
+  const tr = document.getElementById('lc-drift');
+  if (tr) tr.style.setProperty('--pct', pct);
+}
+function setCore(val) {
+  liveCore = parseInt(val) / 255;
+  const el = document.getElementById('lc-core-val');
+  if (el) el.textContent = val;
+}
+function setSpace(val) {
+  liveSpace = parseInt(val) / 255;
+  const el = document.getElementById('lc-space-val');
+  if (el) el.textContent = val;
+}
+function toggleLiveControls() {
+  const panel   = document.getElementById('lc-panel');
+  const arrow   = document.getElementById('lc-arrow');
+  const overlay = document.getElementById('share-overlay');
+  const open    = panel.style.display !== 'none';
+  panel.style.display = open ? 'none' : 'block';
+  if (arrow) arrow.textContent = open ? '▼' : '▲';
+  // Hide blur overlay while live controls are open so you can see changes
+  if (overlay) overlay.style.display = open ? 'block' : 'none';
+}
+
+// ─── SHARE MENU FUNCTIONS ─────────────────────────────────────────────────────
+// ─── MENU SETUP ───────────────────────────────────────────────────────────────
+(function(){
+  const AXIS_NAMES    = ['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus'];
+  const AXIS_DOMAINS  = ['Vitality','Intuition','Mind','Love','Drive','Abundance','Structure','Awakening'];
+  const AXIS_ENERGIES = [
+    'Solar energy is strong','The Moon is amplified','Mental clarity is elevated',
+    'Venus is well-lit','Drive and will are activated','Abundance flows easily',
+    'Structure and discipline are sharpened','Unexpected currents are live'
+  ];
+
+  // Build heuristic from SCORES
+  function buildHeuristic(scores) {
+    // Rank axes by score
+    const ranked = scores.map((s,i) => ({i, s})).sort((a,b) => b.s - a.s);
+    const top = ranked[0], second = ranked[1];
+    const low = ranked[ranked.length - 1];
+
+    const topPct = Math.round(top.s * 100);
+    const t1 = AXIS_ENERGIES[top.i];
+    const d1 = AXIS_DOMAINS[top.i];
+    const d2 = AXIS_DOMAINS[second.i];
+    const dLow = AXIS_DOMAINS[low.i];
+
+    if (topPct >= 70) {
+      return `${t1} in your chart today — ${d1} and ${d2} are the brightest channels. ${dLow} is quieter; conserve that energy rather than push against it.`;
+    } else if (topPct >= 45) {
+      return `${d1} and ${d2} are the most active currents today. The sky is balanced — a steady day where deliberate effort compounds.`;
+    } else {
+      return `The sky is subdued across your chart today. ${dLow} carries the most friction. A good day for reflection over action — the nebula shows you where stillness lives.`;
+    }
+  }
+
+  // Pre-compute values before DOM ready
+  const _q = location.search;
+  const _heuristic = buildHeuristic(SCORES);
+
+  // Build identity card values
+  const _name = pName || 'Unknown';
+  let _birthStr = '—';
+  if (pBirth) {
+    const [by, bm, bd] = pBirth.split('-').map(Number);
+    const bLabel = new Date(by, bm-1, bd).toLocaleDateString('en-US', {year:'numeric', month:'long', day:'numeric'});
+    const tStr = pTime ? ' · ' + pTime : '';
+    const city = P.get('city') ? ' · ' + P.get('city') : '';
+    _birthStr = bLabel + tStr + city;
+  }
+  const _today = new Date().toLocaleDateString('en-US', {weekday:'short', month:'long', day:'numeric', year:'numeric'});
+
+  document.addEventListener('DOMContentLoaded', function() {
+    // Reading link
+    const rl = document.getElementById('menu-reading-link');
+    if (rl) rl.href = '/transit/nebula-i/reading.html' + _q;
+    // Heuristic
+    const hEl = document.getElementById('menu-heuristic');
+    if (hEl) hEl.textContent = _heuristic;
+    // Identity card
+    const nameEl = document.getElementById('menu-name');
+    if (nameEl) nameEl.textContent = _name;
+    const birthEl = document.getElementById('menu-birth');
+    if (birthEl) birthEl.textContent = _birthStr;
+    const todayEl = document.getElementById('menu-today');
+    if (todayEl) todayEl.textContent = _today;
+    // Initialise from URL params
+    setAccretion(pAccretion);
+    setDrift(pDrift);
+    const _acEl = document.getElementById('lc-accretion');
+    const _drEl = document.getElementById('lc-drift');
+    if (_acEl) _acEl.value = pAccretion;
+    if (_drEl) _drEl.value = pDrift;
+  });
+})();
+
+
+// ─── SAVE CURRENT LOOK ───────────────────────────────────────────────────────
+async function saveCurrentLook() {
+  const statusEl = document.getElementById('save-look-status');
+  const existingId = localStorage.getItem('transit_last_id');
+  if (statusEl) { statusEl.textContent = ''; statusEl.style.color = ''; }
+
+  let thumbnail = null;
+  try {
+    const cvs = document.querySelector('canvas');
+    const off = document.createElement('canvas');
+    off.width = 400; off.height = 267;
+    off.getContext('2d').drawImage(cvs, 0, 0, 400, 267);
+    thumbnail = off.toDataURL('image/jpeg', 0.75);
+  } catch(e) { console.warn('Thumbnail failed:', e); }
+
+  const accretionVal = Math.round(liveAccretion * 255);
+  const driftEl = document.getElementById('lc-drift');
+  const driftVal = driftEl ? parseInt(driftEl.value) : pDrift;
+  const updatedParams = new URLSearchParams(location.search);
+  updatedParams.set('accretion', accretionVal);
+  updatedParams.set('drift', driftVal);
+  const shareUrl = location.origin + '/transit/nebula-i/nebula.html?' + updatedParams.toString();
+
+  if (existingId) {
+    if (statusEl) statusEl.textContent = 'Saving...';
+    try {
+      const res = await fetch(SUPABASE_URL + '/rest/v1/nebulas?id=eq.' + existingId, {
+        method: 'PATCH',
+        headers: {
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=representation'
+        },
+        body: JSON.stringify({ thumbnail, share_url: shareUrl })
+      });
+      if (res.ok) {
+        if (statusEl) {
+          statusEl.style.color = 'rgba(80,255,140,0.75)';
+          statusEl.textContent = 'Saved ✓';
+          setTimeout(() => { statusEl.textContent = ''; statusEl.style.color = ''; }, 3500);
+        }
+      } else {
+        if (statusEl) { statusEl.style.color = 'rgba(255,90,90,0.75)'; statusEl.textContent = 'Save failed — try again'; }
+      }
+    } catch(e) {
+      if (statusEl) { statusEl.style.color = 'rgba(255,90,90,0.75)'; statusEl.textContent = 'Connection error'; }
+    }
+  } else {
+    if (statusEl) { statusEl.style.color = 'rgba(180,130,255,0.7)'; statusEl.textContent = 'Create your nebula first →'; }
+    setTimeout(() => { window.open('/transit/nebula-i/create.html?' + updatedParams.toString(), '_blank'); }, 700);
+  }
+}
+// ─────────────────────────────────────────────────────────────────────────────
+function toggleShareMenu() {
+  const menu = document.getElementById('share-menu');
+  const overlay = document.getElementById('share-overlay');
+  const isOpen = menu.style.transform === 'translateX(0%)';
+  menu.style.transform = isOpen ? 'translateX(100%)' : 'translateX(0%)';
+  overlay.style.display = isOpen ? 'none' : 'block';
+}
+function copyShareLink() {
+  navigator.clipboard.writeText(window.location.href).then(() => {
+    const btn = document.getElementById('copy-btn');
+    btn.textContent = 'Copied! ✓';
+    setTimeout(() => btn.textContent = 'Copy link ↗', 2000);
+  });
+}
+</script>
+<script>
+(function(){
+  var params = new URLSearchParams(window.location.search);
+  if (!params.get('birth')) {
+    var btn = document.createElement('a');
+    btn.href = window.location.pathname + '?name=Angelo&birth=1987-07-01&time=13:14&lat=33.4484&lon=-112.0740';
+    btn.textContent = 'SKIP → USE DEMO CHART';
+    btn.style.cssText = 'position:fixed;bottom:20px;right:20px;font-family:"Courier New",monospace;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.35);text-decoration:none;border:1px solid rgba(255,255,255,0.12);padding:6px 12px;background:rgba(0,0,0,0.5);z-index:999;transition:color 0.2s;';
+    btn.onmouseenter = function(){ btn.style.color='rgba(255,255,255,0.8)'; };
+    btn.onmouseleave = function(){ btn.style.color='rgba(255,255,255,0.35)'; };
+    document.body.appendChild(btn);
+  }
+})();
+</script>
+<!-- ── SHARE BUTTON ─────────────────────────────────────────────────────── -->
+<!-- Hide menu button entirely when embedded in an iframe -->
+<script>if(window.self!==window.top)document.write('<style>#menu-btn,#share-menu,#share-overlay{display:none!important}</style>');</script>
+
+<div id="menu-btn" onclick="toggleShareMenu()" style="
+  position:fixed; top:16px; right:18px; z-index:100;
+  font-family:'Courier New',monospace; font-size:0.58rem;
+  letter-spacing:0.14em; text-transform:uppercase;
+  color:rgba(255,255,255,0.6); cursor:pointer;
+  transition:all 0.2s; user-select:none;
+  background:rgba(0,0,0,0.45); backdrop-filter:blur(8px);
+  border:1px solid rgba(255,255,255,0.12);
+  padding:6px 12px; border-radius:2px;
+  " onmouseenter="this.style.color='rgba(255,255,255,0.95)';this.style.background='rgba(0,0,0,0.65)'"
+    onmouseleave="this.style.color='rgba(255,255,255,0.6)';this.style.background='rgba(0,0,0,0.45)'">
+  menu
+</div>
+
+<!-- ── MENU ──────────────────────────────────────────────────────────── -->
+<div id="share-menu" style="
+  position:fixed; top:0; right:0; width:280px; height:100vh; z-index:200;
+  background:rgba(6,4,14,0.96); backdrop-filter:blur(20px);
+  transform:translateX(100%); transition:transform 0.3s cubic-bezier(0.4,0,0.2,1);
+  display:flex; flex-direction:column; padding:48px 28px; gap:0;
+  border-left:1px solid rgba(255,255,255,0.06); overflow-y:auto;
+  ">
+  <div onclick="toggleShareMenu()" style="position:absolute;top:18px;right:20px;font-family:'Courier New',monospace;font-size:0.58rem;letter-spacing:0.12em;color:rgba(255,255,255,0.3);cursor:pointer;">✕ close</div>
+  <div style="font-family:'Courier New',monospace;font-size:0.52rem;letter-spacing:0.2em;color:rgba(255,255,255,0.2);text-transform:uppercase;margin-bottom:16px;">Transit Nebula I</div>
+
+  <!-- ── Identity card ──────────────────────────────────────────── -->
+  <div id="menu-identity" style="margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid rgba(255,255,255,0.07);">
+    <div id="menu-name" style="font-size:0.95rem;color:rgba(255,255,255,0.85);margin-bottom:8px;letter-spacing:0.01em;"></div>
+    <div style="display:flex;flex-direction:column;gap:0;">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
+        <span style="font-family:'Courier New',monospace;font-size:0.5rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.22);">This nebula</span>
+        <span id="menu-birth" style="font-size:0.68rem;color:rgba(180,130,255,0.75);text-align:right;"></span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline;padding:5px 0;">
+        <span style="font-family:'Courier New',monospace;font-size:0.5rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.22);">Today's reading</span>
+        <span id="menu-today" style="font-size:0.68rem;color:rgba(255,255,255,0.55);text-align:right;"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Reading heuristic ───────────────────────────────────────── -->
+  <div style="margin-bottom:28px;padding-bottom:28px;border-bottom:1px solid rgba(255,255,255,0.07);">
+    <div style="font-family:'Courier New',monospace;font-size:0.52rem;letter-spacing:0.16em;color:rgba(180,130,255,0.55);text-transform:uppercase;margin-bottom:10px;">Today's energy</div>
+    <p id="menu-heuristic" style="font-size:0.78rem;line-height:1.7;color:rgba(210,195,255,0.65);margin-bottom:16px;font-style:italic;"></p>
+    <a id="menu-reading-link" href="/transit/nebula-i/reading.html" style="
+      display:block;font-family:'Courier New',monospace;font-size:0.62rem;
+      letter-spacing:0.1em;text-transform:uppercase;
+      color:rgba(180,130,255,0.9);text-decoration:none;
+      border:1px solid rgba(180,130,255,0.3);padding:10px 14px;
+      transition:all 0.2s;background:rgba(80,20,160,0.15);
+      " onmouseenter="this.style.color='#fff';this.style.background='rgba(100,40,200,0.3)';this.style.borderColor='rgba(180,130,255,0.6)'"
+        onmouseleave="this.style.color='rgba(180,130,255,0.9)';this.style.background='rgba(80,20,160,0.15)';this.style.borderColor='rgba(180,130,255,0.3)'">
+      View Today's Reading →
+    </a>
+  </div>
+
+  <!-- ── Live Controls ──────────────────────────────────────────── -->
+  <div style="margin-bottom:24px;padding-bottom:24px;border-bottom:1px solid rgba(255,255,255,0.07);">
+    <div id="lc-toggle" onclick="toggleLiveControls()" style="
+      display:flex;justify-content:space-between;align-items:center;
+      font-family:'Courier New',monospace;font-size:0.62rem;letter-spacing:0.1em;
+      text-transform:uppercase;color:rgba(255,255,255,0.45);cursor:pointer;
+      padding:10px 14px;border:1px solid rgba(255,255,255,0.1);
+      transition:all 0.2s;user-select:none;background:rgba(255,255,255,0.025);
+      " onmouseenter="this.style.color='rgba(255,255,255,0.85)';this.style.borderColor='rgba(255,255,255,0.3)'"
+        onmouseleave="this.style.color='rgba(255,255,255,0.45)';this.style.borderColor='rgba(255,255,255,0.1)'">
+      <span>Live Controls</span>
+      <span id="lc-arrow">▼</span>
+    </div>
+    <div id="lc-panel" style="display:none;padding:16px 0 0;">
+      <!-- ACCRETION -->
+      <div style="margin-bottom:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px;">
+          <span style="font-family:'Courier New',monospace;font-size:0.52rem;letter-spacing:0.16em;text-transform:uppercase;color:rgba(180,130,255,0.7);">Accretion</span>
+          <span id="lc-accretion-val" style="font-family:'Courier New',monospace;font-size:0.52rem;color:rgba(255,255,255,0.3);">103</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-family:'Courier New',monospace;font-size:0.44rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.2);white-space:nowrap;">Nebula I</span>
+          <input type="range" id="lc-accretion" min="0" max="255" value="103"
+            style="flex:1;height:2px;-webkit-appearance:none;appearance:none;background:rgba(255,255,255,0.1);outline:none;cursor:pointer;accent-color:rgba(180,130,255,0.9);"
+            oninput="setAccretion(this.value)">
+          <span style="font-family:'Courier New',monospace;font-size:0.44rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(180,130,255,0.45);white-space:nowrap;">Nebula X</span>
+        </div>
+      </div>
+      <!-- DRIFT -->
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px;">
+          <span style="font-family:'Courier New',monospace;font-size:0.52rem;letter-spacing:0.16em;text-transform:uppercase;color:rgba(180,130,255,0.7);">Drift</span>
+          <span id="lc-drift-val" style="font-family:'Courier New',monospace;font-size:0.52rem;color:rgba(255,255,255,0.3);">77</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-family:'Courier New',monospace;font-size:0.44rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.2);white-space:nowrap;">Still</span>
+          <input type="range" id="lc-drift" min="0" max="255" value="77"
+            style="flex:1;height:2px;-webkit-appearance:none;appearance:none;background:rgba(255,255,255,0.1);outline:none;cursor:pointer;accent-color:rgba(180,130,255,0.9);"
+            oninput="setDrift(this.value)">
+          <span style="font-family:'Courier New',monospace;font-size:0.44rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(180,130,255,0.45);white-space:nowrap;">Fast</span>
+        </div>
+      </div>
+      <!-- CORE -->
+      <div style="margin-top:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px;">
+          <span style="font-family:'Courier New',monospace;font-size:0.52rem;letter-spacing:0.16em;text-transform:uppercase;color:rgba(180,130,255,0.7);">Core Light</span>
+          <span id="lc-core-val" style="font-family:'Courier New',monospace;font-size:0.52rem;color:rgba(255,255,255,0.3);">255</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-family:'Courier New',monospace;font-size:0.44rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.2);white-space:nowrap;">Off</span>
+          <input type="range" id="lc-core" min="0" max="255" value="255"
+            style="flex:1;height:2px;-webkit-appearance:none;appearance:none;background:rgba(255,255,255,0.1);outline:none;cursor:pointer;accent-color:rgba(180,130,255,0.9);"
+            oninput="setCore(this.value)">
+          <span style="font-family:'Courier New',monospace;font-size:0.44rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(180,130,255,0.45);white-space:nowrap;">Max</span>
+        </div>
+      </div>
+      <!-- SPACE -->
+      <div style="margin-top:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px;">
+          <span style="font-family:'Courier New',monospace;font-size:0.52rem;letter-spacing:0.16em;text-transform:uppercase;color:rgba(180,130,255,0.7);">Space</span>
+          <span id="lc-space-val" style="font-family:'Courier New',monospace;font-size:0.52rem;color:rgba(255,255,255,0.3);">0</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-family:'Courier New',monospace;font-size:0.44rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.2);white-space:nowrap;">Diffuse</span>
+          <input type="range" id="lc-space" min="0" max="255" value="0"
+            style="flex:1;height:2px;-webkit-appearance:none;appearance:none;background:rgba(255,255,255,0.1);outline:none;cursor:pointer;accent-color:rgba(180,130,255,0.9);"
+            oninput="setSpace(this.value)">
+          <span style="font-family:'Courier New',monospace;font-size:0.44rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(180,130,255,0.45);white-space:nowrap;">Deep</span>
+        </div>
+      </div>
+      <!-- SAVE CURRENT LOOK -->
+      <div style="margin-top:18px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.06);">
+        <button onclick="saveCurrentLook()" style="width:100%;padding:10px 14px;background:rgba(80,20,160,0.22);border:1px solid rgba(180,130,255,0.32);color:rgba(180,130,255,0.88);font-family:'Courier New',monospace;font-size:0.58rem;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;transition:all 0.25s;" onmouseenter="this.style.background='rgba(100,40,200,0.38)';this.style.borderColor='rgba(180,130,255,0.65)';this.style.color='#fff'" onmouseleave="this.style.background='rgba(80,20,160,0.22)';this.style.borderColor='rgba(180,130,255,0.32)';this.style.color='rgba(180,130,255,0.88)'">Save Current Look →</button>
+        <div id="save-look-status" style="margin-top:7px;font-family:'Courier New',monospace;font-size:0.48rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.25);text-align:center;min-height:12px;transition:color 0.3s;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Share link ──────────────────────────────────────────────── -->
+  <div style="margin-bottom:24px;">
+    <button onclick="copyShareLink()" id="copy-btn" style="
+      background:none;border:1px solid rgba(255,255,255,0.12);
+      color:rgba(255,255,255,0.5);font-family:'Courier New',monospace;
+      font-size:0.6rem;letter-spacing:0.08em;padding:9px 14px;
+      cursor:pointer;width:100%;text-align:left;transition:all 0.2s;
+      ">Copy link ↗</button>
+  </div>
+
+  <!-- ── Nav links ───────────────────────────────────────────────── -->
+  <div style="display:flex;flex-direction:column;gap:3px;">
+    <a href="/transit/" style="font-family:'Courier New',monospace;font-size:0.62rem;letter-spacing:0.06em;color:rgba(255,255,255,0.4);text-decoration:none;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.05);transition:color 0.2s;" onmouseenter="this.style.color='rgba(255,255,255,0.85)'" onmouseleave="this.style.color='rgba(255,255,255,0.4)'">Transit Nebula I →</a>
+    <a href="/transit/nebula-i/browse.html" style="font-family:'Courier New',monospace;font-size:0.62rem;letter-spacing:0.06em;color:rgba(255,255,255,0.4);text-decoration:none;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.05);transition:color 0.2s;" onmouseenter="this.style.color='rgba(255,255,255,0.85)'" onmouseleave="this.style.color='rgba(255,255,255,0.4)'">Browse →</a>
+    <a href="/transit/nebula-i/create.html" style="font-family:'Courier New',monospace;font-size:0.62rem;letter-spacing:0.06em;color:rgba(255,255,255,0.4);text-decoration:none;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.05);transition:color 0.2s;" onmouseenter="this.style.color='rgba(255,255,255,0.85)'" onmouseleave="this.style.color='rgba(255,255,255,0.4)'">Make Your Nebula →</a>
+    <a href="/transit/nebula-i/about.html" style="font-family:'Courier New',monospace;font-size:0.62rem;letter-spacing:0.06em;color:rgba(255,255,255,0.4);text-decoration:none;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.05);transition:color 0.2s;" onmouseenter="this.style.color='rgba(255,255,255,0.85)'" onmouseleave="this.style.color='rgba(255,255,255,0.4)'">About →</a>
+    <a href="/transit/nebula-i/method.html" style="font-family:'Courier New',monospace;font-size:0.62rem;letter-spacing:0.06em;color:rgba(255,255,255,0.4);text-decoration:none;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.05);transition:color 0.2s;" onmouseenter="this.style.color='rgba(255,255,255,0.85)'" onmouseleave="this.style.color='rgba(255,255,255,0.4)'">Astrological Method →</a>
+    <a href="/" style="font-family:'Courier New',monospace;font-size:0.62rem;letter-spacing:0.06em;color:rgba(255,255,255,0.25);text-decoration:none;padding:9px 0;transition:color 0.2s;" onmouseenter="this.style.color='rgba(255,255,255,0.65)'" onmouseleave="this.style.color='rgba(255,255,255,0.25)'">← All Works</a>
+  </div>
+</div>
+
+<div id="share-overlay" onclick="toggleShareMenu()" style="display:none;position:fixed;inset:0;z-index:150;background:rgba(0,0,0,0.4);backdrop-filter:blur(2px);"></div>
+
+</body>
+</html>

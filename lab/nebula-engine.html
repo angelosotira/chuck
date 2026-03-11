@@ -459,7 +459,7 @@ gl.uniform1fv(uScores, new Float32Array(SCORES));
 // ─── LIVE CONTROLS STATE ─────────────────────────────────────────────────────
 let liveAccretion = 0.0;
 let liveDrift     = 1.0;
-let liveCore      = 1.0;  // 1.0 = current max
+let liveCore      = 0.0;  // 0.0 = off (default)
 let liveSpace     = 0.0;  // 0.0 = current feel
 let liveBlack     = 0.0;  // 0.0 = none, 1.0 = full nebulaic black
 
@@ -487,10 +487,25 @@ const FRAME_MS = 1000 / 30; // cap at 30fps — nebula moves imperceptibly slow
 let _lastFrame = 0;
 let _rafId = 0;
 
+// ─── FPS COUNTER ─────────────────────────────────────────────────────────────
+let _fpsFrames = 0;
+let _fpsLastSample = 0;
+const _fpsEl = document.getElementById('fps-counter');
+
 function render(timestamp) {
   _rafId = requestAnimationFrame(render);
   if (timestamp - _lastFrame < FRAME_MS) return;
   _lastFrame = timestamp;
+
+  // FPS: count drawn frames, sample every second
+  _fpsFrames++;
+  if (timestamp - _fpsLastSample >= 1000) {
+    const fps = Math.round(_fpsFrames * 1000 / (timestamp - _fpsLastSample));
+    if (_fpsEl) _fpsEl.textContent = fps + ' fps  ' + canvas.width + '×' + canvas.height;
+    _fpsFrames = 0;
+    _fpsLastSample = timestamp;
+  }
+
   gl.uniform1f(uTime, timestamp * 0.001);
   gl.uniform1f(uAccretion, liveAccretion);
   gl.uniform1f(uDrift, liveDrift);
@@ -826,11 +841,11 @@ function copyShareLink() {
       <div style="margin-top:14px;">
         <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px;">
           <span style="font-family:'Courier New',monospace;font-size:0.52rem;letter-spacing:0.16em;text-transform:uppercase;color:rgba(180,130,255,0.7);">Core Light</span>
-          <span id="lc-core-val" style="font-family:'Courier New',monospace;font-size:0.52rem;color:rgba(255,255,255,0.3);">255</span>
+          <span id="lc-core-val" style="font-family:'Courier New',monospace;font-size:0.52rem;color:rgba(255,255,255,0.3);">0</span>
         </div>
         <div style="display:flex;align-items:center;gap:8px;">
           <span style="font-family:'Courier New',monospace;font-size:0.44rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.2);white-space:nowrap;">Off</span>
-          <input type="range" id="lc-core" min="0" max="255" value="255"
+          <input type="range" id="lc-core" min="0" max="255" value="0"
             style="flex:1;height:2px;-webkit-appearance:none;appearance:none;background:rgba(255,255,255,0.1);outline:none;cursor:pointer;accent-color:rgba(180,130,255,0.9);"
             oninput="setCore(this.value)">
           <span style="font-family:'Courier New',monospace;font-size:0.44rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(180,130,255,0.45);white-space:nowrap;">Max</span>
@@ -895,5 +910,11 @@ function copyShareLink() {
 
 <div id="share-overlay" onclick="toggleShareMenu()" style="display:none;position:fixed;inset:0;z-index:150;background:rgba(0,0,0,0.4);backdrop-filter:blur(2px);"></div>
 
+<div id="fps-counter" style="
+  position:fixed;bottom:12px;left:14px;z-index:9999;
+  font-family:'Courier New',monospace;font-size:0.62rem;
+  color:rgba(255,255,255,0.35);letter-spacing:0.04em;
+  pointer-events:none;user-select:none;
+">-- fps</div>
 </body>
 </html>

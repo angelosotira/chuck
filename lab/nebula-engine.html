@@ -461,7 +461,8 @@ let liveAccretion = 75 / 255;
 let liveDrift     = 1.0;
 let liveCore      = 0.0;  // 0.0 = off (default)
 let liveSpace     = 0.0;  // 0.0 = current feel
-let liveBlack     = 0.0;  // 0.0 = none, 1.0 = full nebulaic black
+let liveBlack        = 0.0;  // 0.0 = none, 1.0 = full nebulaic black
+let liveRenderScale  = 0.5;  // render buffer scale relative to DPR (lab-only)
 
 // ─── RESIZE ──────────────────────────────────────────────────────────────────
 function resize() {
@@ -469,9 +470,8 @@ function resize() {
   // 0.5 = 4x perf boost, perceptually soft — good for nebula
   // 0.75 = 2x perf boost, sharper stars
   // 1.0 = full quality baseline
-  const renderScale = 0.5;
-  const w = Math.floor(window.innerWidth  * DPR * renderScale);
-  const h = Math.floor(window.innerHeight * DPR * renderScale);
+  const w = Math.floor(window.innerWidth  * DPR * liveRenderScale);
+  const h = Math.floor(window.innerHeight * DPR * liveRenderScale);
   canvas.width  = w;
   canvas.height = h;
   canvas.style.width  = window.innerWidth  + 'px';
@@ -564,6 +564,14 @@ function setSpace(val) {
   const el = document.getElementById('lc-space-val');
   if (el) el.textContent = val;
 }
+function setResolution(val) {
+  // slider 25–150 → renderScale 0.25×–1.50×
+  liveRenderScale = parseInt(val) / 100;
+  const el = document.getElementById('lc-res-val');
+  if (el) el.textContent = liveRenderScale.toFixed(2) + '×';
+  resize(); // immediately re-render at new buffer size
+}
+
 function setBlack(val) {
   liveBlack = parseInt(val) / 255;
   const el = document.getElementById('lc-black-val');
@@ -881,6 +889,21 @@ function copyShareLink() {
           <span style="font-family:'Courier New',monospace;font-size:0.44rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(180,130,255,0.45);white-space:nowrap;">Full</span>
         </div>
       </div>
+      <!-- RESOLUTION (lab only) -->
+      <div style="margin-top:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px;">
+          <span style="font-family:'Courier New',monospace;font-size:0.52rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.25);">Resolution</span>
+          <span id="lc-res-val" style="font-family:'Courier New',monospace;font-size:0.52rem;color:rgba(255,255,255,0.3);">0.50×</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-family:'Courier New',monospace;font-size:0.44rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.2);white-space:nowrap;">0.25×</span>
+          <input type="range" id="lc-res" min="25" max="150" step="5" value="50"
+            style="flex:1;height:2px;-webkit-appearance:none;appearance:none;background:rgba(255,255,255,0.1);outline:none;cursor:pointer;accent-color:rgba(180,130,255,0.9);"
+            oninput="setResolution(this.value)">
+          <span style="font-family:'Courier New',monospace;font-size:0.44rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(180,130,255,0.45);white-space:nowrap;">1.50×</span>
+        </div>
+      </div>
+
       <!-- SAVE CURRENT LOOK -->
       <div style="margin-top:18px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.06);">
         <button onclick="saveCurrentLook()" style="width:100%;padding:10px 14px;background:rgba(80,20,160,0.22);border:1px solid rgba(180,130,255,0.32);color:rgba(180,130,255,0.88);font-family:'Courier New',monospace;font-size:0.58rem;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;transition:all 0.25s;" onmouseenter="this.style.background='rgba(100,40,200,0.38)';this.style.borderColor='rgba(180,130,255,0.65)';this.style.color='#fff'" onmouseleave="this.style.background='rgba(80,20,160,0.22)';this.style.borderColor='rgba(180,130,255,0.32)';this.style.color='rgba(180,130,255,0.88)'">Save Current Look →</button>

@@ -230,6 +230,7 @@ out vec4 fragColor;
 // ─── 3D noise texture — baked CPU-side, sampled GPU-side ─────────────────────
 // Seamlessly tiling 64³ value noise: GL_REPEAT + GL_LINEAR_MIPMAP_LINEAR.
 // Drop-in replacement for snoise(vec3): same signature, same [-1,1] output range.
+precision highp sampler3D;
 uniform sampler3D u_noiseTex;
 float snoise(vec3 v) {
   // Scale maps Simplex-equivalent coordinate space to texture UV space.

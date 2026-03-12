@@ -308,6 +308,133 @@
       color: rgba(255,255,255,0.08);
       margin-top: 1.5rem;
     }
+
+    /* ── Team Section ── */
+    #team-section {
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 0 3rem 5rem;
+    }
+
+    .team-divider {
+      border: none;
+      border-top: 1px solid rgba(255,255,255,0.05);
+      margin-bottom: 2.75rem;
+    }
+
+    .team-section-title {
+      font-size: 0.6rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.18);
+      margin-bottom: 1.25rem;
+      padding-bottom: 0.6rem;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .team-cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+    }
+
+    @media (max-width: 600px) {
+      .team-cards { grid-template-columns: 1fr; }
+      #team-section { padding: 0 1.5rem 3rem; }
+    }
+
+    .team-card {
+      padding: 1.5rem;
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 6px;
+      background: rgba(255,255,255,0.02);
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    .team-card-title {
+      font-size: 0.72rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.35);
+      margin-bottom: 1rem;
+    }
+
+    .team-input {
+      width: 100%;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: #e0e0ec;
+      padding: 0.6rem 0.9rem;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      font-family: 'Georgia', serif;
+      outline: none;
+      margin-bottom: 0.75rem;
+      transition: border-color 0.15s;
+      box-sizing: border-box;
+    }
+
+    .team-input:focus { border-color: rgba(255,255,255,0.25); }
+    .team-input::placeholder { color: rgba(255,255,255,0.18); }
+
+    .btn-team {
+      padding: 0.6rem 1.25rem;
+      border-radius: 4px;
+      border: 1px solid rgba(255,255,255,0.15);
+      background: rgba(255,255,255,0.05);
+      color: rgba(255,255,255,0.7);
+      cursor: pointer;
+      font-size: 0.82rem;
+      font-family: 'Georgia', serif;
+      transition: all 0.15s;
+      width: 100%;
+    }
+
+    .btn-team:hover { background: rgba(255,255,255,0.1); color: #fff; }
+
+    .team-result-msg {
+      margin-top: 1rem;
+      font-size: 0.82rem;
+      color: rgba(255,255,255,0.5);
+      line-height: 1.7;
+    }
+
+    .team-link-display {
+      display: block;
+      margin-top: 0.35rem;
+      color: rgba(200,169,110,0.8);
+      text-decoration: none;
+      font-size: 0.82rem;
+    }
+
+    .team-link-display:hover { color: rgba(200,169,110,1); }
+
+    .btn-copy-small {
+      display: inline-block;
+      margin-top: 0.5rem;
+      padding: 0.3rem 0.7rem;
+      border-radius: 3px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: transparent;
+      color: rgba(255,255,255,0.3);
+      cursor: pointer;
+      font-size: 0.7rem;
+      font-family: 'Georgia', serif;
+      transition: all 0.15s;
+    }
+
+    .btn-copy-small:hover { border-color: rgba(255,255,255,0.2); color: rgba(255,255,255,0.6); }
+
+    .join-invite-banner {
+      margin-bottom: 1.5rem;
+      padding: 1rem 1.25rem;
+      border: 1px solid rgba(200,169,110,0.3);
+      border-radius: 6px;
+      background: rgba(200,169,110,0.05);
+      font-size: 0.85rem;
+      color: rgba(200,169,110,0.8);
+      line-height: 1.6;
+    }
   </style>
 </head>
 <body>
@@ -321,6 +448,7 @@
 <div id="error-state"><p>Report not found.</p><a href="./test.html" style="color:rgba(255,255,255,0.3);font-size:0.8rem">Take the test →</a></div>
 
 <div id="report"></div>
+<div id="team-section" style="display:none;"></div>
 
 <script>
 const SUPABASE_URL = 'https://iarmibcqsrlknptvzgkn.supabase.co';
@@ -553,6 +681,159 @@ function render(data) {
   document.title = `Chord — ${name} · Type ${top_type}`;
 }
 
+// ─── Team Section ────────────────────────────────────────────────────────────
+
+function copyText(text, btn, label) {
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'Copied!';
+    setTimeout(() => { btn.textContent = label || 'Copy link'; }, 2000);
+  }).catch(() => {
+    const el = document.createElement('textarea');
+    el.value = text;
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+    btn.textContent = 'Copied!';
+    setTimeout(() => { btn.textContent = label || 'Copy link'; }, 2000);
+  });
+}
+
+async function createTeam(teamName, resultData) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/chord_teams`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation'
+    },
+    body: JSON.stringify({ name: teamName })
+  });
+  const data = await res.json();
+  if (!data || !data[0]) throw new Error('Failed to create team');
+  const team = data[0];
+  await addMemberToTeam(team.id, resultData);
+  return team;
+}
+
+async function addMemberToTeam(teamId, resultData) {
+  await fetch(`${SUPABASE_URL}/rest/v1/chord_team_members`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=minimal'
+    },
+    body: JSON.stringify({
+      team_id: teamId,
+      result_id: resultData.id,
+      name: resultData.name,
+      top_type: resultData.top_type
+    })
+  });
+}
+
+async function getTeamByInviteCode(code) {
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/chord_teams?invite_code=eq.${encodeURIComponent(code)}&select=id,name,invite_code`,
+    { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } }
+  );
+  const data = await res.json();
+  return data && data[0] ? data[0] : null;
+}
+
+function renderTeamSuccess(teamId, inviteCode, container) {
+  const teamUrl = `https://chuck.neoteric.art/chord/team.html?id=${teamId}`;
+  const inviteUrl = `https://chuck.neoteric.art/chord/test.html?join=${inviteCode}`;
+  container.innerHTML = `
+    <div class="team-result-msg">
+      <div style="color:rgba(255,255,255,0.75);margin-bottom:0.5rem;">You're in. 🎵</div>
+      <a class="team-link-display" href="${teamUrl}" target="_blank">View your team →</a>
+      <div style="margin-top:1rem;font-size:0.72rem;color:rgba(255,255,255,0.25);letter-spacing:0.1em;text-transform:uppercase;">Invite link</div>
+      <div style="font-size:0.75rem;color:rgba(200,169,110,0.5);word-break:break-all;margin-top:0.2rem;">${inviteUrl}</div>
+      <button class="btn-copy-small" onclick="copyText('${inviteUrl}', this, 'Copy link')">Copy link</button>
+    </div>
+  `;
+}
+
+function initTeamSection(resultData) {
+  const params = new URLSearchParams(window.location.search);
+  const joinCode = params.get('join');
+  const section = document.getElementById('team-section');
+  section.style.display = 'block';
+
+  const bannerHtml = joinCode ? `
+    <div class="join-invite-banner">
+      🎵 You've been invited to join a team. Enter the code below to join and see your team's Chord analysis.
+    </div>
+  ` : '';
+
+  section.innerHTML = `
+    <hr class="team-divider">
+    <div class="team-section-title">Find Your Chord</div>
+    ${bannerHtml}
+    <div class="team-cards">
+      <div class="team-card" id="tc-create">
+        <div class="team-card-title">Create a new team</div>
+        <input class="team-input" id="ti-team-name" type="text" placeholder="Team name" maxlength="50">
+        <button class="btn-team" id="tb-create">Create team</button>
+        <div id="tr-create"></div>
+      </div>
+      <div class="team-card" id="tc-join">
+        <div class="team-card-title">Join a team</div>
+        <input class="team-input" id="ti-invite-code" type="text" placeholder="Invite code" maxlength="30" value="${joinCode || ''}">
+        <button class="btn-team" id="tb-join">Join team</button>
+        <div id="tr-join"></div>
+      </div>
+    </div>
+  `;
+
+  // Highlight join card if coming from invite link
+  if (joinCode) {
+    document.getElementById('tc-join').style.borderColor = 'rgba(200,169,110,0.3)';
+    document.getElementById('tc-join').style.background = 'rgba(200,169,110,0.03)';
+  }
+
+  document.getElementById('tb-create').addEventListener('click', async () => {
+    const nameEl = document.getElementById('ti-team-name');
+    const resultDiv = document.getElementById('tr-create');
+    const teamName = nameEl.value.trim();
+    if (!teamName) { nameEl.focus(); return; }
+    document.getElementById('tb-create').disabled = true;
+    resultDiv.innerHTML = '<div class="team-result-msg" style="color:rgba(255,255,255,0.3);">Creating team…</div>';
+    try {
+      const team = await createTeam(teamName, resultData);
+      renderTeamSuccess(team.id, team.invite_code, resultDiv);
+      nameEl.value = '';
+    } catch(e) {
+      resultDiv.innerHTML = `<div class="team-result-msg" style="color:rgba(232,74,74,0.7);">Error: ${e.message}</div>`;
+      document.getElementById('tb-create').disabled = false;
+    }
+  });
+
+  document.getElementById('tb-join').addEventListener('click', async () => {
+    const codeEl = document.getElementById('ti-invite-code');
+    const resultDiv = document.getElementById('tr-join');
+    const code = codeEl.value.trim();
+    if (!code) { codeEl.focus(); return; }
+    document.getElementById('tb-join').disabled = true;
+    resultDiv.innerHTML = '<div class="team-result-msg" style="color:rgba(255,255,255,0.3);">Joining team…</div>';
+    try {
+      const team = await getTeamByInviteCode(code);
+      if (!team) throw new Error('Team not found — check your invite code.');
+      await addMemberToTeam(team.id, resultData);
+      sessionStorage.removeItem('pendingJoinCode');
+      renderTeamSuccess(team.id, team.invite_code, resultDiv);
+      codeEl.value = '';
+    } catch(e) {
+      resultDiv.innerHTML = `<div class="team-result-msg" style="color:rgba(232,74,74,0.7);">Error: ${e.message}</div>`;
+      document.getElementById('tb-join').disabled = false;
+    }
+  });
+}
+
 // ─── Fetch & render ───────────────────────────────────────────────────────────
 (async () => {
   const params = new URLSearchParams(window.location.search);
@@ -572,6 +853,7 @@ function render(data) {
     const data = await res.json();
     if (!data || !data.length) throw new Error('not found');
     render(data[0]);
+    initTeamSection(data[0]);
   } catch(e) {
     document.getElementById('loading').style.display = 'none';
     document.getElementById('error-state').style.display = 'flex';

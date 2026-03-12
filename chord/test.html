@@ -368,6 +368,9 @@
     <div class="intro-title">What's your type?</div>
     <p class="intro-body">36 questions. Each one presents two statements — pick the one that resonates more deeply, not the one you aspire to. Answer as you are, not as you'd like to be.</p>
     <p class="intro-note">The Enneagram describes your core motivation — why you do what you do, not just what you do. There are no good or bad types.</p>
+    <div id="join-banner" style="display:none;margin-bottom:1.5rem;padding:0.85rem 1.25rem;border:1px solid rgba(200,169,110,0.3);border-radius:6px;background:rgba(200,169,110,0.05);font-size:0.82rem;color:rgba(200,169,110,0.8);text-align:center;letter-spacing:0.05em;line-height:1.6;">
+      🎵 You've been invited to join a team — take the test to reveal your type and join.
+    </div>
     <div class="name-row">
       <input class="name-input" id="userName" type="text" placeholder="Your name" maxlength="30">
     </div>
@@ -674,8 +677,10 @@ function showResults() {
   // Save to Supabase then redirect to full report
   saveResult(userName, resultType, scores, answers).then(id => {
     if (id) {
+      const pendingCode = sessionStorage.getItem('pendingJoinCode');
+      const joinParam = pendingCode ? `&join=${encodeURIComponent(pendingCode)}` : '';
       setTimeout(() => {
-        window.location.href = `./result.html?id=${id}`;
+        window.location.href = `./result.html?id=${id}${joinParam}`;
       }, 1800); // brief pause so they see their top type before redirect
     }
   });
@@ -713,6 +718,16 @@ document.addEventListener('keydown', e => {
 document.getElementById('userName').addEventListener('keydown', e => {
   if (e.key === 'Enter') startTest();
 });
+
+// ─── Join Code Init ───────────────────────────────────────────────────────────
+(function() {
+  const urlJoinCode = new URLSearchParams(window.location.search).get('join');
+  if (urlJoinCode) {
+    sessionStorage.setItem('pendingJoinCode', urlJoinCode);
+    const banner = document.getElementById('join-banner');
+    if (banner) banner.style.display = 'block';
+  }
+})();
 </script>
 </body>
 </html>

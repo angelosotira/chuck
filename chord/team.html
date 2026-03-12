@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chord — Team</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #07070f;
+      color: #e0e0ec;
+      font-family: 'Georgia', serif;
+      min-height: 100vh;
+    }
+
+    header {
+      padding: 1.5rem 3rem;
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .logo { font-size: 1.4rem; letter-spacing: 0.4em; font-weight: 300; color: #fff; text-decoration: none; }
+    .header-sub { font-size: 0.65rem; letter-spacing: 0.25em; color: rgba(255,255,255,0.2); text-transform: uppercase; }
+
+    #loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 60vh;
+      font-size: 0.8rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.2);
+    }
+
+    #error-state {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      min-height: 60vh;
+      flex-direction: column;
+      gap: 1rem;
+      color: rgba(255,255,255,0.3);
+      font-size: 0.9rem;
+    }
+
+    #team-view {
+      display: none;
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 3rem 3rem 5rem;
+    }
+
+    /* ── Team Hero ── */
+    .team-hero {
+      margin-bottom: 3rem;
+      padding-bottom: 2.5rem;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .team-name {
+      font-size: 2.2rem;
+      font-weight: 300;
+      color: #fff;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.35rem;
+    }
+
+    .team-meta {
+      font-size: 0.65rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.2);
+      margin-bottom: 1.5rem;
+    }
+
+    .btn-invite {
+      padding: 0.6rem 1.4rem;
+      border-radius: 4px;
+      border: 1px solid rgba(200,169,110,0.4);
+      background: rgba(200,169,110,0.08);
+      color: rgba(200,169,110,0.8);
+      cursor: pointer;
+      font-size: 0.82rem;
+      font-family: 'Georgia', serif;
+      transition: all 0.15s;
+      letter-spacing: 0.05em;
+    }
+
+    .btn-invite:hover { background: rgba(200,169,110,0.15); color: rgba(200,169,110,1); }
+
+    /* ── Section ── */
+    .section {
+      margin-bottom: 2.75rem;
+    }
+
+    .section-title {
+      font-size: 0.6rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.18);
+      margin-bottom: 1.25rem;
+      padding-bottom: 0.6rem;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    /* ── Members ── */
+    .members-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .member-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem 1.25rem;
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 6px;
+      background: rgba(255,255,255,0.02);
+    }
+
+    .member-badge {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      font-weight: 300;
+      flex-shrink: 0;
+    }
+
+    .member-info {
+      flex: 1;
+    }
+
+    .member-name {
+      font-size: 0.95rem;
+      color: rgba(255,255,255,0.8);
+      margin-bottom: 0.2rem;
+    }
+
+    .member-type {
+      font-size: 0.68rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.25);
+    }
+
+    .member-result-link {
+      font-size: 0.72rem;
+      color: rgba(255,255,255,0.2);
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+
+    .member-result-link:hover { color: rgba(255,255,255,0.5); }
+
+    /* ── Waiting state ── */
+    .waiting-card {
+      padding: 2rem;
+      border: 1px dashed rgba(255,255,255,0.08);
+      border-radius: 6px;
+      text-align: center;
+      color: rgba(255,255,255,0.2);
+      font-size: 0.85rem;
+      line-height: 1.8;
+    }
+
+    .waiting-slots {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: 1.25rem;
+      justify-content: center;
+    }
+
+    .slot {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      border: 1px dashed rgba(255,255,255,0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.15);
+    }
+
+    .slot.filled {
+      background: rgba(255,255,255,0.06);
+      border-style: solid;
+      border-color: rgba(255,255,255,0.12);
+      color: rgba(255,255,255,0.5);
+    }
+
+    /* ── Analysis ── */
+    .analysis-headline {
+      font-size: 1.5rem;
+      font-weight: 300;
+      color: #fff;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.5rem;
+    }
+
+    .analysis-types-badge {
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.2);
+      margin-bottom: 2rem;
+    }
+
+    .sw-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+      margin-bottom: 2rem;
+    }
+
+    @media (max-width: 600px) {
+      .sw-grid { grid-template-columns: 1fr; }
+      #team-view { padding: 2rem 1.5rem 4rem; }
+      header { padding: 1.25rem 1.5rem; }
+    }
+
+    .sw-card {
+      padding: 1.25rem 1.4rem;
+      border-radius: 6px;
+    }
+
+    .sw-card.strengths {
+      background: rgba(120,200,120,0.08);
+      border: 1px solid rgba(120,200,120,0.15);
+    }
+
+    .sw-card.weaknesses {
+      background: rgba(200,100,100,0.08);
+      border: 1px solid rgba(200,100,100,0.15);
+    }
+
+    .sw-label {
+      font-size: 0.6rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      margin-bottom: 0.75rem;
+    }
+
+    .sw-card.strengths .sw-label { color: rgba(120,200,120,0.6); }
+    .sw-card.weaknesses .sw-label { color: rgba(200,120,120,0.6); }
+
+    .sw-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+    }
+
+    .sw-list li {
+      font-size: 0.82rem;
+      line-height: 1.5;
+      padding-left: 1rem;
+      position: relative;
+    }
+
+    .sw-card.strengths .sw-list li { color: rgba(180,230,180,0.75); }
+    .sw-card.weaknesses .sw-list li { color: rgba(230,160,160,0.75); }
+
+    .sw-list li::before {
+      content: '–';
+      position: absolute;
+      left: 0;
+      opacity: 0.5;
+    }
+
+    /* ── Power Score ── */
+    .power-score-section {
+      margin-bottom: 2rem;
+    }
+
+    .power-label {
+      font-size: 0.6rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.2);
+      margin-bottom: 0.75rem;
+    }
+
+    .power-bar-wrap {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .power-track {
+      flex: 1;
+      height: 6px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .power-fill {
+      height: 100%;
+      border-radius: 6px;
+      background: linear-gradient(90deg, #c9a84c, #e8c97a);
+    }
+
+    .power-number {
+      font-size: 1.6rem;
+      font-weight: 300;
+      color: #e8c97a;
+      min-width: 2.5rem;
+      text-align: right;
+    }
+
+    .power-denom {
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.2);
+    }
+
+    /* ── Rec 4th ── */
+    .rec4-card {
+      padding: 1.25rem 1.4rem;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 6px;
+      background: rgba(255,255,255,0.02);
+    }
+
+    .rec4-label {
+      font-size: 0.6rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.2);
+      margin-bottom: 0.6rem;
+    }
+
+    .rec4-type {
+      font-size: 1.2rem;
+      font-weight: 300;
+      margin-bottom: 0.25rem;
+    }
+
+    .rec4-reason {
+      font-size: 0.82rem;
+      color: rgba(255,255,255,0.4);
+      line-height: 1.6;
+    }
+
+    /* ── Large team note ── */
+    .large-team-note {
+      padding: 1rem 1.25rem;
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 6px;
+      background: rgba(255,255,255,0.02);
+      font-size: 0.82rem;
+      color: rgba(255,255,255,0.3);
+      line-height: 1.7;
+      margin-bottom: 1.5rem;
+    }
+
+    /* ── Copy feedback ── */
+    .btn-copy-sm {
+      display: inline-block;
+      margin-left: 0.75rem;
+      padding: 0.25rem 0.65rem;
+      border-radius: 3px;
+      border: 1px solid rgba(200,169,110,0.3);
+      background: transparent;
+      color: rgba(200,169,110,0.6);
+      cursor: pointer;
+      font-size: 0.7rem;
+      font-family: 'Georgia', serif;
+      transition: all 0.15s;
+    }
+
+    .btn-copy-sm:hover { border-color: rgba(200,169,110,0.6); color: rgba(200,169,110,1); }
+  </style>
+</head>
+<body>
+
+<header>
+  <a class="logo" href="./index.html">CHORD</a>
+  <span class="header-sub">Team View</span>
+</header>
+
+<div id="loading">Loading team…</div>
+<div id="error-state">
+  <p>Team not found.</p>
+  <a href="./index.html" style="color:rgba(255,255,255,0.3);font-size:0.8rem">Open Chord →</a>
+</div>
+
+<div id="team-view"></div>
+
+<script>
+const SUPABASE_URL = 'https://iarmibcqsrlknptvzgkn.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlhcm1pYmNxc3Jsa25wdHZ6Z2tuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwMzA1NDEsImV4cCI6MjA4ODYwNjU0MX0.HOvdb-a9GFr0zUEgZqxPYgBEiiZUE9whch-cH0DRhnk';
+
+const TYPE_NAMES = {
+  1: "The Reformer", 2: "The Helper", 3: "The Achiever",
+  4: "The Individualist", 5: "The Investigator", 6: "The Loyalist",
+  7: "The Enthusiast", 8: "The Challenger", 9: "The Peacemaker"
+};
+
+const TYPE_COLORS = {
+  1: "#c8a96e", 2: "#e8748a", 3: "#e87449", 4: "#9b74e8",
+  5: "#4a90d9", 6: "#4ab8c8", 7: "#74c87a", 8: "#e84a4a", 9: "#8fa8c8"
+};
+
+const TEAM_MATRIX = {
+  "1-2-3": { headline: "Polished Excellence Machine", strengths: ["High standards", "People skills", "Execution speed", "Reliable and image-conscious"], weaknesses: ["Burnout from overwork", "Conflict between perfection and speed", "People-pleasing masks real issues"], score: 7, rec4: 9, rec4reason: "Adds calm mediation and prevents burnout culture" },
+  "1-2-4": { headline: "Heartfelt Idealists Unite", strengths: ["Deep empathy", "Integrity", "Creative vision", "Strong mission-driven culture"], weaknesses: ["Emotional intensity", "Slow decision-making", "Impractical idealism"], score: 5, rec4: 8, rec4reason: "Adds decisiveness and practical force to cut through paralysis" },
+  "1-2-5": { headline: "Principled Brain Trust", strengths: ["Quality", "Care", "Deep research", "Thorough and ethical"], weaknesses: ["Socially cautious", "Slow to market", "Analysis paralysis meets perfectionism"], score: 5, rec4: 7, rec4reason: "Adds speed, market energy, and bias toward action" },
+  "1-2-6": { headline: "Loyal Standards Keepers", strengths: ["Reliable", "Risk-aware", "People-focused", "Strong operational backbone"], weaknesses: ["Anxiety-driven caution", "Fear of failure", "Difficulty pivoting"], score: 5, rec4: 7, rec4reason: "Adds optimism, adaptability, and willingness to pivot" },
+  "1-2-7": { headline: "Optimistic Quality Crusade", strengths: ["Standards", "Heart", "Energy", "Balanced between rigor and enthusiasm"], weaknesses: ["7's chaos clashes with 1's order", "2 caught in middle", "Scope creep"], score: 6, rec4: 3, rec4reason: "Adds goal focus and disciplined execution to rein in scope" },
+  "1-2-8": { headline: "Principled Power Players", strengths: ["Integrity", "Empathy", "Decisive force", "Mission with muscle"], weaknesses: ["Power struggles between 1 and 8", "2 becomes emotional buffer", "Intensity burnout"], score: 7, rec4: 9, rec4reason: "Adds de-escalation, patience, and sustainable pacing" },
+  "1-2-9": { headline: "Gentle Perfection Seekers", strengths: ["Harmonious", "Ethical", "Caring culture", "Great for service businesses"], weaknesses: ["Lacking aggression", "Conflict-avoidant", "Slow growth trajectory"], score: 4, rec4: 3, rec4reason: "Adds ambition, urgency, and competitive drive" },
+  "1-3-4": { headline: "Driven Creative Perfectionist", strengths: ["High standards", "Ambition", "Originality", "Premium brand potential"], weaknesses: ["4's mood swings frustrate 1 and 3", "Image vs authenticity tension", "Ego clashes"], score: 6, rec4: 9, rec4reason: "Adds emotional steadiness and mediates ego conflicts" },
+  "1-3-5": { headline: "Strategic Excellence Engine", strengths: ["Quality", "Execution", "Deep analysis", "Data-driven precision"], weaknesses: ["Emotionally cold", "Interpersonal neglect", "Perfectionism bottlenecks"], score: 7, rec4: 2, rec4reason: "Adds warmth, team cohesion, and people-first culture" },
+  "1-3-6": { headline: "Risk-Managed High Achievers", strengths: ["Disciplined execution", "Goal focus", "Risk mitigation"], weaknesses: ["Anxiety + perfectionism = paralysis", "Fear of failure compounds", "Conservative"], score: 6, rec4: 7, rec4reason: "Adds optimism, risk tolerance, and creative momentum" },
+  "1-3-7": { headline: "Ambitious Innovation Squad", strengths: ["Standards", "Drive", "Creative energy", "Fast-moving and quality-conscious"], weaknesses: ["7 resists 1's constraints", "3 overextends", "Burnout from relentless pace"], score: 7, rec4: 9, rec4reason: "Adds pacing, calm, and prevents burnout" },
+  "1-3-8": { headline: "Triple Powerhouse Leaders", strengths: ["Execution", "Authority", "Standards", "Unstoppable when aligned"], weaknesses: ["Three alpha types", "Power struggles", "Steamroll others"], score: 7, rec4: 2, rec4reason: "Adds empathy, softens edges, prevents steamrolling" },
+  "1-3-9": { headline: "Polished Diplomatic Achievers", strengths: ["Balanced ambition", "Ethics", "Harmony", "Steady and professional"], weaknesses: ["9 gets bulldozed by 1 and 3", "Avoids needed conflict", "Lacks creative spark"], score: 5, rec4: 4, rec4reason: "Adds creativity, authenticity, and willingness to challenge norms" },
+  "1-4-5": { headline: "Intellectual Creative Purists", strengths: ["Deep thinking", "Originality", "Integrity", "Innovative and principled"], weaknesses: ["All introverted", "Lacks sales/hustle energy", "Slow execution"], score: 5, rec4: 3, rec4reason: "Adds sales drive, extroversion, and execution speed" },
+  "1-4-6": { headline: "Cautious Creative Idealists", strengths: ["Loyal", "Values-driven", "Creative", "Strong brand authenticity"], weaknesses: ["Anxiety + perfectionism + moodiness", "Fear-driven decisions", "Market hesitancy"], score: 4, rec4: 8, rec4reason: "Adds boldness, decisive action, and courage to launch" },
+  "1-4-7": { headline: "Visionary Standards Collision", strengths: ["Creativity", "Energy", "Quality", "Innovative products"], weaknesses: ["Chaotic dynamic", "4 and 7 resist 1's rigidity", "Emotional volatility"], score: 5, rec4: 3, rec4reason: "Adds focused execution and channels creative chaos into results" },
+  "1-4-8": { headline: "Fierce Authentic Crusaders", strengths: ["Passionate conviction", "Creativity", "Force", "Disruptive potential"], weaknesses: ["Explosive conflicts", "4's sensitivity vs 8's bluntness", "1 becomes referee"], score: 6, rec4: 9, rec4reason: "Adds calming presence and natural conflict resolution" },
+  "1-4-9": { headline: "Quiet Creative Integrity", strengths: ["Authentic", "Peaceful", "Quality-focused", "Artisan/craft businesses"], weaknesses: ["Very low energy", "Lacks drive and sales", "Indecisive"], score: 3, rec4: 3, rec4reason: "Adds ambition, sales energy, and decisive forward motion" },
+  "1-5-6": { headline: "Analytical Risk Fortress", strengths: ["Thorough research", "Quality", "Risk management", "Bulletproof plans"], weaknesses: ["Overthinking", "Fear of action", "No sales or people skills"], score: 4, rec4: 8, rec4reason: "Adds decisive action, courage, and commercial drive" },
+  "1-5-7": { headline: "Curious Innovation Lab", strengths: ["Research depth", "Quality", "Creative energy", "R&D powerhouse"], weaknesses: ["7's scatter vs 1's focus", "5 retreats under pressure", "Commercialization gap"], score: 6, rec4: 3, rec4reason: "Adds market savvy, sales focus, and commercialization skills" },
+  "1-5-8": { headline: "Strategic Command Center", strengths: ["Authority", "Analysis", "Standards", "Strong technical leadership"], weaknesses: ["Cold/intimidating culture", "Interpersonal blind spots", "Inflexible"], score: 7, rec4: 2, rec4reason: "Adds warmth, emotional intelligence, and people skills" },
+  "1-5-9": { headline: "Thoughtful Steady Builders", strengths: ["Patient", "Analytical", "Principled", "Sustainable long-game approach"], weaknesses: ["Zero urgency", "No hustle", "Passive — needs external pressure to ship"], score: 3, rec4: 3, rec4reason: "Adds urgency, goal-driven energy, and shipping cadence" },
+  "1-6-7": { headline: "Cautious Optimism Engine", strengths: ["Risk awareness", "Energy", "Standards", "Balanced innovation"], weaknesses: ["6's worry vs 7's YOLO", "1 stuck mediating", "Inconsistent pacing"], score: 5, rec4: 3, rec4reason: "Adds steady execution pace and results-oriented focus" },
+  "1-6-8": { headline: "Fortress of Execution", strengths: ["Decisive", "Loyal", "Principled", "Resilient under pressure"], weaknesses: ["Authority clashes (1 vs 8)", "6 anxious about instability", "Rigid culture"], score: 6, rec4: 7, rec4reason: "Adds flexibility, creative problem-solving, and lightens rigidity" },
+  "1-6-9": { headline: "Stable Operations Core", strengths: ["Reliable", "Loyal", "Harmonious", "Excellent for steady-state operations"], weaknesses: ["No visionary", "Risk-averse", "Resists change — startup anti-pattern"], score: 3, rec4: 7, rec4reason: "Adds vision, enthusiasm for change, and entrepreneurial spark" },
+  "1-7-8": { headline: "Bold Standards Breakers", strengths: ["Energy", "Authority", "Quality", "Aggressive growth with guardrails"], weaknesses: ["7 and 8 overpower 1's caution", "Reckless speed", "Internal friction"], score: 7, rec4: 6, rec4reason: "Adds risk assessment, loyalty, and thoughtful braking" },
+  "1-7-9": { headline: "Easygoing Innovation Blend", strengths: ["Creative energy", "Quality", "Harmony", "Pleasant workplace culture"], weaknesses: ["Lacks edge and urgency", "9 and 7 avoid hard truths", "1 carries burden"], score: 4, rec4: 8, rec4reason: "Adds directness, urgency, and willingness to face hard truths" },
+  "1-8-9": { headline: "Body Triad Powerhouse", strengths: ["Gut-driven action", "Control", "Peace", "Instinct-first leadership"], weaknesses: ["Same triad blind spots", "Anger management issues", "9 suppressed"], score: 5, rec4: 5, rec4reason: "Adds analytical thinking, emotional objectivity, and strategic depth" },
+  "2-3-4": { headline: "Heart Triad Emotional Engine", strengths: ["Empathy", "Ambition", "Creativity", "Brand magic"], weaknesses: ["Image obsession", "Shame-driven", "Emotional volatility — lacks analytical rigor"], score: 5, rec4: 5, rec4reason: "Adds analytical rigor, objectivity, and data-driven grounding" },
+  "2-3-5": { headline: "People-Smart Strategy Team", strengths: ["Relationships", "Execution", "Deep knowledge", "Well-rounded"], weaknesses: ["5 withdraws from 2's warmth", "Emotional vs rational tension", "Pacing conflicts"], score: 7, rec4: 8, rec4reason: "Adds decisive force and cuts through pacing conflicts" },
+  "2-3-6": { headline: "Loyal Achievement Machine", strengths: ["People skills", "Drive", "Risk awareness", "Strong team culture"], weaknesses: ["Anxiety about image", "People-pleasing + achievement pressure", "Plays it safe"], score: 6, rec4: 8, rec4reason: "Adds bold risk-taking and cuts through people-pleasing" },
+  "2-3-7": { headline: "Charismatic Growth Rockets", strengths: ["Networking", "Ambition", "Energy", "Explosive growth potential"], weaknesses: ["All extroverted — who does deep work?", "Surface-level", "Burnout risk"], score: 7, rec4: 5, rec4reason: "Adds deep work, analytical rigor, and substance" },
+  "2-3-8": { headline: "Magnetic Power Trio", strengths: ["Charisma", "Execution", "Force", "Sales and leadership juggernaut"], weaknesses: ["Power dynamics", "2 becomes servant to 3/8", "Lacks reflection"], score: 8, rec4: 4, rec4reason: "Adds reflective depth, authenticity, and emotional honesty" },
+  "2-3-9": { headline: "Smooth Diplomatic Achievers", strengths: ["Likeable", "Driven", "Harmonious", "Great client-facing team"], weaknesses: ["9 fades behind 2 and 3", "Avoids tough calls", "Lacks technical depth"], score: 5, rec4: 5, rec4reason: "Adds technical depth and analytical backbone" },
+  "2-4-5": { headline: "Empathic Innovation Atelier", strengths: ["Emotional depth", "Creativity", "Intellectual rigor", "Unique products"], weaknesses: ["Socially awkward combo", "4 and 5 withdraw", "2 overextends caring — slow"], score: 5, rec4: 3, rec4reason: "Adds commercial drive, extroversion, and execution speed" },
+  "2-4-6": { headline: "Caring Creative Loyalists", strengths: ["Deep relationships", "Authenticity", "Commitment", "Cult following potential"], weaknesses: ["Anxiety and moodiness compound", "Fear-driven", "Indecisive — emotionally heavy"], score: 4, rec4: 8, rec4reason: "Adds bold decision-making and cuts through fear-driven inertia" },
+  "2-4-7": { headline: "Vibrant Creative Hearts", strengths: ["Warmth", "Originality", "Fun", "Engaging brand and culture"], weaknesses: ["Scattered emotionally", "Lacks structure", "4's depth vs 7's breadth tension"], score: 5, rec4: 1, rec4reason: "Adds structure, process discipline, and consistent follow-through" },
+  "2-4-8": { headline: "Passionate Intensity Trio", strengths: ["Deep feeling", "Creative vision", "Fierce execution", "Disruptive brands"], weaknesses: ["Explosive emotions", "8 overwhelms 4", "2 drained mediating — volatile"], score: 6, rec4: 9, rec4reason: "Adds calming stability and reduces emotional explosiveness" },
+  "2-4-9": { headline: "Gentle Creative Souls", strengths: ["Warm", "Authentic", "Peaceful", "Beautiful niche products"], weaknesses: ["Very passive", "No business edge", "Avoids hard conversations — unmarketable"], score: 3, rec4: 3, rec4reason: "Adds business acumen, marketing drive, and competitive edge" },
+  "2-5-6": { headline: "Loyal Knowledge Network", strengths: ["People skills", "Research", "Risk awareness", "Consultancy gold"], weaknesses: ["Cautious and slow", "5 and 6 overthink", "2 frustrated by lack of action"], score: 5, rec4: 8, rec4reason: "Adds action bias, decisiveness, and forward momentum" },
+  "2-5-7": { headline: "Warm Innovation Explorers", strengths: ["Relationships", "Depth", "Breadth", "Balanced innovation team"], weaknesses: ["5 needs space, 2 needs closeness", "7 skims surface", "Pacing mismatches"], score: 6, rec4: 1, rec4reason: "Adds structure, consistent pacing, and operational discipline" },
+  "2-5-8": { headline: "Strategic Relationship Generals", strengths: ["People", "Brains", "Muscle", "Formidable negotiation team"], weaknesses: ["8 dominates", "5 retreats", "2 plays peacemaker — trust issues"], score: 7, rec4: 6, rec4reason: "Adds loyalty-based trust-building and steadies team dynamics" },
+  "2-5-9": { headline: "Gentle Thinker Collective", strengths: ["Patient", "Supportive", "Analytical", "Great research or education teams"], weaknesses: ["No urgency at all", "Passive", "Lacks ambition and sales drive"], score: 3, rec4: 3, rec4reason: "Adds ambition, sales drive, and urgency to ship" },
+  "2-6-7": { headline: "Enthusiastic Support Network", strengths: ["Warmth", "Loyalty", "Energy", "Amazing community building"], weaknesses: ["Scattered focus", "6's anxiety vs 7's optimism", "All talk, less action"], score: 5, rec4: 1, rec4reason: "Adds structure, focus, and disciplined execution" },
+  "2-6-8": { headline: "Protective Power Family", strengths: ["Loyalty", "Care", "Strength", "Fiercely protective of team/mission"], weaknesses: ["8 clashes with 6's anxiety", "2 exhausted managing dynamics", "Tribal mentality"], score: 6, rec4: 5, rec4reason: "Adds objective analysis and broadens beyond tribal thinking" },
+  "2-6-9": { headline: "Nurturing Safe Haven", strengths: ["Supportive", "Loyal", "Harmonious", "Great culture, weak execution"], weaknesses: ["No driver", "Extremely risk-averse", "Avoids confrontation — startup-hostile"], score: 2, rec4: 3, rec4reason: "Adds goal-driven execution, ambition, and competitive fire" },
+  "2-7-8": { headline: "Magnetic Force of Nature", strengths: ["Charisma", "Energy", "Power", "Unstoppable sales and growth"], weaknesses: ["No one does detail work", "Impulsive", "2 sacrifices self for team — reckless"], score: 7, rec4: 1, rec4reason: "Adds detail orientation, quality control, and disciplined process" },
+  "2-7-9": { headline: "Sunny Harmonious Dreamers", strengths: ["Fun", "Warm", "Easy-going", "Amazing vibes"], weaknesses: ["Conflict-avoidant trio", "No hard decisions", "Scattered — lacks rigor"], score: 3, rec4: 1, rec4reason: "Adds rigor, structure, and willingness to enforce standards" },
+  "2-8-9": { headline: "Caring Commander Balance", strengths: ["Strength tempered by empathy and peace", "Strong people leadership"], weaknesses: ["8 dominates while 9 withdraws", "2 burns out bridging", "Unresolved tensions"], score: 5, rec4: 5, rec4reason: "Adds analytical objectivity and helps surface unspoken tensions" },
+  "3-4-5": { headline: "Ambitious Creative Intellect", strengths: ["Drive", "Originality", "Depth", "Premium/innovative product potential"], weaknesses: ["4 and 5 resist 3's pace", "Authenticity vs performance tension", "Emotional gaps"], score: 6, rec4: 2, rec4reason: "Adds emotional glue, team cohesion, and bridges relational gaps" },
+  "3-4-6": { headline: "Driven Authentic Loyalists", strengths: ["Ambition", "Creativity", "Dedication", "Strong brand identity"], weaknesses: ["4's individualism clashes with 3's conformity", "6 worries", "Inconsistent energy"], score: 5, rec4: 8, rec4reason: "Adds consistent energy, decisive force, and resolves clashes" },
+  "3-4-7": { headline: "Dazzling Creative Achievers", strengths: ["Ambition", "Vision", "Energy", "Entertainment/media dream team"], weaknesses: ["All style, less substance", "Emotional highs and lows", "Who handles operations?"], score: 6, rec4: 1, rec4reason: "Adds operational discipline, substance, and quality control" },
+  "3-4-8": { headline: "Fierce Ambitious Originals", strengths: ["Drive", "Depth", "Force", "Industry disruptors"], weaknesses: ["Massive egos", "Power + identity struggles", "Volatile — interpersonal explosions"], score: 7, rec4: 9, rec4reason: "Adds ego mediation, patience, and stabilizes volatility" },
+  "3-4-9": { headline: "Polished Peaceful Creatives", strengths: ["Achievement", "Creativity", "Harmony", "Design/lifestyle brands"], weaknesses: ["9 steamrolled", "4 feels unseen next to 3", "Passive-aggressive undercurrents"], score: 4, rec4: 8, rec4reason: "Adds direct communication and surfaces passive-aggressive issues" },
+  "3-5-6": { headline: "Data-Driven Growth Machine", strengths: ["Execution", "Analysis", "Risk management", "SaaS/fintech natural"], weaknesses: ["Emotionally sterile", "No warmth", "Overthink then overwork — burnout"], score: 7, rec4: 2, rec4reason: "Adds warmth, emotional intelligence, and team care" },
+  "3-5-7": { headline: "Visionary Speed Thinkers", strengths: ["Achievement", "Depth", "Breadth", "Rapid innovation"], weaknesses: ["5 needs depth, 7 wants breadth, 3 wants speed", "Constant tension", "Shallow"], score: 7, rec4: 1, rec4reason: "Adds disciplined focus and depth to counter shallowness" },
+  "3-5-8": { headline: "Ruthless Strategy Titans", strengths: ["Drive", "Brains", "Power", "Market domination potential"], weaknesses: ["Cold, intimidating", "Relationship blind spot", "Ethical shortcuts risk"], score: 8, rec4: 2, rec4reason: "Adds relational warmth, ethical grounding, and people care" },
+  "3-5-9": { headline: "Efficient Quiet Achievers", strengths: ["Execution", "Analysis", "Steadiness", "Technical product teams"], weaknesses: ["Lacks marketing sizzle", "9 disappears", "Emotionally flat — needs external energy"], score: 5, rec4: 7, rec4reason: "Adds marketing energy, enthusiasm, and external sizzle" },
+  "3-6-7": { headline: "Energetic Cautious Achievers", strengths: ["Drive", "Risk awareness", "Creativity", "Balanced growth team"], weaknesses: ["6 brakes while 7 accelerates", "3 frustrated by indecision", "Pacing wars"], score: 6, rec4: 1, rec4reason: "Adds consistent standards and a steady operational rhythm" },
+  "3-6-8": { headline: "Competitive Loyal Commanders", strengths: ["Achievement", "Loyalty", "Power", "Sales/BD powerhouse"], weaknesses: ["Aggressive culture", "6 anxious under 8's intensity", "Trust issues compound"], score: 7, rec4: 2, rec4reason: "Adds empathy, trust-building, and softens aggressive culture" },
+  "3-6-9": { headline: "Steady Ambitious Diplomats", strengths: ["Execution", "Commitment", "Peace", "Professional services ideal"], weaknesses: ["Conservative", "9 and 6 slow down 3", "Risk-averse — misses opportunities"], score: 5, rec4: 7, rec4reason: "Adds creative risk-taking and opportunistic energy" },
+  "3-7-8": { headline: "Unstoppable Growth Engine", strengths: ["Ambition", "Energy", "Force", "Hypergrowth startup trio"], weaknesses: ["No brakes", "Impulsive", "Burns through people — unsustainable"], score: 8, rec4: 6, rec4reason: "Adds risk awareness, loyalty, and sustainable thinking" },
+  "3-7-9": { headline: "Charming Optimistic Builders", strengths: ["Drive", "Fun", "Ease", "Great culture with results"], weaknesses: ["Avoids hard truths", "Surface-level", "9 enables 7's avoidance — lacks depth"], score: 5, rec4: 5, rec4reason: "Adds intellectual depth and willingness to face hard data" },
+  "3-8-9": { headline: "Powerful Balanced Achievers", strengths: ["Execution", "Authority", "Stability", "Classic CEO-COO-CTO pattern"], weaknesses: ["8 and 3 dominate", "9 suppresses voice", "Power imbalance — unexpressed resentment"], score: 6, rec4: 4, rec4reason: "Adds emotional honesty and gives voice to unexpressed feelings" },
+  "4-5-6": { headline: "Head-Heart Deep Thinkers", strengths: ["Creativity", "Analysis", "Loyalty", "Unique IP/research potential"], weaknesses: ["All anxious/withdrawn", "No extroversion", "Fear-driven — paralysis risk"], score: 4, rec4: 3, rec4reason: "Adds extroverted drive, confidence, and action orientation" },
+  "4-5-7": { headline: "Creative Intellectual Explorer", strengths: ["Depth", "Innovation", "Breadth", "Visionary product design"], weaknesses: ["Impractical dreamers", "4 and 5 withdraw while 7 flits", "Lacks execution"], score: 5, rec4: 3, rec4reason: "Adds practical execution, goal focus, and shipping discipline" },
+  "4-5-8": { headline: "Intense Visionary Builders", strengths: ["Creative depth", "Intellect", "Force", "Paradigm-shifting potential"], weaknesses: ["Interpersonal minefield", "8 bulldozes 4's feelings", "5 detaches — volatile"], score: 7, rec4: 2, rec4reason: "Adds interpersonal sensitivity and emotional bridge-building" },
+  "4-5-9": { headline: "Quiet Dreamer Collective", strengths: ["Deep creativity", "Thought", "Peace", "Artistic/philosophical ventures"], weaknesses: ["Nearly inert", "No commercial drive", "Avoids the world — needs a pusher"], score: 2, rec4: 3, rec4reason: "Adds commercial drive, ambition, and market engagement" },
+  "4-6-7": { headline: "Emotional Rollercoaster Team", strengths: ["Depth", "Loyalty", "Energy", "Creative with built-in safety net"], weaknesses: ["Wildly inconsistent energy", "Mood swings", "6 anxious about 4 and 7's chaos"], score: 4, rec4: 1, rec4reason: "Adds consistent structure and emotional steadiness" },
+  "4-6-8": { headline: "Passionate Loyal Warriors", strengths: ["Authenticity", "Dedication", "Strength", "Mission-driven force"], weaknesses: ["Intense emotions everywhere", "6 caught between 4's drama and 8's force"], score: 6, rec4: 9, rec4reason: "Adds calming presence and emotional equilibrium" },
+  "4-6-9": { headline: "Sensitive Loyal Peacemakers", strengths: ["Depth", "Loyalty", "Harmony", "Strong community-driven ventures"], weaknesses: ["Passive, anxious, moody", "No driver", "Indecisive — avoids risk entirely"], score: 3, rec4: 3, rec4reason: "Adds decisive drive, confidence, and forward momentum" },
+  "4-7-8": { headline: "Wild Creative Firestorm", strengths: ["Originality", "Energy", "Power", "Disruptive and unforgettable"], weaknesses: ["Chaotic", "Emotional extremes", "4 hurt by 8's bluntness — no steadying force"], score: 6, rec4: 1, rec4reason: "Adds order, steadying discipline, and principled guardrails" },
+  "4-7-9": { headline: "Dreamy Optimistic Creatives", strengths: ["Vision", "Fun", "Peace", "Lifestyle brand natural"], weaknesses: ["No execution muscle", "Avoids reality", "Scattered — who ships the product?"], score: 3, rec4: 3, rec4reason: "Adds execution muscle, reality focus, and shipping discipline" },
+  "4-8-9": { headline: "Intense Gentle Paradox", strengths: ["Depth", "Force", "Peace", "Surprisingly balanced emotional range"], weaknesses: ["8 and 4 clash", "9 suppresses to keep peace", "Unpredictable dynamics"], score: 5, rec4: 5, rec4reason: "Adds rational objectivity and depersonalizes conflicts" },
+  "5-6-7": { headline: "Head Triad Think Tank", strengths: ["Analysis", "Caution", "Creativity", "Strategy powerhouse"], weaknesses: ["All fear-based", "No action without overthinking", "Lacks people skills and drive"], score: 4, rec4: 3, rec4reason: "Adds people skills, action bias, and commercial drive" },
+  "5-6-8": { headline: "Tactical Security Force", strengths: ["Analysis", "Risk assessment", "Decisiveness", "Cybersecurity/defense ideal"], weaknesses: ["Paranoid culture", "5 and 6 distrust while 8 dominates", "Cold"], score: 6, rec4: 2, rec4reason: "Adds trust, warmth, and humanizes the culture" },
+  "5-6-9": { headline: "Cautious Analytical Observers", strengths: ["Research", "Loyalty", "Patience", "Academic/consulting strengths"], weaknesses: ["Extremely passive", "No sales energy", "9 and 5 withdraw — 6 worries alone"], score: 3, rec4: 3, rec4reason: "Adds sales energy, extroversion, and proactive drive" },
+  "5-7-8": { headline: "Brilliant Bold Innovators", strengths: ["Deep knowledge", "Creative energy", "Execution power", "Tech startup ideal"], weaknesses: ["7 and 8 ignore 5's need for depth", "Impulsive decisions", "Interpersonal distance"], score: 8, rec4: 2, rec4reason: "Adds interpersonal warmth and bridges relational distance" },
+  "5-7-9": { headline: "Curious Easygoing Thinkers", strengths: ["Breadth", "Depth", "Calm", "Pleasant innovation environment"], weaknesses: ["No urgency or drive", "Avoids conflict and hard decisions", "Who sells?"], score: 3, rec4: 3, rec4reason: "Adds urgency, sales ability, and decisive momentum" },
+  "5-8-9": { headline: "Quiet Strategic Powerhouse", strengths: ["Analysis", "Authority", "Patience", "Measured, powerful decisions"], weaknesses: ["Emotionally void", "8 dominates", "9 and 5 withdraw — communication gaps"], score: 5, rec4: 2, rec4reason: "Adds emotional awareness, communication skills, and team warmth" },
+  "6-7-8": { headline: "Loyal Adventurous Warriors", strengths: ["Commitment", "Energy", "Strength", "Resilient growth team"], weaknesses: ["6's caution vs 7 and 8's boldness", "Trust issues", "Volatile pacing"], score: 7, rec4: 9, rec4reason: "Adds stabilizing calm and mediates trust/pacing conflicts" },
+  "6-7-9": { headline: "Friendly Cautious Optimists", strengths: ["Loyalty", "Fun", "Peace", "Great culture, moderate execution"], weaknesses: ["Risk-averse despite 7's energy", "9 and 6 slow things down", "Lacks edge"], score: 4, rec4: 3, rec4reason: "Adds competitive edge, ambition, and execution drive" },
+  "6-8-9": { headline: "Body-Loyal Stability Triad", strengths: ["Loyalty", "Power", "Peace", "Resilient and grounded team"], weaknesses: ["8 dominates", "9 capitulates", "6 anxiously monitors — stagnation risk"], score: 5, rec4: 3, rec4reason: "Adds growth ambition and prevents stagnation" },
+  "7-8-9": { headline: "Energetic Power Peacemakers", strengths: ["Energy", "Force", "Harmony", "Action-oriented with balance"], weaknesses: ["7 and 8 overpower 9", "Lacks analytical depth", "Impulsive — no detail work"], score: 6, rec4: 5, rec4reason: "Adds analytical depth, detail orientation, and strategic thinking" }
+};
+
+function copyToClipboard(text, btn) {
+  navigator.clipboard.writeText(text).then(() => {
+    const orig = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(() => { btn.textContent = orig; }, 2000);
+  }).catch(() => {
+    const el = document.createElement('textarea');
+    el.value = text;
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+    const orig = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(() => { btn.textContent = orig; }, 2000);
+  });
+}
+
+function renderMembersSection(members) {
+  return members.map(m => {
+    const col = TYPE_COLORS[m.top_type] || 'rgba(255,255,255,0.4)';
+    const typeName = TYPE_NAMES[m.top_type] || `Type ${m.top_type}`;
+    const resultLink = m.result_id
+      ? `<a class="member-result-link" href="./result.html?id=${m.result_id}" target="_blank">View report →</a>`
+      : '';
+    return `
+      <div class="member-row">
+        <div class="member-badge" style="color:${col};border:1px solid ${col}33;">${m.top_type}</div>
+        <div class="member-info">
+          <div class="member-name">${m.name || 'Anonymous'}</div>
+          <div class="member-type" style="color:${col}99;">${typeName.toUpperCase()}</div>
+        </div>
+        ${resultLink}
+      </div>
+    `;
+  }).join('');
+}
+
+function renderWaitingState(memberCount) {
+  const slots = [];
+  for (let i = 0; i < 3; i++) {
+    if (i < memberCount) {
+      slots.push('<div class="slot filled">✓</div>');
+    } else {
+      slots.push('<div class="slot">?</div>');
+    }
+  }
+  const needed = 3 - memberCount;
+  return `
+    <div class="waiting-card">
+      <div style="color:rgba(255,255,255,0.35);font-size:0.95rem;">Waiting for ${needed} more member${needed !== 1 ? 's' : ''}…</div>
+      <div style="margin-top:0.5rem;font-size:0.78rem;">The Chord analysis unlocks with 3 members.</div>
+      <div class="waiting-slots">${slots.join('')}</div>
+    </div>
+  `;
+}
+
+function renderAnalysis(members) {
+  // Get the top 3 types (sorted ascending) for matrix lookup
+  const types = members.map(m => m.top_type).sort((a, b) => a - b);
+  const key = types.join('-');
+  const combo = TEAM_MATRIX[key];
+
+  if (!combo) {
+    return `<div style="color:rgba(255,255,255,0.3);font-size:0.85rem;">No analysis available for this type combination.</div>`;
+  }
+
+  const rec4Color = TYPE_COLORS[combo.rec4] || '#e0e0ec';
+  const rec4Name = TYPE_NAMES[combo.rec4] || `Type ${combo.rec4}`;
+  const powerPct = (combo.score / 10) * 100;
+
+  const strengthItems = combo.strengths.map(s => `<li>${s}</li>`).join('');
+  const weaknessItems = combo.weaknesses.map(w => `<li>${w}</li>`).join('');
+
+  return `
+    <div class="analysis-headline">${combo.headline}</div>
+    <div class="analysis-types-badge">Types ${key} · Chord Analysis</div>
+
+    <div class="sw-grid">
+      <div class="sw-card strengths">
+        <div class="sw-label">Strengths</div>
+        <ul class="sw-list">${strengthItems}</ul>
+      </div>
+      <div class="sw-card weaknesses">
+        <div class="sw-label">Challenges</div>
+        <ul class="sw-list">${weaknessItems}</ul>
+      </div>
+    </div>
+
+    <div class="power-score-section">
+      <div class="power-label">Team Power Score</div>
+      <div class="power-bar-wrap">
+        <div class="power-track">
+          <div class="power-fill" style="width:${powerPct}%"></div>
+        </div>
+        <div class="power-number">${combo.score}<span class="power-denom">/10</span></div>
+      </div>
+    </div>
+
+    <div class="rec4-card">
+      <div class="rec4-label">Recommended 4th Member</div>
+      <div class="rec4-type" style="color:${rec4Color};">Type ${combo.rec4} &nbsp;·&nbsp; <span style="font-size:0.9rem;color:${rec4Color}88;">${rec4Name}</span></div>
+      <div class="rec4-reason">${combo.rec4reason}</div>
+    </div>
+  `;
+}
+
+function renderLargeTeamAnalysis(members) {
+  // For 4+ member teams, show the top 3 types analysis with a note
+  const typeCounts = {};
+  members.forEach(m => {
+    typeCounts[m.top_type] = (typeCounts[m.top_type] || 0) + 1;
+  });
+  // Get top 3 distinct types by frequency, then by type number
+  const topTypes = Object.entries(typeCounts)
+    .sort((a, b) => b[1] - a[1] || a[0] - b[0])
+    .slice(0, 3)
+    .map(([t]) => parseInt(t))
+    .sort((a, b) => a - b);
+
+  const key = topTypes.join('-');
+  const combo = TEAM_MATRIX[key];
+
+  if (!combo) {
+    return `<div style="color:rgba(255,255,255,0.3);font-size:0.85rem;">No matrix analysis available for this combination.</div>`;
+  }
+
+  const rec4Color = TYPE_COLORS[combo.rec4] || '#e0e0ec';
+  const rec4Name = TYPE_NAMES[combo.rec4] || `Type ${combo.rec4}`;
+  const powerPct = (combo.score / 10) * 100;
+  const strengthItems = combo.strengths.map(s => `<li>${s}</li>`).join('');
+  const weaknessItems = combo.weaknesses.map(w => `<li>${w}</li>`).join('');
+
+  return `
+    <div class="large-team-note">
+      The Chord matrix is optimized for 3-person core teams. Showing analysis for your dominant type combination: <strong>${key}</strong>.
+    </div>
+    <div class="analysis-headline">${combo.headline}</div>
+    <div class="analysis-types-badge">Types ${key} · Core Trio Analysis</div>
+
+    <div class="sw-grid">
+      <div class="sw-card strengths">
+        <div class="sw-label">Strengths</div>
+        <ul class="sw-list">${strengthItems}</ul>
+      </div>
+      <div class="sw-card weaknesses">
+        <div class="sw-label">Challenges</div>
+        <ul class="sw-list">${weaknessItems}</ul>
+      </div>
+    </div>
+
+    <div class="power-score-section">
+      <div class="power-label">Team Power Score</div>
+      <div class="power-bar-wrap">
+        <div class="power-track">
+          <div class="power-fill" style="width:${powerPct}%"></div>
+        </div>
+        <div class="power-number">${combo.score}<span class="power-denom">/10</span></div>
+      </div>
+    </div>
+
+    <div class="rec4-card">
+      <div class="rec4-label">Recommended Addition</div>
+      <div class="rec4-type" style="color:${rec4Color};">Type ${combo.rec4} &nbsp;·&nbsp; <span style="font-size:0.9rem;color:${rec4Color}88;">${rec4Name}</span></div>
+      <div class="rec4-reason">${combo.rec4reason}</div>
+    </div>
+  `;
+}
+
+function render(team, members) {
+  const memberCount = members.length;
+  const inviteUrl = `https://chuck.neoteric.art/chord/test.html?join=${team.invite_code}`;
+
+  let analysisHtml = '';
+  let analysisSectionTitle = '';
+
+  if (memberCount === 0) {
+    analysisSectionTitle = 'No Members Yet';
+    analysisHtml = `<div style="color:rgba(255,255,255,0.25);font-size:0.85rem;">Share the invite link to start building your team.</div>`;
+  } else if (memberCount < 3) {
+    analysisSectionTitle = 'Chord Analysis';
+    analysisHtml = renderWaitingState(memberCount);
+  } else if (memberCount === 3) {
+    analysisSectionTitle = 'Chord Analysis';
+    analysisHtml = renderAnalysis(members);
+  } else {
+    analysisSectionTitle = 'Chord Analysis';
+    analysisHtml = renderLargeTeamAnalysis(members);
+  }
+
+  const memberCountLabel = memberCount === 1 ? '1 member' : `${memberCount} members`;
+
+  document.getElementById('team-view').innerHTML = `
+    <div class="team-hero">
+      <div class="team-name">${team.name}</div>
+      <div class="team-meta">${memberCountLabel} · Chord Team</div>
+      <button class="btn-invite" id="btn-invite-copy">Invite someone to this team</button>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Members</div>
+      <div class="members-list">
+        ${memberCount > 0 ? renderMembersSection(members) : '<div style="color:rgba(255,255,255,0.2);font-size:0.85rem;">No members yet.</div>'}
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">${analysisSectionTitle}</div>
+      ${analysisHtml}
+    </div>
+
+    <div style="margin-top:3rem;padding-top:2rem;border-top:1px solid rgba(255,255,255,0.05);">
+      <div style="font-size:0.65rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(255,255,255,0.12);margin-bottom:0.5rem;">Invite link</div>
+      <div style="font-size:0.8rem;color:rgba(200,169,110,0.5);word-break:break-all;margin-bottom:0.75rem;">${inviteUrl}</div>
+      <button class="btn-invite" id="btn-copy-invite-bottom">Copy invite link</button>
+    </div>
+  `;
+
+  document.getElementById('btn-invite-copy').addEventListener('click', function() {
+    copyToClipboard(inviteUrl, this);
+    this.textContent = 'Copied!';
+    setTimeout(() => { this.textContent = 'Invite someone to this team'; }, 2000);
+  });
+
+  document.getElementById('btn-copy-invite-bottom').addEventListener('click', function() {
+    copyToClipboard(inviteUrl, this);
+  });
+
+  document.title = `Chord — ${team.name}`;
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('team-view').style.display = 'block';
+}
+
+// ─── Fetch & render ───────────────────────────────────────────────────────────
+(async () => {
+  const params = new URLSearchParams(window.location.search);
+  const teamId = params.get('id');
+
+  if (!teamId) {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('error-state').style.display = 'flex';
+    return;
+  }
+
+  try {
+    const [teamRes, membersRes] = await Promise.all([
+      fetch(`${SUPABASE_URL}/rest/v1/chord_teams?id=eq.${teamId}&select=*`, {
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+      }),
+      fetch(`${SUPABASE_URL}/rest/v1/chord_team_members?team_id=eq.${teamId}&select=*&order=joined_at.asc`, {
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+      })
+    ]);
+
+    const [teams, members] = await Promise.all([teamRes.json(), membersRes.json()]);
+
+    if (!teams || !teams[0]) throw new Error('Team not found');
+    render(teams[0], members || []);
+  } catch(e) {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('error-state').style.display = 'flex';
+  }
+})();
+</script>
+</body>
+</html>

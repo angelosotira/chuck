@@ -1,0 +1,1684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Layer Marketplace — Generative Art for the Considered Home</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #080808;
+      --surface: #111111;
+      --border: rgba(255,255,255,0.06);
+      --text-primary: #f0ede8;
+      --text-secondary: rgba(240,237,232,0.4);
+      --accent: #c9a97a;
+      --accent-bg: rgba(201,169,122,0.07);
+      --lock-color: rgba(255,255,255,0.15);
+    }
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-primary);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* ── NAV ──────────────────────────────────────── */
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      background: rgba(8,8,8,0.96);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 40px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+    }
+    .nav-logo {
+      font-family: 'EB Garamond', Georgia, serif;
+      font-size: 19px;
+      font-weight: 400;
+      letter-spacing: 0.55em;
+      color: var(--text-primary);
+      text-decoration: none;
+      text-transform: uppercase;
+    }
+    .nav-center {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 9px;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+    }
+    .member-toggle {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.12);
+      color: var(--text-secondary);
+      padding: 9px 18px;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-family: inherit;
+    }
+    .member-toggle:hover {
+      border-color: rgba(201,169,122,0.4);
+      color: var(--accent);
+    }
+    .member-toggle.active {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-bg);
+    }
+    .member-badge {
+      display: none;
+      font-size: 8px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      background: var(--accent);
+      color: #080808;
+      padding: 2px 7px;
+      font-weight: 500;
+    }
+    .member-toggle.active .member-badge { display: inline; }
+    .lock-svg { width: 13px; height: 13px; flex-shrink: 0; }
+
+    /* ── HERO ─────────────────────────────────────── */
+    .hero {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 110px 40px 80px;
+      text-align: center;
+    }
+    .hero-eyebrow {
+      font-size: 9px;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 28px;
+    }
+    .hero-headline {
+      font-family: 'EB Garamond', Georgia, serif;
+      font-size: clamp(44px, 6.5vw, 80px);
+      font-weight: 400;
+      line-height: 1.13;
+      letter-spacing: -0.01em;
+      color: var(--text-primary);
+      margin-bottom: 28px;
+    }
+    .hero-subhead {
+      font-size: 17px;
+      color: var(--text-secondary);
+      max-width: 500px;
+      margin: 0 auto 52px;
+      line-height: 1.75;
+    }
+    .membership-bar {
+      display: inline-flex;
+      align-items: center;
+      gap: 28px;
+      border: 1px solid var(--border);
+      padding: 15px 28px;
+      margin-bottom: 18px;
+    }
+    .mbar-item {
+      font-size: 12px;
+      color: var(--text-secondary);
+      letter-spacing: 0.04em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .mbar-divider { width: 1px; height: 18px; background: var(--border); }
+    .hero-fine {
+      font-size: 10px;
+      color: rgba(240,237,232,0.2);
+      letter-spacing: 0.06em;
+    }
+
+    /* ── PRESS BAR ────────────────────────────────── */
+    .press-bar {
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 18px 40px;
+    }
+    .press-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 40px;
+    }
+    .press-label {
+      font-size: 9px;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: rgba(240,237,232,0.2);
+    }
+    .press-names {
+      display: flex;
+      gap: 32px;
+      align-items: center;
+    }
+    .press-name {
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(240,237,232,0.2);
+      font-style: italic;
+      font-family: 'EB Garamond', Georgia, serif;
+    }
+
+    /* ── FILTER BAR ───────────────────────────────── */
+    .filter-bar {
+      border-bottom: 1px solid var(--border);
+      background: rgba(11,11,11,0.9);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 64px;
+      z-index: 100;
+    }
+    .filter-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 40px;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .filter-tabs { display: flex; gap: 0; }
+    .filter-tab {
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--text-secondary);
+      font-size: 10px;
+      letter-spacing: 0.17em;
+      text-transform: uppercase;
+      padding: 0 16px;
+      height: 52px;
+      cursor: pointer;
+      transition: color 0.2s, border-color 0.2s;
+      font-family: inherit;
+    }
+    .filter-tab:hover { color: var(--text-primary); }
+    .filter-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .filter-right { display: flex; align-items: center; gap: 20px; }
+    .filter-count { font-size: 10px; color: rgba(240,237,232,0.2); letter-spacing: 0.05em; }
+    .sort-select {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      font-size: 10px;
+      padding: 6px 10px;
+      cursor: pointer;
+      font-family: inherit;
+      letter-spacing: 0.06em;
+    }
+    .sort-select option { background: #111; }
+
+    /* ── GALLERY ──────────────────────────────────── */
+    .gallery-section {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 40px 40px 0;
+    }
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+    }
+
+    /* ── CARD ─────────────────────────────────────── */
+    .art-card {
+      background: var(--surface);
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.2s ease;
+    }
+    .artwork-preview {
+      position: relative;
+      aspect-ratio: 1 / 1;
+      overflow: hidden;
+      cursor: pointer;
+      background: #0a0a0a;
+    }
+    .artwork-preview canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .edition-tag {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      font-size: 8px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(240,237,232,0.35);
+      background: rgba(8,8,8,0.75);
+      padding: 4px 9px;
+      backdrop-filter: blur(6px);
+    }
+    .new-tag {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      font-size: 8px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: rgba(8,8,8,0.75);
+      padding: 4px 9px;
+      backdrop-filter: blur(6px);
+    }
+    .card-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(8,8,8,0);
+      display: flex;
+      align-items: flex-end;
+      justify-content: flex-end;
+      padding: 16px;
+      transition: background 0.3s ease;
+    }
+    .artwork-preview:hover .card-overlay { background: rgba(8,8,8,0.45); }
+    .view-work-link {
+      color: var(--text-primary);
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-decoration: none;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      text-transform: uppercase;
+    }
+    .artwork-preview:hover .view-work-link { opacity: 1; }
+
+    /* ── CARD INFO ────────────────────────────────── */
+    .card-info {
+      padding: 20px 22px 22px;
+      border-top: 1px solid var(--border);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .artist-name {
+      font-size: 9px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+    .work-title {
+      font-family: 'EB Garamond', Georgia, serif;
+      font-size: 21px;
+      font-weight: 400;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+      line-height: 1.25;
+    }
+    .work-description {
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.65;
+      margin-bottom: 10px;
+      flex: 1;
+    }
+    .edition-status {
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      color: rgba(240,237,232,0.25);
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    /* ── PRICE AREA ───────────────────────────────── */
+    .price-area {
+      border-top: 1px solid var(--border);
+      padding-top: 16px;
+    }
+    .price-locked { display: flex; flex-direction: column; gap: 10px; }
+    .price-unlocked { display: none; }
+    .price-area.member-view .price-locked { display: none; }
+    .price-area.member-view .price-unlocked {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .lock-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .lock-label {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 12px;
+      color: var(--lock-color);
+    }
+    .bundle-reveal {
+      max-height: 0;
+      overflow: hidden;
+      opacity: 0;
+      transition: max-height 0.35s ease, opacity 0.35s ease;
+    }
+    .price-area:not(.member-view):hover .bundle-reveal {
+      max-height: 52px;
+      opacity: 1;
+    }
+    .bundle-price-text {
+      font-size: 13px;
+      color: rgba(240,237,232,0.5);
+      font-variant-numeric: tabular-nums;
+    }
+    .bundle-sub-text {
+      font-size: 10px;
+      color: rgba(240,237,232,0.25);
+      margin-top: 3px;
+    }
+    .become-member-link {
+      font-size: 10px;
+      color: rgba(240,237,232,0.25);
+      text-decoration: none;
+      letter-spacing: 0.06em;
+      transition: color 0.2s;
+      align-self: flex-start;
+    }
+    .become-member-link:hover { color: var(--accent); }
+
+    .unlocked-left {}
+    .price-label {
+      font-size: 9px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      margin-bottom: 4px;
+    }
+    .art-price-display {
+      font-family: 'EB Garamond', Georgia, serif;
+      font-size: 24px;
+      font-variant-numeric: tabular-nums;
+      color: var(--accent);
+      line-height: 1;
+    }
+
+    /* ── BUTTONS ──────────────────────────────────── */
+    .btn {
+      font-family: inherit;
+      font-size: 9px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      padding: 10px 15px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: none;
+      white-space: nowrap;
+    }
+    .btn-secondary {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.1);
+      color: var(--text-secondary);
+    }
+    .btn-secondary:hover {
+      border-color: rgba(255,255,255,0.28);
+      color: var(--text-primary);
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #080808;
+      font-weight: 500;
+      flex-shrink: 0;
+    }
+    .btn-primary:hover { background: #d4b58a; }
+
+    /* ── HOW IT WORKS ─────────────────────────────── */
+    .how-section {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 96px 40px;
+      border-top: 1px solid var(--border);
+      margin-top: 64px;
+    }
+    .section-label {
+      font-size: 9px;
+      letter-spacing: 0.32em;
+      text-transform: uppercase;
+      color: var(--accent);
+      text-align: center;
+      margin-bottom: 56px;
+    }
+    .how-columns {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 64px;
+    }
+    .how-col { text-align: center; }
+    .how-icon {
+      width: 40px;
+      height: 40px;
+      margin: 0 auto 24px;
+      color: var(--accent);
+      opacity: 0.65;
+    }
+    .how-icon svg { width: 40px; height: 40px; }
+    .how-title {
+      font-family: 'EB Garamond', Georgia, serif;
+      font-size: 24px;
+      font-weight: 400;
+      margin-bottom: 16px;
+      color: var(--text-primary);
+    }
+    .how-body {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.85;
+    }
+
+    /* ── VIEWTIME ─────────────────────────────────── */
+    .viewtime-section {
+      background: #0b0b0b;
+      padding: 112px 40px;
+      text-align: center;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+    }
+    .viewtime-section::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+      pointer-events: none;
+    }
+    .viewtime-inner {
+      max-width: 760px;
+      margin: 0 auto;
+      position: relative;
+    }
+    .viewtime-headline {
+      font-family: 'EB Garamond', Georgia, serif;
+      font-size: clamp(28px, 3.8vw, 46px);
+      font-weight: 400;
+      color: var(--text-primary);
+      margin-bottom: 32px;
+      line-height: 1.3;
+    }
+    .viewtime-body {
+      font-size: 16px;
+      color: var(--text-secondary);
+      line-height: 1.9;
+      margin-bottom: 64px;
+    }
+    .viewtime-quote {
+      font-family: 'EB Garamond', Georgia, serif;
+      font-size: clamp(22px, 3.2vw, 36px);
+      font-style: italic;
+      font-weight: 400;
+      color: var(--accent);
+      line-height: 1.45;
+    }
+
+    /* ── FOOTER ───────────────────────────────────── */
+    footer {
+      padding: 44px 40px;
+    }
+    .footer-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .footer-logo {
+      font-family: 'EB Garamond', Georgia, serif;
+      font-size: 17px;
+      letter-spacing: 0.45em;
+      color: rgba(240,237,232,0.5);
+      text-transform: uppercase;
+    }
+    .footer-links {
+      font-size: 11px;
+      color: var(--text-secondary);
+      letter-spacing: 0.08em;
+    }
+    .footer-links a { color: inherit; text-decoration: none; }
+    .footer-links a:hover { color: var(--text-primary); }
+    .footer-copy { font-size: 10px; color: rgba(240,237,232,0.2); }
+    .footer-fine {
+      max-width: 1400px;
+      margin: 0 auto;
+      font-size: 10px;
+      color: rgba(240,237,232,0.12);
+      letter-spacing: 0.04em;
+      border-top: 1px solid var(--border);
+      padding-top: 20px;
+    }
+
+    /* ── MODAL ────────────────────────────────────── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.88);
+      z-index: 999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      backdrop-filter: blur(8px);
+    }
+    .modal-overlay.active { opacity: 1; pointer-events: auto; }
+    .modal {
+      background: #111;
+      border: 1px solid rgba(255,255,255,0.09);
+      padding: 52px;
+      max-width: 460px;
+      width: 90%;
+      text-align: center;
+    }
+    .modal-eyebrow {
+      font-size: 9px;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 20px;
+    }
+    .modal-title {
+      font-family: 'EB Garamond', Georgia, serif;
+      font-size: 30px;
+      font-weight: 400;
+      color: var(--text-primary);
+      margin-bottom: 16px;
+    }
+    .modal-body {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.85;
+      margin-bottom: 32px;
+    }
+    .modal-cta {
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 14px;
+      letter-spacing: 0.06em;
+      border-bottom: 1px solid rgba(201,169,122,0.3);
+      padding-bottom: 2px;
+      transition: border-color 0.2s;
+    }
+    .modal-cta:hover { border-color: var(--accent); }
+    .modal-close {
+      display: block;
+      margin: 28px auto 0;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      padding: 10px 28px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 9px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      transition: all 0.2s;
+    }
+    .modal-close:hover {
+      border-color: rgba(255,255,255,0.25);
+      color: var(--text-primary);
+    }
+
+    /* ── HIDDEN ───────────────────────────────────── */
+    .art-card.hidden { display: none; }
+
+    /* ── RESPONSIVE ───────────────────────────────── */
+    @media (max-width: 1100px) {
+      .gallery-grid { grid-template-columns: repeat(2, 1fr); }
+      .how-columns { grid-template-columns: 1fr; gap: 48px; }
+    }
+    @media (max-width: 680px) {
+      .gallery-grid { grid-template-columns: 1fr; }
+      .nav-inner { padding: 0 20px; }
+      .nav-center { display: none; }
+      .hero { padding: 72px 20px 60px; }
+      .membership-bar { flex-direction: column; gap: 12px; padding: 16px 20px; }
+      .mbar-divider { display: none; }
+      .filter-inner { padding: 0 20px; gap: 12px; }
+      .filter-tab { padding: 0 10px; font-size: 9px; }
+      .gallery-section { padding: 24px 20px 0; }
+      .how-section { padding: 72px 20px; }
+      .viewtime-section { padding: 80px 20px; }
+      footer { padding: 36px 20px; }
+      .footer-inner { flex-direction: column; gap: 14px; text-align: center; }
+      .press-inner { flex-direction: column; gap: 12px; }
+      .press-names { flex-wrap: wrap; justify-content: center; gap: 18px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="#" class="nav-logo">Layer</a>
+    <span class="nav-center">Marketplace</span>
+    <button class="member-toggle" id="memberToggle" onclick="toggleMember()">
+      <svg class="lock-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+      </svg>
+      I own a Layer
+      <span class="member-badge">Canvas Member</span>
+    </button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <p class="hero-eyebrow">250 works · 100+ artists · Living art</p>
+  <h1 class="hero-headline">Art you live with.<br>Not art you look at.</h1>
+  <p class="hero-subhead">250 works by the world's leading generative artists. Each available to acquire, live with, and let evolve.</p>
+  <div class="membership-bar">
+    <div class="mbar-item">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <rect x="3" y="11" width="18" height="11" rx="2"/>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+      </svg>
+      Prices visible to Layer Canvas members
+    </div>
+    <div class="mbar-divider"></div>
+    <div class="mbar-item">Already a member? Toggle above →</div>
+  </div>
+  <p class="hero-fine">Founding Membership is included with every Layer Canvas purchase.</p>
+</section>
+
+<!-- PRESS BAR -->
+<div class="press-bar">
+  <div class="press-inner">
+    <span class="press-label">As seen in</span>
+    <div class="press-names">
+      <span class="press-name">Wallpaper*</span>
+      <span class="press-name">TechCrunch</span>
+      <span class="press-name">Observer</span>
+      <span class="press-name">Design Milk</span>
+      <span class="press-name">White Hot</span>
+    </div>
+  </div>
+</div>
+
+<!-- FILTER BAR -->
+<div class="filter-bar">
+  <div class="filter-inner">
+    <div class="filter-tabs">
+      <button class="filter-tab active" onclick="filterWorks('all', this)">All Works</button>
+      <button class="filter-tab" onclick="filterWorks('generative', this)">Generative</button>
+      <button class="filter-tab" onclick="filterWorks('sequential', this)">Sequential</button>
+      <button class="filter-tab" onclick="filterWorks('interactive', this)">Interactive</button>
+      <button class="filter-tab" onclick="filterWorks('new', this)">New Additions</button>
+    </div>
+    <div class="filter-right">
+      <span class="filter-count" id="workCount">Showing 12 of 250+ works</span>
+      <select class="sort-select">
+        <option>By Artist ↕</option>
+        <option>By Price ↑</option>
+        <option>By Edition Size</option>
+        <option>Recently Added</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<!-- GALLERY -->
+<section class="gallery-section">
+  <div class="gallery-grid" id="galleryGrid"></div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how-section" id="how-it-works">
+  <p class="section-label">How It Works</p>
+  <div class="how-columns">
+    <div class="how-col">
+      <div class="how-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+          <circle cx="12" cy="12" r="3"/>
+        </svg>
+      </div>
+      <h3 class="how-title">Discover</h3>
+      <p class="how-body">Browse our curated collection of generative works. Every piece is hand-selected by our curation board — artists who have defined the medium.</p>
+    </div>
+    <div class="how-col">
+      <div class="how-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+          <rect x="3" y="11" width="18" height="11" rx="2"/>
+          <path d="M7 11V7a5 5 0 0 1 9.9-1"/>
+          <path d="M7 11V7a5 5 0 0 1 5-5" opacity=".4"/>
+        </svg>
+      </div>
+      <h3 class="how-title">Acquire</h3>
+      <p class="how-body">Your first acquisition includes your Layer Canvas — the only display built for this art. Existing members add works to their collection at the art price alone.</p>
+    </div>
+    <div class="how-col">
+      <div class="how-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+          <circle cx="12" cy="12" r="10"/>
+          <polyline points="12 6 12 12 16 14"/>
+        </svg>
+      </div>
+      <h3 class="how-title">Live With</h3>
+      <p class="how-body">Art Intelligence schedules your collection across the day. Your artists earn ViewTime royalties while their work fills your space. The art evolves. So do you.</p>
+    </div>
+  </div>
+</section>
+
+<!-- VIEWTIME -->
+<section class="viewtime-section">
+  <div class="viewtime-inner">
+    <p class="section-label" style="margin-bottom:32px;">ViewTime Royalties</p>
+    <h2 class="viewtime-headline">Artists earn every hour their work is on your wall.</h2>
+    <p class="viewtime-body">ViewTime is Layer's royalty engine. Every canvas reports display time in real time. Artists receive payment proportional to how long their work is shown — not just when it's sold. Acquire a work, and you become a patron of the artist's ongoing practice.</p>
+    <blockquote class="viewtime-quote">
+      "The longer you live with the work,<br>the more the artist earns."
+    </blockquote>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-logo">Layer</div>
+    <div class="footer-links">
+      <a href="#">Marketplace</a> &nbsp;·&nbsp; <a href="#">Canvas</a> &nbsp;·&nbsp; <a href="#">Artists</a> &nbsp;·&nbsp; <a href="#">ViewTime</a> &nbsp;·&nbsp; <a href="#" onclick="showModal(); return false;">Inquire</a>
+    </div>
+    <div class="footer-copy">© 2026 Layer. All art prices in USD.</div>
+  </div>
+  <p class="footer-fine">Layer Canvas Founder Edition includes lifetime access to the Layer Curation. Additional works available at member pricing.</p>
+</footer>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="handleModalClick(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <p class="modal-eyebrow">Concept Design</p>
+    <h2 class="modal-title">This is a concept mock</h2>
+    <p class="modal-body">The Layer Marketplace is a design exploration — what it looks like when an art company sells art, not a hardware company selling a screen.<br><br>To inquire about a Layer Canvas or its collection, please visit:</p>
+    <a href="https://layer.com" class="modal-cta" target="_blank">layer.com →</a>
+    <button class="modal-close" onclick="closeModal()">Close</button>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   DATA
+═══════════════════════════════════════════════════════════ */
+const artworks = [
+  {
+    id: 'tissue-04',
+    artist: 'Casey Reas',
+    title: 'Tissue 04',
+    description: 'A meditation on biological systems rendered as shifting networks of form and pressure.',
+    edition: 5, sold: 3,
+    artPrice: 28000, bundlePrice: 50000,
+    tags: ['generative'], isNew: false
+  },
+  {
+    id: 'drawn-apart',
+    artist: 'Zach Lieberman',
+    title: 'Drawn Apart',
+    description: 'Lines that remember where they\'ve been. A study in gesture, distance, and return.',
+    edition: 8, sold: 4,
+    artPrice: 18000, bundlePrice: 40000,
+    tags: ['generative'], isNew: false
+  },
+  {
+    id: 'luminance-iii',
+    artist: 'Rik Oostenbroek',
+    title: 'Luminance III',
+    description: 'Light as material. Depth as sculpture. A luminous field that breathes with the room.',
+    edition: 10, sold: 3,
+    artPrice: 12000, bundlePrice: 34000,
+    tags: ['generative'], isNew: false
+  },
+  {
+    id: 'superposition-7',
+    artist: 'Andreas Nicolas Fischer',
+    title: 'Superposition 7',
+    description: 'Matter in two states simultaneously. The space between structure and dissolution.',
+    edition: 6, sold: 3,
+    artPrice: 22000, bundlePrice: 44000,
+    tags: ['generative', 'interactive'], isNew: false
+  },
+  {
+    id: 'meridian',
+    artist: 'Leander Herzog',
+    title: 'Meridian',
+    description: 'A horizon that exists between coordinate systems. Where data becomes landscape.',
+    edition: 12, sold: 3,
+    artPrice: 9500, bundlePrice: 31500,
+    tags: ['sequential'], isNew: false
+  },
+  {
+    id: 'drift-study-12',
+    artist: 'Lake Heckaman',
+    title: 'Drift Study No. 12',
+    description: 'The patient accumulation of small movements. Drift as a compositional act.',
+    edition: 15, sold: 0,
+    artPrice: 8500, bundlePrice: 30500,
+    tags: ['generative'], isNew: false
+  },
+  {
+    id: 'tidal',
+    artist: 'Jason Ting',
+    title: 'Tidal',
+    description: 'Rhythm pulled by invisible forces. The ocean as a time signature.',
+    edition: 20, sold: 0,
+    artPrice: 6800, bundlePrice: 28800,
+    tags: ['generative'], isNew: false
+  },
+  {
+    id: 'aurora-forma',
+    artist: 'Arttu Koskela',
+    title: 'Aurora Forma',
+    description: 'Northern light translated into pure structure. Color as geography.',
+    edition: 12, sold: 4,
+    artPrice: 7200, bundlePrice: 29200,
+    tags: ['generative'], isNew: true
+  },
+  {
+    id: 'still-process',
+    artist: 'Anton Dubrovin',
+    title: 'Still Process',
+    description: 'What remains when motion stops. The trace of a gesture before and after.',
+    edition: 25, sold: 0,
+    artPrice: 5500, bundlePrice: 27500,
+    tags: ['generative'], isNew: false
+  },
+  {
+    id: 'nebular-forms',
+    artist: 'Hayk Zakoyan',
+    title: 'Nebular Forms',
+    description: 'The grammar of deep space. Systems of gas and gravity as visual language.',
+    edition: 30, sold: 0,
+    artPrice: 4800, bundlePrice: 26800,
+    tags: ['generative'], isNew: true
+  },
+  {
+    id: 'signal-noise',
+    artist: 'JERES',
+    title: 'Signal:Noise',
+    description: 'The border between information and chaos. Meaning extracted from distortion.',
+    edition: 8, sold: 3,
+    artPrice: 11000, bundlePrice: 33000,
+    tags: ['interactive'], isNew: false
+  },
+  {
+    id: 'folded-light',
+    artist: 'Martin Naumann',
+    title: 'Folded Light',
+    description: 'Light as origami. What happens when illumination has memory.',
+    edition: 20, sold: 0,
+    artPrice: 8000, bundlePrice: 30000,
+    tags: ['generative'], isNew: true
+  }
+];
+
+/* ═══════════════════════════════════════════════════════════
+   HELPERS
+═══════════════════════════════════════════════════════════ */
+function fmt(n) {
+  return '$' + n.toLocaleString('en-US');
+}
+
+function editionLabel(aw) {
+  const rem = aw.edition - aw.sold;
+  if (rem === aw.edition) return 'Available';
+  if (rem === 1) return '1 of ' + aw.edition + ' remaining';
+  return rem + ' of ' + aw.edition + ' remaining';
+}
+
+/* ═══════════════════════════════════════════════════════════
+   CARD GENERATION
+═══════════════════════════════════════════════════════════ */
+function buildCards() {
+  const grid = document.getElementById('galleryGrid');
+  grid.innerHTML = '';
+  artworks.forEach(aw => {
+    const rem = aw.edition - aw.sold;
+    const card = document.createElement('div');
+    card.className = 'art-card';
+    card.dataset.id = aw.id;
+    card.dataset.tags = aw.tags.join(' ') + (aw.isNew ? ' new' : '');
+    card.innerHTML = `
+      <div class="artwork-preview" onclick="showModal()">
+        <canvas id="c-${aw.id}" width="600" height="600"></canvas>
+        ${aw.isNew ? '<div class="new-tag">New</div>' : ''}
+        <div class="edition-tag">Edition of ${aw.edition}</div>
+        <div class="card-overlay">
+          <span class="view-work-link">View work →</span>
+        </div>
+      </div>
+      <div class="card-info">
+        <div class="artist-name">${aw.artist}</div>
+        <h3 class="work-title">${aw.title}</h3>
+        <p class="work-description">${aw.description}</p>
+        <div class="edition-status">${editionLabel(aw)}</div>
+        <div class="price-area" data-art="${aw.artPrice}" data-bundle="${aw.bundlePrice}">
+          <div class="price-locked">
+            <div class="lock-row">
+              <div class="lock-label">
+                <svg class="lock-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <rect x="3" y="11" width="18" height="11" rx="2"/>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+                Members only
+              </div>
+              <button class="btn btn-secondary" onclick="showModal(); event.stopPropagation()">Inquire</button>
+            </div>
+            <div class="bundle-reveal">
+              <div class="bundle-price-text">Canvas + Work from ${fmt(aw.bundlePrice)}</div>
+              <div class="bundle-sub-text">Includes your Layer Canvas Founder Edition</div>
+            </div>
+            <a href="#how-it-works" class="become-member-link">Become a member →</a>
+          </div>
+          <div class="price-unlocked">
+            <div class="unlocked-left">
+              <div class="price-label">Art price</div>
+              <div class="art-price-display">${fmt(aw.artPrice)}</div>
+            </div>
+            <button class="btn btn-primary" onclick="showModal(); event.stopPropagation()">Acquire this work</button>
+          </div>
+        </div>
+      </div>`;
+    grid.appendChild(card);
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════
+   MEMBER TOGGLE
+═══════════════════════════════════════════════════════════ */
+let isMember = false;
+function toggleMember() {
+  isMember = !isMember;
+  document.getElementById('memberToggle').classList.toggle('active', isMember);
+  document.querySelectorAll('.price-area').forEach(el => {
+    el.classList.toggle('member-view', isMember);
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════
+   FILTER
+═══════════════════════════════════════════════════════════ */
+function filterWorks(tag, btn) {
+  document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  let count = 0;
+  document.querySelectorAll('.art-card').forEach(card => {
+    const tags = card.dataset.tags;
+    const show = tag === 'all' || tags.includes(tag);
+    card.classList.toggle('hidden', !show);
+    if (show) count++;
+  });
+  document.getElementById('workCount').textContent = `Showing ${count} of 250+ works`;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   MODAL
+═══════════════════════════════════════════════════════════ */
+function showModal() {
+  document.getElementById('modalOverlay').classList.add('active');
+}
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('active');
+}
+function handleModalClick(e) {
+  if (e.target === document.getElementById('modalOverlay')) closeModal();
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+/* ═══════════════════════════════════════════════════════════
+   ANIMATIONS
+═══════════════════════════════════════════════════════════ */
+const animators = {
+
+  /* 1 · Casey Reas — Tissue 04 — organic cellular particle mesh */
+  'tissue-04': (canvas) => {
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    const nodes = Array.from({length: 58}, () => ({
+      x: Math.random() * W, y: Math.random() * H,
+      vx: (Math.random() - 0.5) * 0.45, vy: (Math.random() - 0.5) * 0.45,
+      phase: Math.random() * Math.PI * 2,
+      baseR: 1.5 + Math.random() * 2.5
+    }));
+    ctx.fillStyle = '#080808';
+    ctx.fillRect(0, 0, W, H);
+    let raf;
+    function frame() {
+      ctx.fillStyle = 'rgba(8,8,8,0.18)';
+      ctx.fillRect(0, 0, W, H);
+      nodes.forEach(n => {
+        n.x += n.vx; n.y += n.vy;
+        if (n.x < 0 || n.x > W) n.vx *= -1;
+        if (n.y < 0 || n.y > H) n.vy *= -1;
+        n.phase += 0.018;
+      });
+      for (let i = 0; i < nodes.length; i++) {
+        for (let j = i + 1; j < nodes.length; j++) {
+          const dx = nodes[i].x - nodes[j].x;
+          const dy = nodes[i].y - nodes[j].y;
+          const d = Math.sqrt(dx*dx + dy*dy);
+          if (d < 95) {
+            const a = (1 - d/95) * 0.28;
+            ctx.strokeStyle = `rgba(215,205,190,${a})`;
+            ctx.lineWidth = 0.5;
+            ctx.beginPath();
+            ctx.moveTo(nodes[i].x, nodes[i].y);
+            ctx.lineTo(nodes[j].x, nodes[j].y);
+            ctx.stroke();
+          }
+        }
+      }
+      nodes.forEach(n => {
+        const r = n.baseR * (0.75 + 0.35 * Math.sin(n.phase));
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, r, 0, Math.PI*2);
+        ctx.fillStyle = `rgba(225,215,200,${0.7 + 0.2 * Math.sin(n.phase * 0.7)})`;
+        ctx.fill();
+      });
+      raf = requestAnimationFrame(frame);
+    }
+    raf = requestAnimationFrame(frame);
+    return () => cancelAnimationFrame(raf);
+  },
+
+  /* 2 · Zach Lieberman — Drawn Apart — calligraphic lines */
+  'drawn-apart': (canvas) => {
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    ctx.fillStyle = '#060606';
+    ctx.fillRect(0, 0, W, H);
+    const brushes = Array.from({length: 5}, () => ({
+      x: Math.random() * W, y: Math.random() * H,
+      px: 0, py: 0,
+      angle: Math.random() * Math.PI * 2,
+      speed: 1.2 + Math.random() * 2.2,
+      life: 0, maxLife: 100 + Math.floor(Math.random() * 200),
+      weight: 0.5 + Math.random() * 2.5
+    }));
+    brushes.forEach(b => { b.px = b.x; b.py = b.y; });
+    let raf;
+    function frame() {
+      ctx.fillStyle = 'rgba(6,6,6,0.025)';
+      ctx.fillRect(0, 0, W, H);
+      brushes.forEach(b => {
+        b.life++;
+        if (b.life > b.maxLife) {
+          b.x = W * 0.2 + Math.random() * W * 0.6;
+          b.y = H * 0.2 + Math.random() * H * 0.6;
+          b.px = b.x; b.py = b.y;
+          b.angle = Math.random() * Math.PI * 2;
+          b.life = 0;
+          b.maxLife = 100 + Math.floor(Math.random() * 200);
+          b.weight = 0.5 + Math.random() * 2.5;
+          return;
+        }
+        b.angle += (Math.random() - 0.5) * 0.28;
+        b.px = b.x; b.py = b.y;
+        b.x += Math.cos(b.angle) * b.speed;
+        b.y += Math.sin(b.angle) * b.speed;
+        if (b.x < 0) b.x = W; if (b.x > W) b.x = 0;
+        if (b.y < 0) b.y = H; if (b.y > H) b.y = 0;
+        const progress = b.life / b.maxLife;
+        const alpha = Math.sin(progress * Math.PI) * 0.85;
+        ctx.strokeStyle = `rgba(240,237,232,${alpha})`;
+        ctx.lineWidth = b.weight * (1 - progress * 0.6);
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(b.px, b.py);
+        ctx.lineTo(b.x, b.y);
+        ctx.stroke();
+      });
+      raf = requestAnimationFrame(frame);
+    }
+    raf = requestAnimationFrame(frame);
+    return () => cancelAnimationFrame(raf);
+  },
+
+  /* 3 · Rik Oostenbroek — Luminance III — aurora color washes */
+  'luminance-iii': (canvas) => {
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    let t = 0;
+    const bands = [
+      { hue: 210, sat: 70, y: 0.35, amp: 0.12, freq: 0.7, ph: 0 },
+      { hue: 40,  sat: 60, y: 0.52, amp: 0.10, freq: 1.1, ph: 1.3 },
+      { hue: 185, sat: 65, y: 0.67, amp: 0.09, freq: 0.55, ph: 2.6 },
+      { hue: 25,  sat: 55, y: 0.42, amp: 0.08, freq: 0.9, ph: 0.8 },
+    ];
+    let raf;
+    function frame() {
+      t += 0.003;
+      ctx.fillStyle = '#040810';
+      ctx.fillRect(0, 0, W, H);
+      ctx.globalCompositeOperation = 'screen';
+      bands.forEach(b => {
+        const cy = H * (b.y + Math.sin(t * b.freq + b.ph) * b.amp);
+        const spread = 80 + 40 * Math.sin(t * 0.4 + b.ph);
+        const alpha = 0.22 + 0.12 * Math.sin(t * 1.8 + b.ph);
+        const grd = ctx.createLinearGradient(0, cy - spread * 1.5, 0, cy + spread * 1.5);
+        grd.addColorStop(0,   `hsla(${b.hue},${b.sat}%,50%,0)`);
+        grd.addColorStop(0.35,`hsla(${b.hue},${b.sat}%,60%,${alpha})`);
+        grd.addColorStop(0.5, `hsla(${b.hue},${b.sat}%,65%,${alpha * 1.4})`);
+        grd.addColorStop(0.65,`hsla(${b.hue},${b.sat}%,60%,${alpha})`);
+        grd.addColorStop(1,   `hsla(${b.hue},${b.sat}%,50%,0)`);
+        ctx.fillStyle = grd;
+        ctx.fillRect(0, cy - spread * 1.5, W, spread * 3);
+      });
+      ctx.globalCompositeOperation = 'source-over';
+      raf = requestAnimationFrame(frame);
+    }
+    raf = requestAnimationFrame(frame);
+    return () => cancelAnimationFrame(raf);
+  },
+
+  /* 4 · ANF — Superposition 7 — geometric grids warping into fluid */
+  'superposition-7': (canvas) => {
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    let t = 0;
+    const COLS = 22, ROWS = 22;
+    const cw = W / COLS, ch = H / ROWS;
+    let raf;
+    function frame() {
+      t += 0.007;
+      ctx.fillStyle = '#050505';
+      ctx.fillRect(0, 0, W, H);
+      const phase = (Math.sin(t * 0.45) + 1) * 0.5;
+      ctx.strokeStyle = `rgba(200,195,188,${0.22 + 0.12 * phase})`;
+      ctx.lineWidth = 0.6;
+      for (let i = 0; i <= COLS; i++) {
+        ctx.beginPath();
+        for (let j = 0; j <= ROWS; j++) {
+          const dx = phase * Math.sin(j * 0.38 + t * 1.4) * cw * 0.9;
+          const dy = phase * Math.cos(i * 0.38 + t * 1.1) * ch * 0.9;
+          const x = i * cw + dx, y = j * ch + dy;
+          j === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      }
+      for (let j = 0; j <= ROWS; j++) {
+        ctx.beginPath();
+        for (let i = 0; i <= COLS; i++) {
+          const dx = phase * Math.sin(j * 0.38 + t * 1.4) * cw * 0.9;
+          const dy = phase * Math.cos(i * 0.38 + t * 1.1) * ch * 0.9;
+          const x = i * cw + dx, y = j * ch + dy;
+          i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      }
+      raf = requestAnimationFrame(frame);
+    }
+    raf = requestAnimationFrame(frame);
+    return () => cancelAnimationFrame(raf);
+  },
+
+  /* 5 · Leander Herzog — Meridian — topographic terrain lines */
+  'meridian': (canvas) => {
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    let t = 0;
+    let raf;
+    function frame() {
+      t += 0.004;
+      ctx.fillStyle = '#040408';
+      ctx.fillRect(0, 0, W, H);
+      const LINE_COUNT = 32;
+      for (let l = 0; l < LINE_COUNT; l++) {
+        const pct = l / LINE_COUNT;
+        const baseY = H * pct;
+        const alpha = 0.10 + pct * 0.45;
+        const amp1 = 14 + l * 1.2;
+        const amp2 = amp1 * 0.5;
+        const f1 = 0.007 + l * 0.0003;
+        const f2 = 0.014 + l * 0.0002;
+        ctx.strokeStyle = `rgba(170,190,210,${alpha})`;
+        ctx.lineWidth = 0.6;
+        ctx.beginPath();
+        for (let x = 0; x <= W; x += 4) {
+          const y = baseY
+            + amp1 * Math.sin(x * f1 + t * 1.1 + l * 0.28)
+            + amp2 * Math.sin(x * f2 - t * 0.75 + l * 0.4);
+          x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      }
+      raf = requestAnimationFrame(frame);
+    }
+    raf = requestAnimationFrame(frame);
+    return () => cancelAnimationFrame(raf);
+  },
+
+  /* 6 · Lake Heckaman — Drift Study No. 12 — slow particle drift */
+  'drift-study-12': (canvas) => {
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    const COUNT = 900;
+    const particles = Array.from({length: COUNT}, () => ({
+      x: Math.random() * W, y: Math.random() * H,
+      vx: (Math.random() - 0.5) * 0.18,
+      vy: -0.04 - Math.random() * 0.18,
+      alpha: 0.15 + Math.random() * 0.55,
+      size: 0.5 + Math.random() * 1.8
+    }));
+    ctx.fillStyle = '#080808';
+    ctx.fillRect(0, 0, W, H);
+    let raf;
+    function frame() {
+      ctx.fillStyle = 'rgba(8,8,8,0.12)';
+      ctx.fillRect(0, 0, W, H);
+      particles.forEach(p => {
+        p.x += p.vx; p.y += p.vy;
+        if (p.y < -4) { p.y = H + 4; p.x = Math.random() * W; }
+        if (p.x < -4) p.x = W + 4;
+        if (p.x > W + 4) p.x = -4;
+        ctx.fillStyle = `rgba(218,214,208,${p.alpha})`;
+        ctx.fillRect(p.x, p.y, p.size, p.size);
+      });
+      raf = requestAnimationFrame(frame);
+    }
+    raf = requestAnimationFrame(frame);
+    return () => cancelAnimationFrame(raf);
+  },
+
+  /* 7 · Jason Ting — Tidal — wave interference rings */
+  'tidal': (canvas) => {
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    let t = 0;
+    const sources = [
+      { x: W * 0.33, y: H * 0.42, freq: 0.032, spd: 1.0, hue: 200 },
+      { x: W * 0.67, y: H * 0.58, freq: 0.027, spd: 1.25, hue: 195 },
+      { x: W * 0.50, y: H * 0.24, freq: 0.022, spd: 0.82, hue: 210 },
+    ];
+    let raf;
+    function frame() {
+      t += 0.022;
+      ctx.fillStyle = 'rgba(3,6,12,0.35)';
+      ctx.fillRect(0, 0, W, H);
+      sources.forEach(s => {
+        for (let r = 5; r < 380; r += 9) {
+          const wave = Math.sin(r * s.freq - t * s.spd);
+          if (wave > 0.2) {
+            const a = (wave - 0.2) * 0.22;
+            ctx.strokeStyle = `rgba(80,150,210,${a})`;
+            ctx.lineWidth = wave * 2.2;
+            ctx.beginPath();
+            ctx.arc(s.x, s.y, r, 0, Math.PI * 2);
+            ctx.stroke();
+          }
+        }
+      });
+      raf = requestAnimationFrame(frame);
+    }
+    ctx.fillStyle = '#030609';
+    ctx.fillRect(0, 0, W, H);
+    raf = requestAnimationFrame(frame);
+    return () => cancelAnimationFrame(raf);
+  },
+
+  /* 8 · Arttu Koskela — Aurora Forma — vertical shimmering curtains */
+  'aurora-forma': (canvas) => {
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    let t = 0;
+    const CURTAINS = 9;
+    const colors = [
+      [0,220,140], [30,200,180], [60,160,255],
+      [140,80,255],[100,230,180],[0,200,210],
+      [180,100,255],[40,240,160],[80,200,255]
+    ];
+    let raf;
+    function frame() {
+      t += 0.003;
+      ctx.fillStyle = 'rgba(1,3,7,0.55)';
+      ctx.fillRect(0, 0, W, H);
+      ctx.globalCompositeOperation = 'screen';
+      for (let i = 0; i < CURTAINS; i++) {
+        const baseX = (i / CURTAINS) * W;
+        const sway = Math.sin(t * 1.2 + i * 0.65) * 38;
+        const bwidth = W / CURTAINS * 1.6;
+        const bright = 0.35 + 0.35 * Math.sin(t * 2.5 + i * 0.9);
+        const [r, g, b] = colors[i % colors.length];
+        const cx = baseX + sway;
+        const grd = ctx.createLinearGradient(cx, 0, cx + bwidth, 0);
+        grd.addColorStop(0,   `rgba(${r},${g},${b},0)`);
+        grd.addColorStop(0.4, `rgba(${r},${g},${b},${bright * 0.9})`);
+        grd.addColorStop(0.6, `rgba(${r},${g},${b},${bright})`);
+        grd.addColorStop(1,   `rgba(${r},${g},${b},0)`);
+        const vgrd = ctx.createLinearGradient(0, 0, 0, H);
+        vgrd.addColorStop(0,   `rgba(0,0,0,0.8)`);
+        vgrd.addColorStop(0.15,`rgba(0,0,0,0)`);
+        vgrd.addColorStop(0.7, `rgba(0,0,0,0)`);
+        vgrd.addColorStop(1,   `rgba(0,0,0,0.6)`);
+        ctx.save();
+        ctx.fillStyle = grd;
+        ctx.fillRect(cx - bwidth*0.1, 0, bwidth * 1.2, H);
+        ctx.fillStyle = vgrd;
+        ctx.fillRect(cx - bwidth*0.1, 0, bwidth * 1.2, H);
+        ctx.restore();
+      }
+      ctx.globalCompositeOperation = 'source-over';
+      raf = requestAnimationFrame(frame);
+    }
+    ctx.fillStyle = '#010307';
+    ctx.fillRect(0, 0, W, H);
+    raf = requestAnimationFrame(frame);
+    return () => cancelAnimationFrame(raf);
+  },
+
+  /* 9 · Anton Dubrovin — Still Process — ink diffusion */
+  'still-process': (canvas) => {
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    let t = 0;
+    ctx.fillStyle = '#0e0e0e';
+    ctx.fillRect(0, 0, W, H);
+    const pools = Array.from({length: 7}, () => ({
+      x: W * 0.15 + Math.random() * W * 0.7,
+      y: H * 0.15 + Math.random() * H * 0.7,
+      phase: Math.random() * Math.PI * 2,
+      spd: 0.006 + Math.random() * 0.007,
+      baseR: W * (0.12 + Math.random() * 0.14)
+    }));
+    let dropTimer = 0;
+    const drops = [];
+    let raf;
+    function frame() {
+      t += 0.008;
+      ctx.fillStyle = 'rgba(14,14,14,0.04)';
+      ctx.fillRect(0, 0, W, H);
+      pools.forEach(p => {
+        p.phase += p.spd;
+        const r = p.baseR * (0.85 + 0.2 * Math.sin(p.phase));
+        const grd = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r);
+        grd.addColorStop(0,   'rgba(4,4,4,0.45)');
+        grd.addColorStop(0.45,'rgba(6,6,6,0.22)');
+        grd.addColorStop(1,   'rgba(10,10,10,0)');
+        ctx.fillStyle = grd;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, r, 0, Math.PI*2);
+        ctx.fill();
+      });
+      dropTimer++;
+      if (dropTimer > 55) {
+        dropTimer = 0;
+        drops.push({
+          x: W * 0.1 + Math.random() * W * 0.8,
+          y: H * 0.1 + Math.random() * H * 0.8,
+          r: 4 + Math.random() * 10,
+          life: 0, maxLife: 80 + Math.random() * 60
+        });
+      }
+      for (let i = drops.length - 1; i >= 0; i--) {
+        const d = drops[i];
+        d.life++;
+        if (d.life > d.maxLife) { drops.splice(i, 1); continue; }
+        const progress = d.life / d.maxLife;
+        const cr = d.r * (1 + progress * 3.5);
+        const a = (1 - progress) * 0.65;
+        const grd = ctx.createRadialGradient(d.x, d.y, 0, d.x, d.y, cr);
+        grd.addColorStop(0,   `rgba(3,3,3,${a})`);
+        grd.addColorStop(0.4, `rgba(5,5,5,${a * 0.5})`);
+        grd.addColorStop(1,   'rgba(10,10,10,0)');
+        ctx.fillStyle = grd;
+        ctx.beginPath();
+        ctx.arc(d.x, d.y, cr, 0, Math.PI*2);
+        ctx.fill();
+      }
+      raf = requestAnimationFrame(frame);
+    }
+    raf = requestAnimationFrame(frame);
+    return () => cancelAnimationFrame(raf);
+  },
+
+  /* 10 · Hayk Zakoyan — Nebular Forms — deep space clouds */
+  'nebular-forms': (canvas) => {
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    let t = 0;
+    ctx.fillStyle = '#020206';
+    ctx.fillRect(0, 0, W, H);
+    // Draw static stars
+    for (let i = 0; i < 220; i++) {
+      const alpha = 0.15 + Math.random() * 0.65;
+      ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+      ctx.fillRect(Math.random() * W, Math.random() * H, 1, 1);
+    }
+    const clouds = [
+      { x: W*0.32, y: H*0.38, r: W*0.42, hue: 268, sat: 58 },
+      { x: W*0.72, y: H*0.62, r: W*0.38, hue: 298, sat: 50 },
+      { x: W*0.50, y: H*0.28, r: W*0.32, hue: 240, sat: 42 },
+      { x: W*0.20, y: H*0.70, r: W*0.28, hue: 320, sat: 55 },
+      { x: W*0.80, y: H*0.30, r: W*0.24, hue: 280, sat: 45 },
+    ];
+    let raf;
+    function frame() {
+      t += 0.0018;
+      ctx.fillStyle = 'rgba(2,2,6,0.06)';
+      ctx.fillRect(0, 0, W, H);
+      ctx.globalCompositeOperation = 'screen';
+      clouds.forEach((c, i) => {
+        const cx = c.x + Math.sin(t * 0.6 + i * 1.1) * 28;
+        const cy = c.y + Math.cos(t * 0.45 + i * 0.75) * 18;
+        const r  = c.r * (0.88 + 0.14 * Math.sin(t * 0.8 + i));
+        const hue = c.hue + Math.sin(t * 0.25 + i) * 18;
+        const grd = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+        grd.addColorStop(0,   `hsla(${hue},${c.sat}%,65%,0.18)`);
+        grd.addColorStop(0.35,`hsla(${hue},${c.sat}%,48%,0.12)`);
+        grd.addColorStop(0.7, `hsla(${hue+15},${c.sat-8}%,35%,0.06)`);
+        grd.addColorStop(1,   `hsla(${hue},${c.sat}%,20%,0)`);
+        ctx.fillStyle = grd;
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI*2);
+        ctx.fill();
+      });
+      ctx.globalCompositeOperation = 'source-over';
+      // Twinkle
+      if (Math.random() < 0.15) {
+        ctx.fillStyle = `rgba(255,255,255,${0.3 + Math.random()*0.5})`;
+        ctx.fillRect(Math.floor(Math.random()*W), Math.floor(Math.random()*H), 1, 1);
+      }
+      raf = requestAnimationFrame(frame);
+    }
+    raf = requestAnimationFrame(frame);
+    return () => cancelAnimationFrame(raf);
+  },
+
+  /* 11 · JERES — Signal:Noise — static coalescing into order */
+  'signal-noise': (canvas) => {
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    let t = 0;
+    let cycleFrame = 0;
+    const CYCLE = 220;
+    let phase = 0; // 0=noise 1=emerge 2=order 3=dissolve
+    let raf;
+    function frame() {
+      t += 0.015;
+      cycleFrame++;
+      if (cycleFrame >= CYCLE) { cycleFrame = 0; phase = (phase + 1) % 4; }
+      const progress = cycleFrame / CYCLE;
+      const orderStr = phase === 1 ? progress :
+                       phase === 2 ? 1 :
+                       phase === 3 ? 1 - progress : 0;
+      ctx.fillStyle = '#040404';
+      ctx.fillRect(0, 0, W, H);
+      // Noise particles
+      const nCount = Math.floor(2800 * (1 - orderStr * 0.75));
+      for (let i = 0; i < nCount; i++) {
+        const x = Math.random() * W;
+        const y = Math.random() * H;
+        const v = Math.random();
+        const r = Math.floor(v * 80 + 20);
+        const g = Math.floor(v * 100 + 30);
+        const b = Math.floor(v * 70 + 20);
+        ctx.fillStyle = `rgba(${r},${g},${b},${v * 0.55})`;
+        ctx.fillRect(x, y, 1 + Math.random() * 2, 1);
+      }
+      // Ordered pattern
+      if (orderStr > 0) {
+        const gs = 28;
+        ctx.globalAlpha = orderStr * 0.65;
+        for (let y = 0; y < H; y += gs) {
+          for (let x = 0; x < W; x += gs) {
+            const idx = Math.floor(x/gs) + Math.floor(y/gs);
+            const pat = (idx + Math.floor(t * 2)) % 3;
+            if (pat === 0) {
+              ctx.fillStyle = `rgba(100,155,100,1)`;
+              ctx.fillRect(x, y, gs, gs);
+            }
+          }
+        }
+        ctx.globalAlpha = 1;
+      }
+      // Scanlines
+      ctx.fillStyle = 'rgba(0,0,0,0.18)';
+      for (let y = 0; y < H; y += 3) { ctx.fillRect(0, y, W, 1); }
+      // Occasional glitch stripe
+      if (Math.random() < 0.04) {
+        const sy = Math.random() * H;
+        const sh = 2 + Math.random() * 8;
+        ctx.fillStyle = `rgba(80,120,80,${0.15 + Math.random() * 0.25})`;
+        ctx.fillRect(0, sy, W, sh);
+      }
+      raf = requestAnimationFrame(frame);
+    }
+    raf = requestAnimationFrame(frame);
+    return () => cancelAnimationFrame(raf);
+  },
+
+  /* 12 · Martin Naumann — Folded Light — animated triangular mesh */
+  'folded-light': (canvas) => {
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    let t = 0;
+    const COLS = 14, ROWS = 14;
+    const verts = [];
+    for (let j = 0; j <= ROWS; j++) {
+      for (let i = 0; i <= COLS; i++) {
+        verts.push({
+          bx: (i / COLS) * W,
+          by: (j / ROWS) * H,
+          ph: Math.random() * Math.PI * 2,
+          amp: 18 + Math.random() * 28,
+          spd: 0.4 + Math.random() * 0.5
+        });
+      }
+    }
+    function gv(i, j) { return verts[j * (COLS+1) + i]; }
+    function vpos(v) {
+      return { x: v.bx, y: v.by + Math.sin(t * v.spd + v.ph) * v.amp };
+    }
+    let raf;
+    function frame() {
+      t += 0.005;
+      ctx.fillStyle = '#040404';
+      ctx.fillRect(0, 0, W, H);
+      const lightX = Math.cos(t * 0.35);
+      const lightY = Math.sin(t * 0.28);
+      for (let j = 0; j < ROWS; j++) {
+        for (let i = 0; i < COLS; i++) {
+          const p00 = vpos(gv(i, j));
+          const p10 = vpos(gv(i+1, j));
+          const p01 = vpos(gv(i, j+1));
+          const p11 = vpos(gv(i+1, j+1));
+          const drawTri = (a, b, c) => {
+            const ex = b.x - a.x, ey = b.y - a.y;
+            const fx = c.x - a.x, fy = c.y - a.y;
+            const nz = ex * fy - ey * fx;
+            const len = Math.sqrt(ex*ex + ey*ey + fx*fx + fy*fy + 0.001);
+            const shade = 0.3 + 0.5 * Math.abs(nz / (len * len + 0.001));
+            const ramp = 0.25 + 0.4 * Math.abs(Math.sin(t * 0.4 + (a.y + b.y + c.y) / H));
+            const lum = Math.floor((shade + ramp) * 0.5 * 160);
+            const lum2 = Math.floor((shade + ramp) * 0.5 * 145);
+            ctx.fillStyle = `rgb(${lum},${lum2},${Math.floor(lum * 0.88)})`;
+            ctx.beginPath();
+            ctx.moveTo(a.x, a.y);
+            ctx.lineTo(b.x, b.y);
+            ctx.lineTo(c.x, c.y);
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(40,35,30,0.4)';
+            ctx.lineWidth = 0.3;
+            ctx.stroke();
+          };
+          drawTri(p00, p10, p01);
+          drawTri(p10, p11, p01);
+        }
+      }
+      raf = requestAnimationFrame(frame);
+    }
+    raf = requestAnimationFrame(frame);
+    return () => cancelAnimationFrame(raf);
+  }
+};
+
+/* ═══════════════════════════════════════════════════════════
+   INTERSECTION OBSERVER — lazy init animations
+═══════════════════════════════════════════════════════════ */
+function initAnimations() {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const canvas = entry.target;
+        const id = canvas.id.replace('c-', '');
+        if (animators[id] && !canvas._animStarted) {
+          canvas._animStarted = true;
+          animators[id](canvas);
+        }
+      }
+    });
+  }, { rootMargin: '200px' });
+
+  artworks.forEach(aw => {
+    const canvas = document.getElementById('c-' + aw.id);
+    if (canvas) observer.observe(canvas);
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+  buildCards();
+  initAnimations();
+});
+</script>
+</body>
+</html>

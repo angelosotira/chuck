@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Morning Stars ⭐</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+
+    body {
+      background: #FFF9F0;
+      font-family: 'Comic Sans MS', 'Chalkboard SE', 'Marker Felt', cursive;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* HEADER */
+    .header {
+      background: linear-gradient(135deg, #FF6B6B, #FFD93D, #6BCB77, #4ECDC4);
+      padding: 20px 24px 16px;
+      text-align: center;
+      position: relative;
+      border-bottom: 4px solid rgba(0,0,0,0.08);
+    }
+    .header h1 {
+      font-size: 2.4rem;
+      color: #fff;
+      text-shadow: 2px 2px 0 rgba(0,0,0,0.15);
+      letter-spacing: 0.03em;
+    }
+    .header .subtitle {
+      font-size: 1rem;
+      color: rgba(255,255,255,0.9);
+      margin-top: 4px;
+    }
+    .star-float {
+      position: absolute;
+      font-size: 1.8rem;
+      animation: float 3s ease-in-out infinite;
+      pointer-events: none;
+    }
+    @keyframes float { 0%,100%{transform:translateY(0) rotate(-5deg)} 50%{transform:translateY(-8px) rotate(5deg)} }
+
+    /* MAIN LAYOUT */
+    .main {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 24px 16px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    /* TASK PANEL */
+    .panel {
+      background: #fff;
+      border-radius: 20px;
+      border: 3px solid rgba(0,0,0,0.08);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+      overflow: hidden;
+    }
+    .panel-header {
+      padding: 14px 20px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .panel-header.orange { background: #FFE5CC; color: #E07A1A; border-bottom: 2px solid rgba(0,0,0,0.06); }
+    .panel-header.purple { background: #EDE0FF; color: #6A3DB5; border-bottom: 2px solid rgba(0,0,0,0.06); }
+    .panel-header.teal   { background: #D0F5F0; color: #197A6F; border-bottom: 2px solid rgba(0,0,0,0.06); }
+
+    /* TASKS */
+    .tasks { padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+    .task {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: all 0.15s;
+      border: 2px solid transparent;
+      user-select: none;
+    }
+    .task:hover { transform: scale(1.02); }
+    .task.done { background: #F0FFF4; border-color: #6BCB77; }
+    .task:not(.done) { background: #FAFAFA; border-color: #E8E8E8; }
+    .task .task-icon { font-size: 1.8rem; width: 40px; text-align: center; flex-shrink: 0; }
+    .task .task-name { font-size: 1rem; color: #333; flex: 1; }
+    .task.done .task-name { text-decoration: line-through; color: #999; }
+    .task .check {
+      width: 28px; height: 28px; border-radius: 50%;
+      border: 2.5px solid #ccc; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem; transition: all 0.2s;
+    }
+    .task.done .check { background: #6BCB77; border-color: #6BCB77; color: #fff; }
+
+    /* STICKER PICKER */
+    .sticker-section { padding: 12px; }
+    .sticker-label { font-size: 0.85rem; color: #888; margin-bottom: 8px; padding: 0 4px; }
+    .sticker-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 4px;
+    }
+    .sticker-btn {
+      width: 56px; height: 56px;
+      border-radius: 14px;
+      border: 2.5px solid #E8E8E8;
+      background: #FAFAFA;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex; align-items: center; justify-content: center;
+      padding: 4px;
+    }
+    .sticker-btn:hover { transform: scale(1.15); border-color: #FFD93D; box-shadow: 0 2px 10px rgba(255,210,0,0.3); }
+    .sticker-btn.selected { border-color: #FF6B6B; background: #FFF0F0; transform: scale(1.1); }
+    .sticker-btn canvas { border-radius: 8px; }
+
+    /* SCOREBOARD */
+    .scoreboard { padding: 16px; }
+    .score-display {
+      text-align: center;
+      margin-bottom: 16px;
+    }
+    .score-big {
+      font-size: 3.5rem;
+      line-height: 1;
+      background: linear-gradient(135deg, #FF6B6B, #FFD93D);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .score-label { font-size: 0.85rem; color: #999; margin-top: 4px; }
+
+    .day-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .day-name { font-size: 0.8rem; color: #666; width: 32px; flex-shrink: 0; }
+    .day-stars { display: flex; gap: 4px; flex: 1; }
+    .day-star {
+      width: 24px; height: 24px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem;
+      opacity: 0.2;
+      transition: opacity 0.3s;
+    }
+    .day-star.earned { opacity: 1; animation: pop 0.3s ease; }
+    @keyframes pop { 0%{transform:scale(0)} 70%{transform:scale(1.3)} 100%{transform:scale(1)} }
+
+    /* STICKER BOARD */
+    .board-section { grid-column: 1 / -1; }
+    .board {
+      background: #fff;
+      border-radius: 20px;
+      border: 3px solid rgba(0,0,0,0.08);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+      overflow: hidden;
+    }
+    .board-canvas-wrap {
+      position: relative;
+      background: repeating-linear-gradient(
+        0deg, transparent, transparent 39px, rgba(0,0,0,0.04) 39px, rgba(0,0,0,0.04) 40px
+      ), repeating-linear-gradient(
+        90deg, transparent, transparent 39px, rgba(0,0,0,0.04) 39px, rgba(0,0,0,0.04) 40px
+      );
+      background-color: #FFFEF8;
+      border-radius: 0 0 17px 17px;
+      min-height: 200px;
+      cursor: crosshair;
+    }
+    #board-canvas { display: block; width: 100%; }
+
+    /* CONFETTI */
+    .confetti-wrap {
+      position: fixed; inset: 0; pointer-events: none; z-index: 999;
+    }
+    .confetti-piece {
+      position: absolute;
+      width: 10px; height: 10px;
+      border-radius: 2px;
+      animation: confetti-fall 2s ease-in forwards;
+    }
+    @keyframes confetti-fall {
+      0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+    }
+
+    /* RESET */
+    .reset-btn {
+      display: block;
+      margin: 16px auto 0;
+      background: none;
+      border: 2px dashed #ccc;
+      border-radius: 12px;
+      padding: 6px 16px;
+      font-family: inherit;
+      font-size: 0.75rem;
+      color: #bbb;
+      cursor: pointer;
+    }
+    .reset-btn:hover { border-color: #FF6B6B; color: #FF6B6B; }
+
+    @media(max-width:640px) {
+      .main { grid-template-columns: 1fr; }
+      .board-section { grid-column: 1; }
+      .header h1 { font-size: 1.8rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <span class="star-float" style="left:5%;top:10%">⭐</span>
+  <span class="star-float" style="left:15%;top:60%;animation-delay:0.5s">🌈</span>
+  <span class="star-float" style="right:8%;top:15%;animation-delay:1s">✨</span>
+  <span class="star-float" style="right:18%;top:55%;animation-delay:1.5s">🎉</span>
+  <h1>⭐ Morning Stars ⭐</h1>
+  <div class="subtitle">Do the thing, get the sticker!</div>
+</div>
+
+<div class="main">
+
+  <!-- MORNING TASKS -->
+  <div class="panel">
+    <div class="panel-header orange">🌅 Morning Jobs</div>
+    <div class="tasks" id="tasks-container"></div>
+    <button class="reset-btn" onclick="resetDay()">start new day 🔄</button>
+  </div>
+
+  <!-- STICKER PICKER + SCORE -->
+  <div style="display:flex;flex-direction:column;gap:20px;">
+    <div class="panel">
+      <div class="panel-header purple">🎨 Pick Your Sticker</div>
+      <div class="sticker-section">
+        <div class="sticker-label">Tap a sticker, then tap the board below!</div>
+        <div class="sticker-row" id="sticker-picker"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header teal">🏆 Stars This Week</div>
+      <div class="scoreboard">
+        <div class="score-display">
+          <div class="score-big" id="score-total">0</div>
+          <div class="score-label">stickers earned</div>
+        </div>
+        <div id="week-grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STICKER BOARD -->
+  <div class="panel board-section board">
+    <div class="panel-header orange">🖼️ My Sticker Board</div>
+    <div class="board-canvas-wrap">
+      <canvas id="board-canvas" height="280"></canvas>
+    </div>
+  </div>
+
+</div>
+
+<div class="confetti-wrap" id="confetti-wrap"></div>
+
+<script>
+// ── TASKS ───────────────────────────────────────────────────
+const TASKS = [
+  {id:'wake',   emoji:'☀️',  name:'Wake up happy!'},
+  {id:'potty',  emoji:'🚽', name:'Use the potty'},
+  {id:'teeth',  emoji:'🦷', name:'Brush teeth'},
+  {id:'dress',  emoji:'👕', name:'Get dressed'},
+  {id:'hair',   emoji:'💇', name:'Do hair'},
+  {id:'breakfast', emoji:'🥣', name:'Eat breakfast'},
+  {id:'shoes',  emoji:'👟', name:'Put on shoes'},
+  {id:'hug',    emoji:'🤗',  name:'Give a hug'},
+];
+
+// ── STATE ────────────────────────────────────────────────────
+let state = JSON.parse(localStorage.getItem('morningStars') || '{}');
+// state = { doneTasks: [], boardStickers: [], weekStars: {MON:2,...}, totalEarned: 0 }
+if (!state.doneTasks) state.doneTasks = [];
+if (!state.boardStickers) state.boardStickers = [];
+if (!state.weekStars) state.weekStars = {};
+if (!state.totalEarned) state.totalEarned = 0;
+
+function save() { localStorage.setItem('morningStars', JSON.stringify(state)); }
+
+// ── TASKS UI ─────────────────────────────────────────────────
+const tasksContainer = document.getElementById('tasks-container');
+function renderTasks() {
+  tasksContainer.innerHTML = '';
+  TASKS.forEach(t => {
+    const done = state.doneTasks.includes(t.id);
+    const div = document.createElement('div');
+    div.className = 'task' + (done ? ' done' : '');
+    div.innerHTML = `
+      <span class="task-icon">${t.emoji}</span>
+      <span class="task-name">${t.name}</span>
+      <div class="check">${done ? '✓' : ''}</div>
+    `;
+    div.addEventListener('click', () => toggleTask(t.id));
+    tasksContainer.appendChild(div);
+  });
+}
+
+function toggleTask(id) {
+  const idx = state.doneTasks.indexOf(id);
+  if (idx === -1) {
+    state.doneTasks.push(id);
+    awardStar();
+    confetti();
+  } else {
+    state.doneTasks.splice(idx, 1);
+  }
+  save();
+  renderTasks();
+  renderScore();
+}
+
+function awardStar() {
+  const days = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+  const today = days[new Date().getDay()];
+  state.weekStars[today] = (state.weekStars[today] || 0) + 1;
+  state.totalEarned++;
+}
+
+function resetDay() {
+  if (!confirm('Start a new morning? ☀️')) return;
+  state.doneTasks = [];
+  save();
+  renderTasks();
+}
+
+// ── STICKERS ──────────────────────────────────────────────────
+const STICKERS = [
+  { name: 'star',     draw: drawStar },
+  { name: 'heart',    draw: drawHeart },
+  { name: 'rainbow',  draw: drawRainbow },
+  { name: 'sun',      draw: drawSun },
+  { name: 'cat',      draw: drawCat },
+  { name: 'rocket',   draw: drawRocket },
+  { name: 'flower',   draw: drawFlower },
+  { name: 'dino',     draw: drawDino },
+  { name: 'ice',      draw: drawIceCream },
+  { name: 'butterfly',draw: drawButterfly },
+];
+
+let selectedSticker = 0;
+
+const stickerPicker = document.getElementById('sticker-picker');
+function renderPicker() {
+  stickerPicker.innerHTML = '';
+  STICKERS.forEach((s, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'sticker-btn' + (i === selectedSticker ? ' selected' : '');
+    const c = document.createElement('canvas');
+    c.width = 44; c.height = 44;
+    s.draw(c.getContext('2d'), 22, 22, 18);
+    btn.appendChild(c);
+    btn.addEventListener('click', () => { selectedSticker = i; renderPicker(); });
+    stickerPicker.appendChild(btn);
+  });
+}
+
+// ── BOARD ─────────────────────────────────────────────────────
+const boardCanvas = document.getElementById('board-canvas');
+const boardCtx = boardCanvas.getContext('2d');
+
+function resizeBoard() {
+  boardCanvas.width = boardCanvas.parentElement.offsetWidth;
+  boardCanvas.height = 280;
+  redrawBoard();
+}
+
+function redrawBoard() {
+  boardCtx.clearRect(0, 0, boardCanvas.width, boardCanvas.height);
+  state.boardStickers.forEach(s => {
+    STICKERS[s.type].draw(boardCtx, s.x, s.y, s.r);
+  });
+}
+
+boardCanvas.addEventListener('click', (e) => {
+  const rect = boardCanvas.getBoundingClientRect();
+  const scaleX = boardCanvas.width / rect.width;
+  const scaleY = boardCanvas.height / rect.height;
+  const x = (e.clientX - rect.left) * scaleX;
+  const y = (e.clientY - rect.top) * scaleY;
+  const r = 22 + Math.random() * 10;
+  state.boardStickers.push({ type: selectedSticker, x, y, r });
+  if (state.boardStickers.length > 80) state.boardStickers.shift();
+  save();
+  redrawBoard();
+  popEffect(e.clientX, e.clientY);
+});
+
+function popEffect(cx, cy) {
+  const el = document.createElement('div');
+  el.textContent = '✨';
+  el.style.cssText = `position:fixed;left:${cx}px;top:${cy}px;font-size:2rem;pointer-events:none;z-index:1000;animation:confetti-fall 0.6s ease forwards;`;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 600);
+}
+
+// ── SCORE ─────────────────────────────────────────────────────
+const DAYS = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+const DAYS_DISPLAY = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+
+function renderScore() {
+  document.getElementById('score-total').textContent = state.totalEarned;
+  const weekGrid = document.getElementById('week-grid');
+  const maxStars = 5;
+  weekGrid.innerHTML = '';
+  DAYS.forEach((d, i) => {
+    const count = state.weekStars[d] || 0;
+    const row = document.createElement('div');
+    row.className = 'day-row';
+    const isToday = new Date().getDay() === i;
+    row.innerHTML = `<div class="day-name" style="${isToday?'color:#FF6B6B;font-weight:bold':''}">${DAYS_DISPLAY[i]}</div>
+    <div class="day-stars">${Array.from({length:maxStars},(_,j)=>`<div class="day-star ${j<count?'earned':''}">⭐</div>`).join('')}</div>
+    ${count > 0 ? `<div style="font-size:0.75rem;color:#999;">${count}</div>` : ''}`;
+    weekGrid.appendChild(row);
+  });
+}
+
+// ── CONFETTI ──────────────────────────────────────────────────
+const COLORS = ['#FF6B6B','#FFD93D','#6BCB77','#4ECDC4','#A78BFA','#FB923C'];
+function confetti() {
+  const wrap = document.getElementById('confetti-wrap');
+  for (let i = 0; i < 30; i++) {
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    piece.style.left = Math.random() * 100 + 'vw';
+    piece.style.animationDelay = Math.random() * 0.5 + 's';
+    piece.style.background = COLORS[Math.floor(Math.random()*COLORS.length)];
+    piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+    wrap.appendChild(piece);
+    setTimeout(() => piece.remove(), 2500);
+  }
+}
+
+// ── STICKER DRAW FUNCTIONS ────────────────────────────────────
+
+function drawStar(ctx, cx, cy, r) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  const spikes = 5, outer = r, inner = r * 0.4;
+  ctx.beginPath();
+  for (let i = 0; i < spikes * 2; i++) {
+    const rad = (i * Math.PI) / spikes - Math.PI / 2;
+    const len = i % 2 === 0 ? outer : inner;
+    ctx[i === 0 ? 'moveTo' : 'lineTo'](Math.cos(rad) * len, Math.sin(rad) * len);
+  }
+  ctx.closePath();
+  ctx.fillStyle = '#FFD93D';
+  ctx.fill();
+  ctx.strokeStyle = '#F0A500';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawHeart(ctx, cx, cy, r) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  const s = r / 14;
+  ctx.beginPath();
+  ctx.moveTo(0, s * 2);
+  ctx.bezierCurveTo(s * 8, -s * 6, s * 14, s * 2, 0, s * 10);
+  ctx.bezierCurveTo(-s * 14, s * 2, -s * 8, -s * 6, 0, s * 2);
+  ctx.fillStyle = '#FF6B6B';
+  ctx.fill();
+  ctx.strokeStyle = '#E04545';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawRainbow(ctx, cx, cy, r) {
+  ctx.save();
+  ctx.translate(cx, cy + r * 0.3);
+  const colors = ['#FF6B6B','#FF9A3C','#FFD93D','#6BCB77','#4ECDC4','#4A90E2'];
+  colors.forEach((c, i) => {
+    const rad = r - i * (r / (colors.length + 1));
+    ctx.beginPath();
+    ctx.arc(0, 0, rad, Math.PI, 0);
+    ctx.strokeStyle = c;
+    ctx.lineWidth = r / (colors.length + 1);
+    ctx.stroke();
+  });
+  ctx.restore();
+}
+
+function drawSun(ctx, cx, cy, r) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  // Rays
+  for (let i = 0; i < 8; i++) {
+    const a = (i * Math.PI * 2) / 8;
+    ctx.beginPath();
+    ctx.moveTo(Math.cos(a) * r * 0.55, Math.sin(a) * r * 0.55);
+    ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r);
+    ctx.strokeStyle = '#FFD93D';
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = 'round';
+    ctx.stroke();
+  }
+  ctx.beginPath();
+  ctx.arc(0, 0, r * 0.5, 0, Math.PI * 2);
+  ctx.fillStyle = '#FFD93D';
+  ctx.fill();
+  ctx.strokeStyle = '#F0A500';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  // Face
+  ctx.fillStyle = '#E07A00';
+  ctx.beginPath(); ctx.arc(-r*0.15, -r*0.1, r*0.07, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(r*0.15, -r*0.1, r*0.07, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(0, r*0.12, r*0.15, 0, Math.PI); ctx.stroke();
+  ctx.restore();
+}
+
+function drawCat(ctx, cx, cy, r) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.fillStyle = '#F4A460';
+  // Body
+  ctx.beginPath(); ctx.ellipse(0, r*0.25, r*0.55, r*0.45, 0, 0, Math.PI*2); ctx.fill();
+  // Head
+  ctx.beginPath(); ctx.arc(0, -r*0.2, r*0.45, 0, Math.PI*2); ctx.fill();
+  ctx.strokeStyle = '#C8763A'; ctx.lineWidth = 1;
+  ctx.stroke();
+  // Ears
+  ctx.fillStyle = '#F4A460';
+  ctx.beginPath(); ctx.moveTo(-r*0.35, -r*0.55); ctx.lineTo(-r*0.5, -r*0.9); ctx.lineTo(-r*0.15, -r*0.6); ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(r*0.35, -r*0.55); ctx.lineTo(r*0.5, -r*0.9); ctx.lineTo(r*0.15, -r*0.6); ctx.closePath(); ctx.fill(); ctx.stroke();
+  // Eyes
+  ctx.fillStyle = '#333';
+  ctx.beginPath(); ctx.ellipse(-r*0.15, -r*0.25, r*0.07, r*0.09, 0, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(r*0.15, -r*0.25, r*0.07, r*0.09, 0, 0, Math.PI*2); ctx.fill();
+  // Nose
+  ctx.fillStyle = '#FF9B9B';
+  ctx.beginPath(); ctx.arc(0, -r*0.12, r*0.06, 0, Math.PI*2); ctx.fill();
+  ctx.restore();
+}
+
+function drawRocket(ctx, cx, cy, r) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  // Body
+  ctx.fillStyle = '#4A90E2';
+  ctx.beginPath();
+  ctx.moveTo(0, -r);
+  ctx.bezierCurveTo(r*0.5, -r*0.4, r*0.5, r*0.4, r*0.4, r*0.7);
+  ctx.lineTo(-r*0.4, r*0.7);
+  ctx.bezierCurveTo(-r*0.5, r*0.4, -r*0.5, -r*0.4, 0, -r);
+  ctx.fill();
+  ctx.strokeStyle = '#2E6BB5'; ctx.lineWidth = 1.5; ctx.stroke();
+  // Window
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.arc(0, -r*0.1, r*0.2, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#87CEEB';
+  ctx.beginPath(); ctx.arc(0, -r*0.1, r*0.14, 0, Math.PI*2); ctx.fill();
+  // Fins
+  ctx.fillStyle = '#FF6B6B';
+  ctx.beginPath(); ctx.moveTo(r*0.4, r*0.5); ctx.lineTo(r*0.75, r*0.9); ctx.lineTo(r*0.4, r*0.7); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(-r*0.4, r*0.5); ctx.lineTo(-r*0.75, r*0.9); ctx.lineTo(-r*0.4, r*0.7); ctx.closePath(); ctx.fill();
+  // Flame
+  ctx.fillStyle = '#FFD93D';
+  ctx.beginPath(); ctx.ellipse(0, r*0.9, r*0.15, r*0.2, 0, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#FF6B6B';
+  ctx.beginPath(); ctx.ellipse(0, r*0.95, r*0.08, r*0.12, 0, 0, Math.PI*2); ctx.fill();
+  ctx.restore();
+}
+
+function drawFlower(ctx, cx, cy, r) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  const colors = ['#FF6B6B','#FF9A3C','#FFD93D','#6BCB77','#4ECDC4','#A78BFA'];
+  // Petals
+  for (let i = 0; i < 6; i++) {
+    const a = (i * Math.PI * 2) / 6;
+    ctx.save();
+    ctx.rotate(a);
+    ctx.fillStyle = colors[i];
+    ctx.beginPath();
+    ctx.ellipse(0, -r * 0.55, r * 0.22, r * 0.38, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+  // Center
+  ctx.fillStyle = '#FFD93D';
+  ctx.beginPath(); ctx.arc(0, 0, r * 0.32, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = '#F0A500'; ctx.lineWidth = 1.5; ctx.stroke();
+  ctx.restore();
+}
+
+function drawDino(ctx, cx, cy, r) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.fillStyle = '#6BCB77';
+  // Body
+  ctx.beginPath(); ctx.ellipse(0, r*0.15, r*0.55, r*0.42, 0, 0, Math.PI*2); ctx.fill();
+  // Head
+  ctx.beginPath(); ctx.ellipse(r*0.4, -r*0.3, r*0.32, r*0.26, 0.3, 0, Math.PI*2); ctx.fill();
+  ctx.strokeStyle = '#3D9B45'; ctx.lineWidth = 1.2;
+  // Spikes
+  for (let i = 0; i < 4; i++) {
+    ctx.fillStyle = '#FF6B6B';
+    ctx.beginPath();
+    const sx = -r*0.3 + i*r*0.2, sy = -r*0.2;
+    ctx.moveTo(sx, sy); ctx.lineTo(sx+r*0.08, sy-r*0.2); ctx.lineTo(sx+r*0.16, sy); ctx.closePath(); ctx.fill();
+  }
+  ctx.fillStyle = '#333';
+  ctx.beginPath(); ctx.arc(r*0.52, -r*0.35, r*0.06, 0, Math.PI*2); ctx.fill();
+  // Tail
+  ctx.fillStyle = '#6BCB77';
+  ctx.beginPath(); ctx.moveTo(-r*0.5, r*0.2); ctx.bezierCurveTo(-r, r*0.1, -r*0.9, r*0.5, -r*0.65, r*0.4); ctx.stroke();
+  ctx.restore();
+}
+
+function drawIceCream(ctx, cx, cy, r) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  // Cone
+  ctx.fillStyle = '#DEB887';
+  ctx.beginPath();
+  ctx.moveTo(-r*0.38, r*0.15);
+  ctx.lineTo(r*0.38, r*0.15);
+  ctx.lineTo(0, r*0.95);
+  ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = '#C8A060'; ctx.lineWidth = 1; ctx.stroke();
+  // Waffle lines
+  ctx.strokeStyle = '#C8A060'; ctx.lineWidth = 0.8;
+  ctx.beginPath(); ctx.moveTo(-r*0.25, r*0.3); ctx.lineTo(r*0.1, r*0.75); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(r*0.05, r*0.2); ctx.lineTo(-r*0.15, r*0.75); ctx.stroke();
+  // Scoops
+  ctx.fillStyle = '#FFB7C5';
+  ctx.beginPath(); ctx.arc(-r*0.1, -r*0.1, r*0.35, 0, Math.PI*2); ctx.fill();
+  ctx.strokeStyle = '#E090A0'; ctx.lineWidth = 1; ctx.stroke();
+  ctx.fillStyle = '#A8D8EA';
+  ctx.beginPath(); ctx.arc(r*0.15, -r*0.4, r*0.3, 0, Math.PI*2); ctx.fill();
+  ctx.strokeStyle = '#7ABBD0'; ctx.stroke();
+  // Sprinkles
+  const sprinkleColors = ['#FF6B6B','#FFD93D','#6BCB77','#A78BFA'];
+  for (let i = 0; i < 6; i++) {
+    ctx.fillStyle = sprinkleColors[i%4];
+    ctx.beginPath();
+    ctx.ellipse(-r*0.15 + Math.cos(i*1.5)*r*0.25, -r*0.1 + Math.sin(i*1.5)*r*0.2, r*0.04, r*0.08, i*0.8, 0, Math.PI*2);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawButterfly(ctx, cx, cy, r) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  const wingColors = ['#FF6B6B','#FFD93D','#A78BFA','#4ECDC4'];
+  // Upper wings
+  ctx.fillStyle = wingColors[0];
+  ctx.beginPath(); ctx.ellipse(-r*0.45, -r*0.25, r*0.42, r*0.3, -0.5, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = wingColors[1];
+  ctx.beginPath(); ctx.ellipse(r*0.45, -r*0.25, r*0.42, r*0.3, 0.5, 0, Math.PI*2); ctx.fill();
+  // Lower wings
+  ctx.fillStyle = wingColors[2];
+  ctx.beginPath(); ctx.ellipse(-r*0.38, r*0.25, r*0.32, r*0.22, 0.5, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = wingColors[3];
+  ctx.beginPath(); ctx.ellipse(r*0.38, r*0.25, r*0.32, r*0.22, -0.5, 0, Math.PI*2); ctx.fill();
+  // Body
+  ctx.fillStyle = '#333';
+  ctx.beginPath(); ctx.ellipse(0, 0, r*0.08, r*0.45, 0, 0, Math.PI*2); ctx.fill();
+  // Antennae
+  ctx.strokeStyle = '#333'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(-r*0.04, -r*0.4); ctx.bezierCurveTo(-r*0.3, -r*0.7, -r*0.4, -r*0.85, -r*0.35, -r); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(r*0.04, -r*0.4); ctx.bezierCurveTo(r*0.3, -r*0.7, r*0.4, -r*0.85, r*0.35, -r); ctx.stroke();
+  ctx.fillStyle = '#FF6B6B';
+  ctx.beginPath(); ctx.arc(-r*0.35, -r, r*0.07, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(r*0.35, -r, r*0.07, 0, Math.PI*2); ctx.fill();
+  ctx.restore();
+}
+
+// ── INIT ──────────────────────────────────────────────────────
+renderTasks();
+renderPicker();
+renderScore();
+resizeBoard();
+window.addEventListener('resize', resizeBoard);
+</script>
+</body>
+</html>

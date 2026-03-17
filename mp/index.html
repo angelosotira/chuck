@@ -7,201 +7,336 @@
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
     html { scroll-behavior: smooth; }
-    body { background: #000; color: #fff; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-weight: 300; -webkit-font-smoothing: antialiased; }
+    body { background: #000; color: #fff; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-weight: 300; -webkit-font-smoothing: antialiased; line-height: 1.6; }
 
-    header {
-      max-width: 1400px; margin: 0 auto; padding: 80px 40px 60px;
-      border-bottom: 1px solid rgba(255,255,255,0.08);
-    }
-    .header-logo { font-size: 0.85rem; letter-spacing: 0.4em; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 2rem; }
+    nav { position: sticky; top: 0; z-index: 200; background: #000; border-bottom: 1px solid rgba(255,255,255,0.08); height: 50px; }
+    .nav-inner { max-width: 1200px; margin: 0 auto; padding: 0 40px; height: 100%; display: flex; align-items: center; justify-content: space-between; }
+    .nav-logo { font-size: 1rem; letter-spacing: 0.35em; text-transform: uppercase; color: #fff; text-decoration: none; }
+    .nav-sub { font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,255,255,0.3); }
+
+    .header { max-width: 1200px; margin: 0 auto; padding: 80px 40px 60px; }
+    .header-label { font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,255,255,0.3); margin-bottom: 1rem; }
     .header-title { font-size: 3rem; font-weight: 200; line-height: 1.3; margin-bottom: 1rem; }
-    .header-sub { font-size: 0.9rem; color: rgba(255,255,255,0.4); max-width: 560px; line-height: 1.8; }
-    .header-meta { margin-top: 1.5rem; font-size: 0.7rem; color: rgba(255,255,255,0.25); letter-spacing: 0.1em; }
+    .header-sub { font-size: 0.9rem; color: rgba(255,255,255,0.45); max-width: 600px; line-height: 1.8; }
+    .header-date { font-size: 0.7rem; color: rgba(255,255,255,0.2); margin-top: 0.5rem; letter-spacing: 0.05em; }
 
-    .grid { max-width: 1400px; margin: 0 auto; padding: 60px 40px 100px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; }
+    hr.rule { border: none; border-top: 1px solid rgba(255,255,255,0.08); max-width: 1200px; margin: 0 auto; }
 
-    .mp-card { background: #000; border: 1px solid rgba(255,255,255,0.06); overflow: hidden; transition: border-color 0.2s; text-decoration: none; color: inherit; display: block; }
-    .mp-card:hover { border-color: rgba(255,255,255,0.3); }
+    .grid { max-width: 1200px; margin: 0 auto; padding: 60px 40px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 2px; }
 
-    .mp-thumb { aspect-ratio: 16/10; overflow: hidden; position: relative; }
-    .mp-thumb canvas { width: 100%; height: 100%; display: block; }
-    .mp-num { position: absolute; top: 1rem; left: 1rem; font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(255,255,255,0.3); background: rgba(0,0,0,0.6); padding: 0.2rem 0.5rem; }
-
+    .mp-card { display: block; text-decoration: none; color: inherit; position: relative; background: #000; border: 1px solid rgba(255,255,255,0.06); transition: border-color 0.2s; }
+    .mp-card:hover { border-color: rgba(255,255,255,0.25); }
+    .mp-canvas-wrap { aspect-ratio: 16/9; overflow: hidden; position: relative; }
+    .mp-canvas-wrap canvas { width: 100%; height: 100%; display: block; }
+    .mp-num { position: absolute; top: 1rem; left: 1rem; font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,255,255,0.3); background: rgba(0,0,0,0.6); padding: 0.2rem 0.5rem; }
     .mp-info { padding: 1.5rem; }
-    .mp-title { font-size: 1rem; font-weight: 300; margin-bottom: 0.4rem; }
-    .mp-concept { font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.35); margin-bottom: 0.8rem; }
-    .mp-desc { font-size: 0.8rem; color: rgba(255,255,255,0.45); line-height: 1.7; margin-bottom: 1.2rem; }
-    .mp-link { font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(255,255,255,0.3); border-bottom: 1px solid rgba(255,255,255,0.12); padding-bottom: 0.1rem; transition: all 0.2s; }
-    .mp-card:hover .mp-link { color: #fff; border-color: rgba(255,255,255,0.5); }
+    .mp-title { font-size: 1.1rem; font-weight: 300; margin-bottom: 0.3rem; }
+    .mp-concept { font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.35); margin-bottom: 0.8rem; }
+    .mp-desc { font-size: 0.82rem; color: rgba(255,255,255,0.45); line-height: 1.7; margin-bottom: 1rem; }
+    .mp-insight { font-size: 0.75rem; color: rgba(255,255,255,0.25); line-height: 1.6; border-left: 1px solid rgba(255,255,255,0.1); padding-left: 0.8rem; margin-bottom: 1rem; font-style: italic; }
+    .mp-link { font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(255,255,255,0.4); }
+    .mp-card:hover .mp-link { color: #fff; }
 
-    .mp-tag { display: inline-block; font-size: 0.55rem; letter-spacing: 0.12em; text-transform: uppercase; border: 1px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.3); padding: 0.2rem 0.5rem; margin-right: 0.4rem; margin-bottom: 0.8rem; }
+    footer { border-top: 1px solid rgba(255,255,255,0.08); padding: 2.5rem 40px; max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+    .footer-logo { font-size: 0.85rem; letter-spacing: 0.3em; text-transform: uppercase; }
+    .footer-copy { font-size: 0.6rem; color: rgba(255,255,255,0.2); }
 
-    footer { border-top: 1px solid rgba(255,255,255,0.06); padding: 2rem 40px; max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; }
-    footer span { font-size: 0.6rem; color: rgba(255,255,255,0.2); letter-spacing: 0.1em; }
-
-    @media(max-width:900px){ .grid { grid-template-columns: 1fr 1fr; } header,footer { padding-left: 24px; padding-right: 24px; } .grid { padding-left: 24px; padding-right: 24px; } }
-    @media(max-width:600px){ .grid { grid-template-columns: 1fr; } .header-title { font-size: 2rem; } }
+    @media(max-width:800px){
+      .grid { grid-template-columns: 1fr; padding: 40px 24px; }
+      .header { padding: 60px 24px 40px; }
+      .header-title { font-size: 2rem; }
+      .nav-inner, footer { padding-left: 24px; padding-right: 24px; }
+    }
   </style>
 </head>
 <body>
 
-<header>
-  <div class="header-logo">Layer</div>
-  <div class="header-title">Marketplace<br>Explorations</div>
-  <div class="header-sub">10 concept pages exploring how Layer could position itself as an art company — not a hardware company. Each tests a different model, a different buyer psychology, a different entry point.</div>
-  <div class="header-meta">March 2026 · chuck.neoteric.art · All toggles active — member pricing reveals on click</div>
-</header>
+<nav>
+  <div class="nav-inner">
+    <a href="https://layer.com" class="nav-logo">Layer</a>
+    <span class="nav-sub">Marketplace Explorations — March 2026</span>
+  </div>
+</nav>
 
-<div class="grid" id="grid"></div>
+<div class="header">
+  <div class="header-label">Internal / Concept Work</div>
+  <div class="header-title">10 ways to sell art<br>instead of hardware.</div>
+  <div class="header-sub">Each exploration approaches the same question from a different angle: what does Layer look like when the art is the product and the canvas is the vessel?</div>
+  <div class="header-date">Built overnight · March 16–17, 2026 · chuck.neoteric.art</div>
+</div>
+
+<hr class="rule">
+
+<div class="grid">
+
+  <a class="mp-card" href="/mp1/">
+    <div class="mp-canvas-wrap">
+      <canvas id="c1" width="800" height="450"></canvas>
+      <div class="mp-num">MP 01</div>
+    </div>
+    <div class="mp-info">
+      <div class="mp-title">The Marketplace</div>
+      <div class="mp-concept">Art-first pricing · Member toggle</div>
+      <div class="mp-desc">The baseline. Layer's curation page with prices. Member toggle reveals art prices; non-members see bundle prices. Tests whether the art-first framing works at all.</div>
+      <div class="mp-insight">The simplest version of the pivot — one toggle changes what you're selling.</div>
+      <div class="mp-link">View MP1 →</div>
+    </div>
+  </a>
+
+  <a class="mp-card" href="/mp2/">
+    <div class="mp-canvas-wrap">
+      <canvas id="c2" width="800" height="450"></canvas>
+      <div class="mp-num">MP 02</div>
+    </div>
+    <div class="mp-info">
+      <div class="mp-title">Two Tiers</div>
+      <div class="mp-concept">Founder Edition · Cosmos · Three pricing tiers</div>
+      <div class="mp-desc">Introduces the Cosmos ($7K) / Founder Edition ($22K) split. Art in three tiers: Variants ($500–$2K), Works ($2.5K–$12K), Pieces ($15K–$28K). Does $7K open the market without cheapening $22K?</div>
+      <div class="mp-insight">Inspired by Masterworks' waitlist model + Soho House's identity tiering.</div>
+      <div class="mp-link">View MP2 →</div>
+    </div>
+  </a>
+
+  <a class="mp-card" href="/mp3/">
+    <div class="mp-canvas-wrap">
+      <canvas id="c3" width="800" height="450"></canvas>
+      <div class="mp-num">MP 03</div>
+    </div>
+    <div class="mp-info">
+      <div class="mp-title">The Drop</div>
+      <div class="mp-concept">Monthly releases · 48hr member priority · Sell-through as signal</div>
+      <div class="mp-desc">One artist. One work. Every month. Members get 48-hour priority; upcoming drops are blurred for non-members. Sell-through announcements become social proof.</div>
+      <div class="mp-insight">Supreme's drop model applied to generative art. Cadence creates anticipation.</div>
+      <div class="mp-link">View MP3 →</div>
+    </div>
+  </a>
+
+  <a class="mp-card" href="/mp4/">
+    <div class="mp-canvas-wrap">
+      <canvas id="c4" width="800" height="450"></canvas>
+      <div class="mp-num">MP 04</div>
+    </div>
+    <div class="mp-info">
+      <div class="mp-title">The Artist Relationship</div>
+      <div class="mp-concept">ViewTime ledger · Acquisition as enrollment · Patronage model</div>
+      <div class="mp-desc">The ViewTime ledger shows exactly how much Casey Reas earned from your canvas last November. Makes the abstract royalty model visceral. Acquisition becomes patronage.</div>
+      <div class="mp-insight">Pace Gallery's artist representation model — collector and artist are in a relationship, not a transaction.</div>
+      <div class="mp-link">View MP4 →</div>
+    </div>
+  </a>
+
+  <a class="mp-card" href="/mp5/">
+    <div class="mp-canvas-wrap">
+      <canvas id="c5" width="800" height="450"></canvas>
+      <div class="mp-num">MP 05</div>
+    </div>
+    <div class="mp-info">
+      <div class="mp-title">Your Living Collection</div>
+      <div class="mp-concept">Art Intelligence · Personalization · Morning/Afternoon/Evening</div>
+      <div class="mp-desc">Art Intelligence is the product. The same collection feels different at 6am vs midnight. Your Layer learns your space, schedule, and aesthetic. No two collections are identical.</div>
+      <div class="mp-insight">Spotify Wrapped meets Eames catalog coherence — the collection has a personality.</div>
+      <div class="mp-link">View MP5 →</div>
+    </div>
+  </a>
+
+  <a class="mp-card" href="/mp6/">
+    <div class="mp-canvas-wrap">
+      <canvas id="c6" width="800" height="450"></canvas>
+      <div class="mp-num">MP 06</div>
+    </div>
+    <div class="mp-info">
+      <div class="mp-title">The Living Record</div>
+      <div class="mp-concept">Provenance certificate · Stewardship · Transferable history</div>
+      <div class="mp-desc">Every work has a provenance record that grows over time. ViewTime logs continuously. If you ever gift or sell the work, the full record — your hours, your artist's earnings — transfers.</div>
+      <div class="mp-insight">"You don't own a generative work. You steward it." — Christie's model applied to digital art.</div>
+      <div class="mp-link">View MP6 →</div>
+    </div>
+  </a>
+
+  <a class="mp-card" href="/mp7/">
+    <div class="mp-canvas-wrap">
+      <canvas id="c7" width="800" height="450"></canvas>
+      <div class="mp-num">MP 07</div>
+    </div>
+    <div class="mp-info">
+      <div class="mp-title">The Private Room</div>
+      <div class="mp-concept">Full lockout · Lobby vs. inside · Art behind glass</div>
+      <div class="mp-desc">The most aggressive version. Non-members see the art playing but nothing else — no titles, no artists, no prices. "Enter" is the entire UX. Membership is crossing a velvet rope.</div>
+      <div class="mp-insight">Gagosian never lists prices. You inquire. Opacity signals value.</div>
+      <div class="mp-link">View MP7 →</div>
+    </div>
+  </a>
+
+  <a class="mp-card" href="/mp8/">
+    <div class="mp-canvas-wrap" style="background:#000;display:flex;align-items:center;justify-content:center;">
+      <div style="text-align:center;padding:2rem;">
+        <div style="font-size:2rem;font-weight:200;line-height:1.4;color:rgba(255,255,255,0.7);">Layer.<br>The standard for<br>generative art.</div>
+      </div>
+    </div>
+    <div class="mp-num" style="position:absolute;top:1rem;left:1rem;">MP 08</div>
+    <div class="mp-info">
+      <div class="mp-title">The Collector's Brief</div>
+      <div class="mp-concept">Pure typography · No animations · Auction house authority</div>
+      <div class="mp-desc">No generative art. No hero. Just text, typeset with precision — like a Sotheby's private sale document or a Phaidon catalogue. Facts, lot table, single Inquire CTA. Tests whether authority through restraint works.</div>
+      <div class="mp-insight">Inspired by how private banks present alternative investments to UHNW clients.</div>
+      <div class="mp-link">View MP8 →</div>
+    </div>
+  </a>
+
+  <a class="mp-card" href="/mp9/">
+    <div class="mp-canvas-wrap">
+      <canvas id="c9" width="800" height="450"></canvas>
+      <div class="mp-num">MP 09</div>
+    </div>
+    <div class="mp-info">
+      <div class="mp-title">The Hospitality Play</div>
+      <div class="mp-concept">Residential vs. commercial · Monthly licensing · B2B track</div>
+      <div class="mp-desc">Residential collecting vs. commercial licensing. Hotels, private clubs, restaurants. Tab switches between personal ($7K–$22K buy-in) and hospitality ($1,200/month/canvas) pricing models.</div>
+      <div class="mp-insight">Soho House uses art as identity. W Hotels partnered with artists. Layer could run the same play at scale.</div>
+      <div class="mp-link">View MP9 →</div>
+    </div>
+  </a>
+
+  <a class="mp-card" href="/mp10/">
+    <div class="mp-canvas-wrap">
+      <canvas id="c10" width="800" height="450"></canvas>
+      <div class="mp-num">MP 10</div>
+    </div>
+    <div class="mp-info">
+      <div class="mp-title">Gift a Work</div>
+      <div class="mp-concept">Gifting flow · Occasions · Corporate · Gift certificate</div>
+      <div class="mp-desc">A completely different acquisition context. Wedding. Milestone. Corporate client. "Gift This Work" — Layer handles everything. Gift certificate mock shows how the provenance record carries a personal message permanently.</div>
+      <div class="mp-insight">Unlocks a new buyer category: people who want to give something real, not something consumable.</div>
+      <div class="mp-link">View MP10 →</div>
+    </div>
+  </a>
+
+</div>
+
+<hr class="rule">
 
 <footer>
-  <span>Layer — Internal concept work — March 2026</span>
-  <span>chuck.neoteric.art/mp/</span>
+  <div class="footer-logo">Layer</div>
+  <div class="footer-copy">Internal concept work · Not for distribution · March 2026</div>
 </footer>
 
 <script>
-const mps = [
-  {
-    num: 'MP1',
-    title: 'The Marketplace',
-    concept: 'Art-first baseline',
-    desc: 'The simplest version of the idea: what if the curation page had prices? Member toggle reveals pricing across a 12-work gallery. The foundation every other concept builds on.',
-    url: '/mp1/',
-    tags: ['Member toggle', 'Gallery grid', 'Generative art'],
-    anim: 'nodes'
-  },
-  {
-    num: 'MP2',
-    title: 'Two Membership Tiers',
-    concept: 'Founder Edition vs Cosmos',
-    desc: 'Introduces the $22K Founder Canvas and $7K Cosmos as two entry points. Art ranges from $500 variants to $28K pieces. Tests whether a lower floor opens the market without cheapening the top.',
-    url: '/mp2/',
-    tags: ['Cosmos', 'Founder Edition', 'Art tiers'],
-    anim: 'aurora'
-  },
-  {
-    num: 'MP3',
-    title: 'The Drop',
-    concept: 'Monthly limited releases',
-    desc: 'One artist. One work. Every month. Members get a 48-hour priority window. Upcoming drops are blurred until you\'re a member. Borrowed from Supreme and SNKRS — scarcity + cadence creates anticipation.',
-    url: '/mp3/',
-    tags: ['Drop model', 'Countdown', 'Blurred reveals'],
-    anim: 'terrain'
-  },
-  {
-    num: 'MP4',
-    title: 'The Artist Relationship',
-    concept: 'Acquisition as enrollment',
-    desc: 'The ViewTime ledger is the centerpiece: showing exactly how much Casey Reas earned from your specific canvas in November. Acquisition stops being a transaction and becomes patronage.',
-    url: '/mp4/',
-    tags: ['ViewTime ledger', 'Artist roster', 'Patronage'],
-    anim: 'zach'
-  },
-  {
-    num: 'MP5',
-    title: 'Your Living Collection',
-    concept: 'Art Intelligence personalization',
-    desc: 'Morning/afternoon/evening previews show the same collection feeling different across the day. The Art Intelligence dashboard makes the abstract system visceral. Your collection has a personality.',
-    url: '/mp5/',
-    tags: ['Art Intelligence', 'Time of day', 'Personalization'],
-    anim: 'drift'
-  },
-  {
-    num: 'MP6',
-    title: 'The Living Record',
-    concept: 'Provenance & stewardship',
-    desc: 'A certificate of acquisition that grows over time. ViewTime logs continuously. If you sell the work, the record transfers. "You don\'t own a generative work. You steward it."',
-    url: '/mp6/',
-    tags: ['Provenance cert', 'Transferable', 'Authentication'],
-    anim: 'nebula'
-  },
-  {
-    num: 'MP7',
-    title: 'The Private Room',
-    concept: 'Full lockout / lobby vs inside',
-    desc: 'Most aggressive version. Non-members see the animations but nothing else — no titles, no artists, no prices. The "Enter" button is the entire experience. Velvet rope, not a paywall.',
-    url: '/mp7/',
-    tags: ['Full lockout', 'Lobby', 'Private gallery'],
-    anim: 'andreas'
-  },
-  {
-    num: 'MP8',
-    title: 'The Collector\'s Brief',
-    concept: 'Pure text, zero animation',
-    desc: 'No generative art at all. Reads like a Sotheby\'s private sale document. Lot table, facts block, single Inquire CTA. Tests whether authority through restraint can carry the whole pitch.',
-    url: '/mp8/',
-    tags: ['Text only', 'Auction house tone', 'Lot table'],
-    anim: 'static'
-  },
-  {
-    num: 'MP9',
-    title: 'The Hospitality Play',
-    concept: 'Residential vs commercial licensing',
-    desc: 'Two-tab toggle: Residential (personal collecting) vs Hospitality (monthly licensing per canvas). Hotels, clubs, restaurants. Tests whether Layer has a B2B parallel track.',
-    url: '/mp9/',
-    tags: ['Hospitality', 'Commercial licensing', 'B2B'],
-    anim: 'lake'
-  },
-  {
-    num: 'MP10',
-    title: 'Gift a Work',
-    concept: 'New buyer category via gifting',
-    desc: 'Weddings, milestones, corporate. A gift certificate mock. Occasions-based entry that unlocks a buyer who\'d never think to buy art for themselves. Price guide from $500 to $22K+.',
-    url: '/mp10/',
-    tags: ['Gifting', 'New category', 'Gift certificate'],
-    anim: 'justin'
-  }
-];
+// Minimal generative thumbnails for each card
 
-const animFns = {
-  nodes: (ctx,W,H) => { const n=Array.from({length:30},()=>({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-0.5)*0.4,vy:(Math.random()-0.5)*0.4,r:Math.random()*1.2+0.3}));function d(){ctx.fillStyle='rgba(0,0,0,0.06)';ctx.fillRect(0,0,W,H);n.forEach((a,i)=>{a.x+=a.vx;a.y+=a.vy;if(a.x<0||a.x>W)a.vx*=-1;if(a.y<0||a.y>H)a.vy*=-1;n.forEach((b,j)=>{if(j<=i)return;const d2=Math.hypot(a.x-b.x,a.y-b.y);if(d2<90){ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.strokeStyle=`rgba(255,255,255,${(1-d2/90)*0.2})`;ctx.lineWidth=0.5;ctx.stroke();}});ctx.beginPath();ctx.arc(a.x,a.y,a.r,0,Math.PI*2);ctx.fillStyle='rgba(255,255,255,0.6)';ctx.fill();});requestAnimationFrame(d);}ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);d(); },
-  aurora: (ctx,W,H) => { let t=0;function d(){ctx.globalCompositeOperation='source-over';ctx.fillStyle='rgba(0,0,0,0.04)';ctx.fillRect(0,0,W,H);ctx.globalCompositeOperation='screen';[{c:'rgba(20,70,160,0.12)',s:0.3},{c:'rgba(0,110,180,0.09)',s:0.5},{c:'rgba(140,100,20,0.06)',s:0.2}].forEach((b,i)=>{const y=(H*(i+0.5)/3+Math.sin(t*b.s+i)*35)%H;const g=ctx.createLinearGradient(0,y-80,0,y+80);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(0.5,b.c);g.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=g;ctx.fillRect(0,y-80,W,160);});t+=0.012;ctx.globalCompositeOperation='source-over';requestAnimationFrame(d);}ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);d(); },
-  terrain: (ctx,W,H) => { let t=0;function d(){ctx.fillStyle='rgba(0,0,0,0.07)';ctx.fillRect(0,0,W,H);for(let i=0;i<14;i++){ctx.beginPath();const by=H*(i+0.5)/14;ctx.moveTo(0,by);for(let x=0;x<=W;x+=4){const y=by+Math.sin(x/70+t*0.25+i*0.5)*15+Math.sin(x/35+t*0.15+i)*6;ctx.lineTo(x,y);}ctx.strokeStyle=`rgba(255,255,255,${0.04+0.07*Math.abs(Math.sin(i*0.35+t*0.1))})`;ctx.lineWidth=0.7;ctx.stroke();}t+=0.015;requestAnimationFrame(d);}ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);d(); },
-  zach: (ctx,W,H) => { const b=Array.from({length:4},()=>({pts:[{x:Math.random()*W,y:Math.random()*H}],vx:(Math.random()-0.5)*2,vy:(Math.random()-0.5)*2,life:0,max:100+Math.random()*80,phase:'draw'}));function d(){ctx.fillStyle='rgba(0,0,0,0.025)';ctx.fillRect(0,0,W,H);b.forEach(br=>{if(br.phase==='draw'){const l=br.pts[br.pts.length-1];const nx=Math.max(0,Math.min(W,l.x+br.vx+(Math.random()-0.5)*2));const ny=Math.max(0,Math.min(H,l.y+br.vy+(Math.random()-0.5)*2));br.pts.push({x:nx,y:ny});br.life++;if(br.pts.length>2){ctx.beginPath();ctx.moveTo(l.x,l.y);ctx.lineTo(nx,ny);ctx.strokeStyle='rgba(255,255,255,0.4)';ctx.lineWidth=0.9;ctx.stroke();}if(br.life>=br.max){br.phase='erase';br.life=0;}}else{br.life++;if(br.life>50)Object.assign(br,{pts:[{x:Math.random()*W,y:Math.random()*H}],vx:(Math.random()-0.5)*2,vy:(Math.random()-0.5)*2,life:0,max:100+Math.random()*80,phase:'draw'});}});requestAnimationFrame(d);}ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);d(); },
-  drift: (ctx,W,H) => { const pts=Array.from({length:400},()=>({x:Math.random()*W,y:Math.random()*H,vy:Math.random()*0.2+0.04,vx:(Math.random()-0.5)*0.07}));function d(){ctx.fillStyle='rgba(0,0,0,0.04)';ctx.fillRect(0,0,W,H);pts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;if(p.y>H){p.y=0;p.x=Math.random()*W;}ctx.fillStyle='rgba(255,255,255,0.28)';ctx.fillRect(p.x,p.y,0.7,0.7);});requestAnimationFrame(d);}ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);d(); },
-  nebula: (ctx,W,H) => { const stars=Array.from({length:100},()=>({x:Math.random()*W,y:Math.random()*H,r:Math.random()*0.6+0.2}));const clouds=[{x:W*0.35,y:H*0.5,r:W*0.4,col:'80,20,120'},{x:W*0.65,y:H*0.4,r:W*0.3,col:'120,30,80'}];let t=0;function d(){ctx.fillStyle='rgba(0,0,0,0.05)';ctx.fillRect(0,0,W,H);clouds.forEach((cl,i)=>{const dx=Math.sin(t*0.08+i)*20,dy=Math.cos(t*0.06+i)*14;const g=ctx.createRadialGradient(cl.x+dx,cl.y+dy,0,cl.x+dx,cl.y+dy,cl.r);g.addColorStop(0,`rgba(${cl.col},0.09)`);g.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);});stars.forEach(s=>{ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fillStyle='rgba(255,255,255,0.35)';ctx.fill();});t+=0.01;requestAnimationFrame(d);}ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);d(); },
-  andreas: (ctx,W,H) => { let t=0;function d(){ctx.fillStyle='rgba(0,0,0,0.07)';ctx.fillRect(0,0,W,H);for(let r=0;r<14;r++)for(let c=0;c<14;c++){const bx=W*(c+0.5)/14,by=H*(r+0.5)/14;const dx=Math.sin(t*0.4+r*0.5+c*0.3)*14;const dy=Math.cos(t*0.3+c*0.4+r*0.2)*12;ctx.beginPath();ctx.arc(bx+dx,by+dy,0.7,0,Math.PI*2);ctx.fillStyle='rgba(255,255,255,0.35)';ctx.fill();}t+=0.015;requestAnimationFrame(d);}ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);d(); },
-  static: (ctx,W,H) => { ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);ctx.fillStyle='rgba(255,255,255,0.06)';for(let i=0;i<8;i++){ctx.fillRect(40+i*20,H/2-8,2,16);}ctx.font='300 11px Helvetica Neue,Helvetica,Arial,sans-serif';ctx.fillStyle='rgba(255,255,255,0.2)';ctx.letterSpacing='0.15em';ctx.textAlign='center';ctx.fillText('NO ANIMATION',W/2,H/2+40); },
-  lake: (ctx,W,H) => { const pts=Array.from({length:350},()=>({x:Math.random()*W,y:Math.random()*H,vy:Math.random()*0.22+0.03,vx:(Math.random()-0.5)*0.06}));function d(){ctx.fillStyle='rgba(0,0,0,0.04)';ctx.fillRect(0,0,W,H);pts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;if(p.y>H){p.y=0;p.x=Math.random()*W;}ctx.fillStyle='rgba(255,255,255,0.25)';ctx.fillRect(p.x,p.y,0.7,0.7);});requestAnimationFrame(d);}ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);d(); },
-  justin: (ctx,W,H) => { let t=0;function d(){ctx.fillStyle='rgba(0,0,0,0.05)';ctx.fillRect(0,0,W,H);for(let i=0;i<6;i++){const angle=t*0.15+i*Math.PI/3;const x1=W/2+Math.cos(angle)*60,y1=H/2+Math.sin(angle)*60;const x2=W/2+Math.cos(angle+1.2)*90,y2=H/2+Math.sin(angle+1.2)*90;const x3=W/2+Math.cos(angle+2.4)*50,y3=H/2+Math.sin(angle+2.4)*50;ctx.beginPath();ctx.moveTo(x1,y1);ctx.bezierCurveTo(x2,y2,x3,y3,W/2,H/2);ctx.strokeStyle=`rgba(255,255,255,${0.05+0.07*Math.abs(Math.sin(t+i))})`;ctx.lineWidth=1.1;ctx.stroke();}t+=0.012;requestAnimationFrame(d);}ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);d(); },
+function nodeNet(ctx, W, H, opts) {
+  opts = opts || {};
+  const count = opts.count || 35;
+  const dist = opts.dist || 100;
+  const speed = opts.speed || 0.4;
+  const col = opts.col || '255,255,255';
+  const n = Array.from({length:count}, () => ({
+    x:Math.random()*W, y:Math.random()*H,
+    vx:(Math.random()-0.5)*speed, vy:(Math.random()-0.5)*speed,
+    r:Math.random()*1.2+0.4
+  }));
+  function d() {
+    ctx.fillStyle='rgba(0,0,0,0.05)'; ctx.fillRect(0,0,W,H);
+    n.forEach((a,i)=>{
+      a.x+=a.vx; a.y+=a.vy;
+      if(a.x<0||a.x>W)a.vx*=-1; if(a.y<0||a.y>H)a.vy*=-1;
+      n.forEach((b,j)=>{ if(j<=i)return; const d2=Math.hypot(a.x-b.x,a.y-b.y); if(d2<dist){ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.strokeStyle=`rgba(${col},${(1-d2/dist)*0.25})`;ctx.lineWidth=0.5;ctx.stroke();} });
+      ctx.beginPath();ctx.arc(a.x,a.y,a.r,0,Math.PI*2);ctx.fillStyle=`rgba(${col},0.6)`;ctx.fill();
+    });
+    requestAnimationFrame(d);
+  }
+  ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H); d();
+}
+
+function terrain(ctx, W, H) {
+  let t=0;
+  function d() {
+    ctx.fillStyle='rgba(0,0,0,0.06)'; ctx.fillRect(0,0,W,H);
+    for(let i=0;i<14;i++){
+      ctx.beginPath();const by=H*(i+0.5)/14;ctx.moveTo(0,by);
+      for(let x=0;x<=W;x+=5){const y=by+Math.sin(x/80+t*0.22+i*0.5)*18+Math.sin(x/40+t*0.14+i)*7;ctx.lineTo(x,y);}
+      ctx.strokeStyle=`rgba(255,255,255,${0.04+0.07*Math.abs(Math.sin(i*0.35+t*0.1))})`;ctx.lineWidth=0.8;ctx.stroke();
+    }
+    t+=0.015; requestAnimationFrame(d);
+  }
+  ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H); d();
+}
+
+function nebula(ctx, W, H) {
+  const stars=Array.from({length:100},()=>({x:Math.random()*W,y:Math.random()*H,r:Math.random()*0.6+0.2}));
+  const clouds=[{x:W*0.35,y:H*0.5,r:W*0.35,col:'80,20,120'},{x:W*0.65,y:H*0.4,r:W*0.3,col:'120,30,80'}];
+  let t=0;
+  function d() {
+    ctx.fillStyle='rgba(0,0,0,0.04)'; ctx.fillRect(0,0,W,H);
+    clouds.forEach((cl,i)=>{const dx=Math.sin(t*0.08+i)*20,dy=Math.cos(t*0.06+i)*15;const g=ctx.createRadialGradient(cl.x+dx,cl.y+dy,0,cl.x+dx,cl.y+dy,cl.r);g.addColorStop(0,`rgba(${cl.col},0.1)`);g.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);});
+    stars.forEach(s=>{ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fillStyle='rgba(255,255,255,0.4)';ctx.fill();});
+    t+=0.01; requestAnimationFrame(d);
+  }
+  ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H); d();
+}
+
+function aurora(ctx, W, H) {
+  let t=0;
+  function d() {
+    ctx.globalCompositeOperation='source-over';ctx.fillStyle='rgba(0,0,0,0.04)';ctx.fillRect(0,0,W,H);
+    ctx.globalCompositeOperation='screen';
+    [{c:'rgba(20,70,160,0.12)',s:0.3},{c:'rgba(0,110,180,0.09)',s:0.5},{c:'rgba(140,100,20,0.06)',s:0.2}].forEach((b,i)=>{
+      const y=(H*(i+0.5)/3+Math.sin(t*b.s+i)*40)%H;
+      const g=ctx.createLinearGradient(0,y-80,0,y+80);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(0.5,b.c);g.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=g;ctx.fillRect(0,y-80,W,160);
+    });
+    t+=0.012;ctx.globalCompositeOperation='source-over'; requestAnimationFrame(d);
+  }
+  ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H); d();
+}
+
+function drift(ctx, W, H) {
+  const pts=Array.from({length:400},()=>({x:Math.random()*W,y:Math.random()*H,vy:Math.random()*0.25+0.04,vx:(Math.random()-0.5)*0.08}));
+  function d() {
+    ctx.fillStyle='rgba(0,0,0,0.04)'; ctx.fillRect(0,0,W,H);
+    pts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;if(p.y>H){p.y=0;p.x=Math.random()*W;}ctx.fillStyle='rgba(255,255,255,0.28)';ctx.fillRect(p.x,p.y,0.8,0.8);});
+    requestAnimationFrame(d);
+  }
+  ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H); d();
+}
+
+function grid(ctx, W, H) {
+  let t=0;
+  function d() {
+    ctx.fillStyle='rgba(0,0,0,0.07)'; ctx.fillRect(0,0,W,H);
+    for(let r=0;r<14;r++)for(let c=0;c<20;c++){
+      const bx=W*(c+0.5)/20,by=H*(r+0.5)/14;
+      const dx=Math.sin(t*0.4+r*0.5+c*0.3)*12,dy=Math.cos(t*0.3+c*0.4+r*0.2)*10;
+      ctx.beginPath();ctx.arc(bx+dx,by+dy,0.7,0,Math.PI*2);ctx.fillStyle='rgba(255,255,255,0.35)';ctx.fill();
+    }
+    t+=0.015; requestAnimationFrame(d);
+  }
+  ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H); d();
+}
+
+// Initialize each card canvas with IntersectionObserver
+const cardAnims = {
+  c1: (ctx,W,H) => nodeNet(ctx,W,H,{count:30}),
+  c2: (ctx,W,H) => terrain(ctx,W,H),
+  c3: (ctx,W,H) => nebula(ctx,W,H),
+  c4: (ctx,W,H) => nodeNet(ctx,W,H,{count:40,speed:0.35}),
+  c5: (ctx,W,H) => drift(ctx,W,H),
+  c6: (ctx,W,H) => nodeNet(ctx,W,H,{count:25,speed:0.3}),
+  c7: (ctx,W,H) => grid(ctx,W,H),
+  // c8 is pure text, no canvas
+  c9: (ctx,W,H) => terrain(ctx,W,H),
+  c10: (ctx,W,H) => nebula(ctx,W,H),
 };
 
-const grid = document.getElementById('grid');
-mps.forEach((mp, i) => {
-  const card = document.createElement('a');
-  card.className = 'mp-card';
-  card.href = mp.url;
-  card.innerHTML = `
-    <div class="mp-thumb">
-      <canvas id="thumb-${i}" width="640" height="400"></canvas>
-      <div class="mp-num">${mp.num}</div>
-    </div>
-    <div class="mp-info">
-      <div class="mp-concept">${mp.concept}</div>
-      <div class="mp-title">${mp.title}</div>
-      <div class="mp-desc">${mp.desc}</div>
-      <div style="margin-bottom:1rem;">${mp.tags.map(t => `<span class="mp-tag">${t}</span>`).join('')}</div>
-      <span class="mp-link">View →</span>
-    </div>
-  `;
-  grid.appendChild(card);
-});
-
-// Lazy init animations
-mps.forEach((mp, i) => {
-  const c = document.getElementById(`thumb-${i}`);
+Object.entries(cardAnims).forEach(([id, fn]) => {
+  const c = document.getElementById(id);
   if (!c) return;
-  if (mp.anim === 'static') {
-    animFns.static(c.getContext('2d'), c.width, c.height);
-    return;
-  }
   let started = false;
   new IntersectionObserver(entries => {
     if (entries[0].isIntersecting && !started) {
       started = true;
-      animFns[mp.anim](c.getContext('2d'), c.width, c.height);
+      fn(c.getContext('2d'), c.width, c.height);
     }
-  }, {threshold: 0.1}).observe(c);
+  }, {threshold: 0.05}).observe(c);
 });
 </script>
 </body>

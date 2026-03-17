@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Layer — The Gallery</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: #000;
+      color: #fff;
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      font-weight: 300;
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.6;
+    }
+
+    nav {
+      position: sticky; top: 0; z-index: 200;
+      background: #000; border-bottom: 1px solid rgba(255,255,255,0.08);
+      height: 50px;
+    }
+    .nav-inner {
+      max-width: 1400px; margin: 0 auto; padding: 0 40px;
+      height: 100%; display: flex; align-items: center; justify-content: space-between;
+    }
+    .nav-logo { font-size: 1rem; letter-spacing: 0.35em; text-transform: uppercase; color: #fff; text-decoration: none; }
+    .nav-center { position: absolute; left: 50%; transform: translateX(-50%); font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(255,255,255,0.3); }
+    .nav-right { display: flex; align-items: center; gap: 1.5rem; }
+    .nav-btn { font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; background: none; border: 1px solid rgba(255,255,255,0.35); color: rgba(255,255,255,0.6); padding: 0.35rem 1rem; cursor: pointer; font-family: inherit; font-weight: 300; transition: all 0.2s; }
+    .nav-btn:hover, .nav-btn.active { border-color: #fff; color: #fff; }
+    .nav-link { font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(255,255,255,0.35); text-decoration: none; }
+    .nav-link:hover { color: #fff; }
+
+    /* LOBBY */
+    .lobby {
+      max-width: 1400px; margin: 0 auto; padding: 120px 40px;
+      display: flex; flex-direction: column; align-items: center; text-align: center;
+    }
+    .lobby-label { font-size: 0.6rem; letter-spacing: 0.25em; text-transform: uppercase; color: rgba(255,255,255,0.3); margin-bottom: 3rem; }
+    .lobby-canvas-wrap { width: 560px; max-width: 100%; margin-bottom: 3rem; }
+    .lobby-headline { font-size: 2.8rem; font-weight: 200; line-height: 1.3; margin-bottom: 1.5rem; }
+    .lobby-sub { font-size: 0.95rem; color: rgba(255,255,255,0.45); max-width: 480px; margin-bottom: 3rem; line-height: 1.8; }
+    .lobby-tiers { display: flex; gap: 2rem; justify-content: center; flex-wrap: wrap; }
+    .tier-option { text-align: left; padding: 2rem; border: 1px solid rgba(255,255,255,0.1); min-width: 220px; }
+    .tier-label-sm { font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,255,255,0.35); margin-bottom: 0.5rem; }
+    .tier-price-sm { font-size: 1.8rem; font-weight: 200; margin-bottom: 1rem; }
+    .btn { display: inline-block; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; border: 1px solid rgba(255,255,255,0.35); background: none; color: rgba(255,255,255,0.7); padding: 0.55rem 1.8rem; cursor: pointer; font-family: inherit; font-weight: 300; transition: all 0.2s; text-decoration: none; }
+    .btn:hover { border-color: #fff; color: #fff; }
+
+    /* MEMBER WELCOME override */
+    .member-welcome { display: none; }
+    body.member-mode .lobby-headline-default { display: none; }
+    body.member-mode .member-welcome { display: block; }
+    body.member-mode .lobby-sub-default { display: none; }
+    body.member-mode .member-sub { display: block; }
+    .member-sub { display: none; font-size: 0.95rem; color: rgba(255,255,255,0.45); max-width: 480px; margin-bottom: 3rem; line-height: 1.8; }
+
+    /* GALLERY GRID */
+    .gallery-section { padding: 80px 0; }
+    .gallery-header { max-width: 1400px; margin: 0 auto; padding: 0 40px 2rem; display: flex; justify-content: space-between; align-items: baseline; }
+    .gallery-label { font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,255,255,0.35); }
+    .gallery-count { font-size: 0.7rem; color: rgba(255,255,255,0.25); }
+    .gallery-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; }
+    .gallery-card { position: relative; aspect-ratio: 1; overflow: hidden; cursor: default; }
+    .gallery-card canvas { width: 100%; height: 100%; display: block; }
+
+    /* LOCKED state overlay */
+    .card-overlay {
+      position: absolute; inset: 0;
+      background: rgba(0,0,0,0.0);
+      display: flex; flex-direction: column; justify-content: flex-end;
+      padding: 1.5rem; transition: background 0.3s;
+    }
+    .gallery-card:hover .card-overlay { background: rgba(0,0,0,0.65); }
+    .card-info-revealed { opacity: 0; transition: opacity 0.3s; }
+    .gallery-card:hover .card-info-revealed { opacity: 1; }
+
+    /* Non-member lock indicator */
+    .card-locked-indicator {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .lock-dot { width: 4px; height: 4px; border-radius: 50%; background: rgba(255,255,255,0.15); }
+    .members-only-tag {
+      position: absolute; bottom: 1rem; left: 50%; transform: translateX(-50%);
+      font-size: 0.55rem; letter-spacing: 0.2em; text-transform: uppercase;
+      color: rgba(255,255,255,0.2); white-space: nowrap;
+      opacity: 0; transition: opacity 0.3s;
+    }
+    .gallery-card:hover .members-only-tag { opacity: 1; }
+
+    body.member-mode .card-locked-indicator { display: none; }
+    body.member-mode .members-only-tag { display: none; }
+
+    .card-artist { font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(255,255,255,0.5); margin-bottom: 0.25rem; }
+    .card-title { font-size: 0.9rem; font-weight: 300; margin-bottom: 0.5rem; }
+    .card-edition { font-size: 0.65rem; color: rgba(255,255,255,0.4); margin-bottom: 0.5rem; }
+    .card-price-locked { font-size: 0.7rem; color: rgba(255,255,255,0.25); }
+    .card-price-member { display: none; font-size: 1rem; font-weight: 300; }
+    body.member-mode .card-price-locked { display: none; }
+    body.member-mode .card-price-member { display: block; }
+
+    /* Hover bundle reveal for non-members */
+    .bundle-reveal { display: none; font-size: 0.7rem; color: rgba(255,255,255,0.4); margin-top: 0.5rem; }
+    .gallery-card:hover .bundle-reveal { display: block; }
+    body.member-mode .bundle-reveal { display: none !important; }
+
+    /* PHILOSOPHY */
+    .philosophy { max-width: 1400px; margin: 0 auto; padding: 120px 40px; text-align: center; }
+    .phil-text { font-size: 2.4rem; font-weight: 200; line-height: 1.6; max-width: 700px; margin: 0 auto; }
+
+    /* HOW IT WORKS */
+    .how { max-width: 1400px; margin: 0 auto; padding: 80px 40px; }
+    .how-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 60px; margin-top: 3rem; }
+    .how-step { border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1.5rem; }
+    .step-num { font-size: 0.6rem; letter-spacing: 0.2em; color: rgba(255,255,255,0.3); margin-bottom: 1rem; }
+    .step-title { font-size: 1rem; font-weight: 300; margin-bottom: 0.8rem; }
+    .step-body { font-size: 0.85rem; color: rgba(255,255,255,0.45); line-height: 1.8; }
+
+    /* TWO ROOMS */
+    .rooms { max-width: 1400px; margin: 0 auto; padding: 80px 40px; }
+    .rooms-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; margin-top: 2rem; }
+    .room { padding: 2.5rem; border: 1px solid rgba(255,255,255,0.08); }
+    .room-name { font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,255,255,0.35); margin-bottom: 0.5rem; }
+    .room-price { font-size: 2rem; font-weight: 200; margin-bottom: 1rem; }
+    .room-desc { font-size: 0.85rem; color: rgba(255,255,255,0.45); line-height: 1.8; margin-bottom: 1.5rem; }
+    .room-features { list-style: none; margin-bottom: 2rem; }
+    .room-features li { font-size: 0.8rem; color: rgba(255,255,255,0.4); padding: 0.4rem 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .room-features li::before { content: "— "; color: rgba(255,255,255,0.15); }
+
+    footer { border-top: 1px solid rgba(255,255,255,0.08); padding: 2.5rem 40px; max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+    .footer-logo { font-size: 0.85rem; letter-spacing: 0.3em; text-transform: uppercase; }
+    .footer-links { display: flex; gap: 2rem; }
+    .footer-links a { font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(255,255,255,0.3); text-decoration: none; }
+    .footer-links a:hover { color: #fff; }
+    .footer-copy { font-size: 0.6rem; color: rgba(255,255,255,0.2); }
+
+    @media(max-width:900px){
+      .gallery-grid{grid-template-columns:1fr 1fr;}
+      .how-grid{grid-template-columns:1fr;}
+      .rooms-grid{grid-template-columns:1fr;}
+      .lobby{padding:80px 24px;}
+      .nav-inner,.gallery-header,.how,.rooms,footer{padding-left:24px;padding-right:24px;}
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="nav-logo">Layer</a>
+    <span class="nav-center">The Gallery</span>
+    <div class="nav-right">
+      <button class="nav-btn" id="enter-btn" onclick="toggleMember()">Enter</button>
+      <a href="https://layer.com/inquire" class="nav-link">Inquire</a>
+    </div>
+  </div>
+</nav>
+
+<!-- LOBBY -->
+<div class="lobby">
+  <div class="lobby-label" id="lobby-label">Layer Private Gallery</div>
+  <div class="lobby-canvas-wrap">
+    <canvas id="lobby-canvas" width="560" height="320" style="width:100%;"></canvas>
+  </div>
+
+  <div class="lobby-headline lobby-headline-default">The collection is not for everyone.</div>
+  <div class="lobby-headline member-welcome">Welcome back.</div>
+
+  <div class="lobby-sub lobby-sub-default">Membership is by acquisition only. Your first work establishes your place.</div>
+  <div class="member-sub">12 works available. 3 new this month.</div>
+
+  <div class="lobby-tiers">
+    <div class="tier-option">
+      <div class="tier-label-sm">Cosmos</div>
+      <div class="tier-price-sm">$7,000</div>
+      <a href="https://layer.com/inquire" class="btn">Inquire</a>
+    </div>
+    <div class="tier-option">
+      <div class="tier-label-sm">Founder Edition</div>
+      <div class="tier-price-sm">$22,000</div>
+      <a href="https://layer.com/inquire" class="btn">Inquire</a>
+    </div>
+  </div>
+</div>
+
+<!-- GALLERY GRID -->
+<div class="gallery-section">
+  <div class="gallery-header">
+    <span class="gallery-label">The Collection</span>
+    <span class="gallery-count">9 works</span>
+  </div>
+  <div class="gallery-grid" id="gallery-grid"></div>
+</div>
+
+<!-- PHILOSOPHY -->
+<div class="philosophy">
+  <div class="phil-text">"Rarity is not manufactured.<br>It is recognized."</div>
+</div>
+
+<!-- HOW IT WORKS -->
+<div class="how">
+  <div class="gallery-label">How Membership Works</div>
+  <div class="how-grid">
+    <div class="how-step">
+      <div class="step-num">01 — Acquire</div>
+      <div class="step-title">Your first work</div>
+      <div class="step-body">Your first acquisition establishes your membership. Cosmos or Founder Edition. The display arrives with the work.</div>
+    </div>
+    <div class="how-step">
+      <div class="step-num">02 — Enter</div>
+      <div class="step-title">The gallery opens</div>
+      <div class="step-body">Once acquired, the full collection is available at art pricing. New works. Artist relationships. Monthly drop access.</div>
+    </div>
+    <div class="how-step">
+      <div class="step-num">03 — Collect</div>
+      <div class="step-title">The relationship deepens</div>
+      <div class="step-body">Each subsequent work at the art price. Your collection grows. Your artists earn every hour their work is on your wall.</div>
+    </div>
+  </div>
+</div>
+
+<!-- TWO ROOMS -->
+<div class="rooms">
+  <div class="gallery-label">Membership</div>
+  <div class="rooms-grid">
+    <div class="room">
+      <div class="room-name">The Cosmos Room</div>
+      <div class="room-price">From $7,000</div>
+      <div class="room-desc">Entry into the collection. Your first work includes the Cosmos display — engineered for the work, designed for how you live.</div>
+      <ul class="room-features">
+        <li>Full collection access</li>
+        <li>48-hour drop priority</li>
+        <li>Art pricing on all works</li>
+        <li>ViewTime royalties active</li>
+      </ul>
+      <a href="https://layer.com/inquire" class="btn">Inquire</a>
+    </div>
+    <div class="room">
+      <div class="room-name">The Founder Suite</div>
+      <div class="room-price">From $22,000</div>
+      <div class="room-desc">All Cosmos benefits. Plus the Layer Canvas — 41.7 × 41.7 inches, dedicated GPU, true black, milled aluminum, silent.</div>
+      <ul class="room-features">
+        <li>All Cosmos benefits</li>
+        <li>Edition of 1–5 access</li>
+        <li>Direct artist relationship</li>
+        <li>First refusal on new works</li>
+      </ul>
+      <a href="https://layer.com/inquire" class="btn">Inquire</a>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-logo">Layer</div>
+  <div class="footer-links">
+    <a href="#">The Gallery</a>
+    <a href="#">Artists</a>
+    <a href="#">Canvas</a>
+    <a href="https://layer.com/inquire">Inquire</a>
+  </div>
+  <div class="footer-copy">© 2026 Layer</div>
+</footer>
+
+<script>
+let isMember = false;
+function toggleMember() {
+  isMember = !isMember;
+  document.body.classList.toggle('member-mode', isMember);
+  const btn = document.getElementById('enter-btn');
+  btn.textContent = isMember ? 'Inside ✓' : 'Enter';
+  btn.classList.toggle('active', isMember);
+  document.getElementById('lobby-label').textContent = isMember ? 'Welcome Back' : 'Layer Private Gallery';
+}
+
+const works = [
+  {artist:'Casey Reas',title:'"Tissue 04"',ed:'Ed. 5 — 3 remaining',price:'$28,000',bundle:'From $35,000 with Founder Edition',anim:'reas'},
+  {artist:'Zach Lieberman',title:'"Drawn Apart"',ed:'Ed. 8 — 5 remaining',price:'$18,000',bundle:'From $25,000 with Founder Edition',anim:'zach'},
+  {artist:'Rik Oostenbroek',title:'"Luminance III"',ed:'Ed. 10 — 8 remaining',price:'$12,000',bundle:'From $19,000 with Cosmos',anim:'rik'},
+  {artist:'Andreas Fischer',title:'"Superposition 7"',ed:'Ed. 6 — 4 remaining',price:'$22,000',bundle:'From $29,000 with Founder Edition',anim:'andreas'},
+  {artist:'Leander Herzog',title:'"Meridian"',ed:'Ed. 12 — 9 remaining',price:'$9,500',bundle:'From $16,500 with Cosmos',anim:'leander'},
+  {artist:'Lake Heckaman',title:'"Drift Study"',ed:'Ed. 15 — 12 remaining',price:'$8,500',bundle:'From $15,500 with Cosmos',anim:'lake'},
+  {artist:'Jason Ting',title:'"Tidal"',ed:'Ed. 20 — 17 remaining',price:'$6,800',bundle:'From $13,800 with Cosmos',anim:'jason'},
+  {artist:'Arttu Koskela',title:'"Aurora Forma"',ed:'Ed. 12 — 7 remaining',price:'$7,200',bundle:'From $14,200 with Cosmos',anim:'arttu'},
+  {artist:'Justin Maller',title:'"Continuum"',ed:'Ed. 3 — 2 remaining',price:'$25,000',bundle:'From $32,000 with Founder Edition',anim:'justin'},
+];
+
+const grid = document.getElementById('gallery-grid');
+works.forEach((w, i) => {
+  const card = document.createElement('div');
+  card.className = 'gallery-card';
+  card.innerHTML = `
+    <canvas id="gc-${i}" width="500" height="500" style="width:100%;height:100%;display:block;"></canvas>
+    <div class="card-locked-indicator"><div class="lock-dot"></div></div>
+    <div class="members-only-tag">Members Only</div>
+    <div class="card-overlay">
+      <div class="card-info-revealed">
+        <div class="card-artist">${w.artist}</div>
+        <div class="card-title">${w.title}</div>
+        <div class="card-edition">${w.ed}</div>
+        <div class="card-price-locked">— —</div>
+        <div class="card-price-member">${w.price}</div>
+        <div class="bundle-reveal">${w.bundle}</div>
+      </div>
+    </div>
+  `;
+  grid.appendChild(card);
+});
+
+// Lobby canvas: terrain lines
+(function(){
+  const c = document.getElementById('lobby-canvas');
+  const ctx = c.getContext('2d');
+  const W = c.width, H = c.height;
+  let t = 0;
+  function draw() {
+    ctx.fillStyle = 'rgba(0,0,0,0.06)'; ctx.fillRect(0,0,W,H);
+    for (let i = 0; i < 16; i++) {
+      ctx.beginPath();
+      const baseY = H * (i + 0.5) / 16;
+      ctx.moveTo(0, baseY);
+      for (let x = 0; x <= W; x += 3) {
+        const y = baseY + Math.sin(x/80 + t*0.25 + i*0.6)*18 + Math.sin(x/40 + t*0.15 + i)*7;
+        ctx.lineTo(x, y);
+      }
+      ctx.strokeStyle = `rgba(255,255,255,${0.04 + 0.07*Math.abs(Math.sin(i*0.4+t*0.08))})`;
+      ctx.lineWidth = 0.8; ctx.stroke();
+    }
+    t += 0.015; requestAnimationFrame(draw);
+  }
+  ctx.fillStyle = '#000'; ctx.fillRect(0,0,W,H); draw();
+})();
+
+// Gallery card animations
+const animFns = {
+  reas: function(ctx,W,H) {
+    const nodes = Array.from({length:50},()=>({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-0.5)*0.5,vy:(Math.random()-0.5)*0.5,r:Math.random()*1.2+0.4}));
+    function draw(){
+      ctx.fillStyle='rgba(0,0,0,0.04)';ctx.fillRect(0,0,W,H);
+      nodes.forEach((a,i)=>{
+        a.x+=a.vx;a.y+=a.vy;
+        if(a.x<0||a.x>W)a.vx*=-1;if(a.y<0||a.y>H)a.vy*=-1;
+        nodes.forEach((b,j)=>{if(j<=i)return;const d=Math.hypot(a.x-b.x,a.y-b.y);if(d<90){ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.strokeStyle=`rgba(255,255,255,${(1-d/90)*0.25})`;ctx.lineWidth=0.5;ctx.stroke();}});
+        ctx.beginPath();ctx.arc(a.x,a.y,a.r,0,Math.PI*2);ctx.fillStyle='rgba(255,255,255,0.65)';ctx.fill();
+      });
+      requestAnimationFrame(draw);
+    }
+    ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);draw();
+  },
+  zach: function(ctx,W,H) {
+    const brushes=Array.from({length:4},()=>({pts:[{x:Math.random()*W,y:Math.random()*H}],vx:(Math.random()-0.5)*2.5,vy:(Math.random()-0.5)*2.5,life:0,max:100+Math.random()*80,phase:'draw'}));
+    function draw(){
+      ctx.fillStyle='rgba(0,0,0,0.025)';ctx.fillRect(0,0,W,H);
+      brushes.forEach(b=>{
+        if(b.phase==='draw'){
+          const l=b.pts[b.pts.length-1];
+          const nx=Math.max(0,Math.min(W,l.x+b.vx+(Math.random()-0.5)*2));
+          const ny=Math.max(0,Math.min(H,l.y+b.vy+(Math.random()-0.5)*2));
+          b.pts.push({x:nx,y:ny});b.life++;
+          if(b.pts.length>2){ctx.beginPath();ctx.moveTo(l.x,l.y);ctx.lineTo(nx,ny);ctx.strokeStyle='rgba(255,255,255,0.45)';ctx.lineWidth=0.9;ctx.stroke();}
+          if(b.life>=b.max){b.phase='erase';b.life=0;}
+        } else {b.life++;if(b.life>50){Object.assign(b,{pts:[{x:Math.random()*W,y:Math.random()*H}],vx:(Math.random()-0.5)*2.5,vy:(Math.random()-0.5)*2.5,life:0,max:100+Math.random()*80,phase:'draw'});}}
+      });
+      requestAnimationFrame(draw);
+    }
+    ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);draw();
+  },
+  rik: function(ctx,W,H) {
+    let t=0;
+    function draw(){
+      ctx.globalCompositeOperation='source-over';ctx.fillStyle='rgba(0,0,0,0.04)';ctx.fillRect(0,0,W,H);
+      ctx.globalCompositeOperation='screen';
+      [{c:'rgba(20,70,160,0.14)',s:0.3},{c:'rgba(0,110,180,0.1)',s:0.5},{c:'rgba(160,120,30,0.07)',s:0.2}].forEach((b,i)=>{
+        const y=(H*(i+0.5)/3+Math.sin(t*b.s+i)*50)%H;
+        const g=ctx.createLinearGradient(0,y-100,0,y+100);
+        g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(0.5,b.c);g.addColorStop(1,'rgba(0,0,0,0)');
+        ctx.fillStyle=g;ctx.fillRect(0,y-100,W,200);
+      });
+      t+=0.012;ctx.globalCompositeOperation='source-over';requestAnimationFrame(draw);
+    }
+    ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);draw();
+  },
+  andreas: function(ctx,W,H) {
+    let t=0;const R=18,C=18;
+    function draw(){
+      ctx.fillStyle='rgba(0,0,0,0.07)';ctx.fillRect(0,0,W,H);
+      for(let r=0;r<R;r++)for(let c=0;c<C;c++){
+        const bx=W*(c+0.5)/C,by=H*(r+0.5)/R;
+        const dx=Math.sin(t*0.4+r*0.5+c*0.3)*20;
+        const dy=Math.cos(t*0.3+c*0.4+r*0.2)*18;
+        ctx.beginPath();ctx.arc(bx+dx,by+dy,0.8,0,Math.PI*2);ctx.fillStyle='rgba(255,255,255,0.4)';ctx.fill();
+      }
+      t+=0.015;requestAnimationFrame(draw);
+    }
+    ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);draw();
+  },
+  leander: function(ctx,W,H) {
+    let t=0;
+    function draw(){
+      ctx.fillStyle='rgba(0,0,0,0.07)';ctx.fillRect(0,0,W,H);
+      for(let i=0;i<18;i++){
+        ctx.beginPath();const baseY=H*(i+0.5)/18;ctx.moveTo(0,baseY);
+        for(let x=0;x<=W;x+=4){const y=baseY+Math.sin(x/70+t*0.28+i*0.55)*22+Math.sin(x/35+t*0.18+i)*9;ctx.lineTo(x,y);}
+        ctx.strokeStyle=`rgba(255,255,255,${0.04+0.08*Math.abs(Math.sin(i*0.35+t*0.1))})`;ctx.lineWidth=0.8;ctx.stroke();
+      }
+      t+=0.018;requestAnimationFrame(draw);
+    }
+    ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);draw();
+  },
+  lake: function(ctx,W,H) {
+    const pts=Array.from({length:700},()=>({x:Math.random()*W,y:Math.random()*H,vy:Math.random()*0.3+0.05,vx:(Math.random()-0.5)*0.1}));
+    function draw(){
+      ctx.fillStyle='rgba(0,0,0,0.04)';ctx.fillRect(0,0,W,H);
+      pts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;if(p.y>H){p.y=0;p.x=Math.random()*W;}ctx.fillStyle='rgba(255,255,255,0.35)';ctx.fillRect(p.x,p.y,0.8,0.8);});
+      requestAnimationFrame(draw);
+    }
+    ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);draw();
+  },
+  jason: function(ctx,W,H) {
+    let t=0;const sources=[{x:W/2,y:H/2},{x:W*0.3,y:H*0.4},{x:W*0.65,y:H*0.6}];
+    function draw(){
+      ctx.fillStyle='rgba(0,0,0,0.05)';ctx.fillRect(0,0,W,H);
+      sources.forEach(s=>{
+        for(let r=10;r<W;r+=18){
+          const phase=t*0.8;
+          const alpha=0.08*(1-r/W)*Math.abs(Math.sin(r/40-phase));
+          if(alpha<0.005)continue;
+          ctx.beginPath();ctx.arc(s.x,s.y,r,0,Math.PI*2);ctx.strokeStyle=`rgba(255,255,255,${alpha})`;ctx.lineWidth=0.8;ctx.stroke();
+        }
+      });
+      t+=0.02;requestAnimationFrame(draw);
+    }
+    ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);draw();
+  },
+  arttu: function(ctx,W,H) {
+    let t=0;const strips=8;
+    function draw(){
+      ctx.globalCompositeOperation='source-over';ctx.fillStyle='rgba(0,0,0,0.05)';ctx.fillRect(0,0,W,H);
+      ctx.globalCompositeOperation='screen';
+      for(let i=0;i<strips;i++){
+        const x=W*i/strips;const sw=W/strips;
+        const g=ctx.createLinearGradient(x,0,x+sw,0);
+        const hue=160+i*15+Math.sin(t*0.3+i)*20;
+        const alpha=0.08+0.06*Math.abs(Math.sin(t*0.4+i*0.7));
+        const cy=H*0.5+Math.sin(t*0.2+i*0.5)*H*0.4;
+        const cg=ctx.createLinearGradient(x,cy-150,x,cy+150);
+        cg.addColorStop(0,'rgba(0,0,0,0)');
+        cg.addColorStop(0.5,`hsla(${hue},70%,60%,${alpha})`);
+        cg.addColorStop(1,'rgba(0,0,0,0)');
+        ctx.fillStyle=cg;ctx.fillRect(x,0,sw,H);
+      }
+      t+=0.008;ctx.globalCompositeOperation='source-over';requestAnimationFrame(draw);
+    }
+    ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);draw();
+  },
+  justin: function(ctx,W,H) {
+    let t=0;
+    function draw(){
+      ctx.fillStyle='rgba(0,0,0,0.05)';ctx.fillRect(0,0,W,H);
+      for(let i=0;i<6;i++){
+        const angle=t*0.15+i*Math.PI/3;
+        const x1=W/2+Math.cos(angle)*100,y1=H/2+Math.sin(angle)*100;
+        const x2=W/2+Math.cos(angle+1.2)*140,y2=H/2+Math.sin(angle+1.2)*140;
+        const x3=W/2+Math.cos(angle+2.4)*80,y3=H/2+Math.sin(angle+2.4)*80;
+        ctx.beginPath();ctx.moveTo(x1,y1);ctx.bezierCurveTo(x2,y2,x3,y3,W/2,H/2);
+        ctx.strokeStyle=`rgba(255,255,255,${0.06+0.08*Math.abs(Math.sin(t+i))})`;ctx.lineWidth=1.2;ctx.stroke();
+      }
+      t+=0.012;requestAnimationFrame(draw);
+    }
+    ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);draw();
+  }
+};
+
+// Initialize gallery canvases with IntersectionObserver
+const animKeys = ['reas','zach','rik','andreas','leander','lake','jason','arttu','justin'];
+animKeys.forEach((key, i) => {
+  const c = document.getElementById(`gc-${i}`);
+  if (!c) return;
+  let started = false;
+  const obs = new IntersectionObserver(entries => {
+    if (entries[0].isIntersecting && !started) {
+      started = true;
+      const ctx = c.getContext('2d');
+      animFns[key](ctx, c.width, c.height);
+    }
+  }, {threshold: 0.1});
+  obs.observe(c);
+});
+</script>
+</body>
+</html>

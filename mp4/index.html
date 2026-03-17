@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Layer — The Artists</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { background: #000; color: #fff; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-weight: 300; -webkit-font-smoothing: antialiased; line-height: 1.6; }
+
+    nav { position: sticky; top: 0; z-index: 200; background: #000; border-bottom: 1px solid rgba(255,255,255,0.08); height: 50px; }
+    .nav-inner { max-width: 1400px; margin: 0 auto; padding: 0 40px; height: 100%; display: flex; align-items: center; justify-content: space-between; }
+    .nav-logo { font-size: 1rem; letter-spacing: 0.35em; text-transform: uppercase; color: #fff; text-decoration: none; }
+    .nav-center { position: absolute; left: 50%; transform: translateX(-50%); font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(255,255,255,0.3); }
+    .nav-right { display: flex; align-items: center; gap: 1.5rem; }
+    .nav-btn { font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; background: none; border: 1px solid rgba(255,255,255,0.35); color: rgba(255,255,255,0.6); padding: 0.35rem 1rem; cursor: pointer; font-family: inherit; font-weight: 300; transition: all 0.2s; }
+    .nav-btn:hover, .nav-btn.active { border-color: #fff; color: #fff; }
+    .nav-link { font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(255,255,255,0.35); text-decoration: none; }
+    .nav-link:hover { color: #fff; }
+
+    .label { font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,255,255,0.35); }
+    .muted { color: rgba(255,255,255,0.45); }
+    .btn { display: inline-block; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; border: 1px solid rgba(255,255,255,0.35); background: none; color: rgba(255,255,255,0.7); padding: 0.55rem 1.8rem; cursor: pointer; font-family: inherit; font-weight: 300; transition: all 0.2s; text-decoration: none; }
+    .btn:hover { border-color: #fff; color: #fff; }
+    .btn-dim { border-color: rgba(255,255,255,0.12); color: rgba(255,255,255,0.25); cursor: default; }
+    .btn-dim:hover { border-color: rgba(255,255,255,0.12); color: rgba(255,255,255,0.25); }
+
+    /* TOGGLE */
+    .locked-price { }
+    .member-price { display: none; }
+    body.member-mode .locked-price { display: none; }
+    body.member-mode .member-price { display: block; }
+
+    /* HERO */
+    .hero { position: relative; min-height: 520px; display: flex; align-items: center; overflow: hidden; }
+    #hero-canvas { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0.35; }
+    .hero-content { position: relative; z-index: 2; max-width: 1400px; margin: 0 auto; padding: 100px 40px; }
+    .hero-artist-label { font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 0.5rem; }
+    .hero-location { font-size: 0.65rem; color: rgba(255,255,255,0.3); margin-bottom: 2rem; }
+    .hero-quote { font-size: 2rem; font-weight: 200; font-style: italic; max-width: 600px; line-height: 1.5; margin-bottom: 1.5rem; }
+    .hero-stats { font-size: 0.75rem; color: rgba(255,255,255,0.4); margin-bottom: 2rem; letter-spacing: 0.05em; }
+    .locked-price .btn-dim { }
+    .member-price .btn-active { border-color: rgba(255,255,255,0.7); color: #fff; }
+
+    /* ROSTER */
+    .roster { max-width: 1400px; margin: 0 auto; padding: 80px 40px; }
+    .roster-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; margin-top: 2.5rem; }
+    .artist-card { background: #000; }
+    .artist-canvas-wrap { aspect-ratio: 1; overflow: hidden; }
+    .artist-canvas-wrap canvas { width: 100%; height: 100%; display: block; }
+    .artist-info { padding: 1rem 0; }
+    .artist-name { font-size: 0.9rem; font-weight: 300; margin-bottom: 0.15rem; }
+    .artist-location { font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.3); margin-bottom: 0.8rem; }
+    .artist-stats { display: flex; gap: 1.5rem; margin-bottom: 0.8rem; }
+    .artist-stat { }
+    .stat-val { font-size: 0.85rem; }
+    .stat-label { font-size: 0.55rem; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.3); margin-top: 0.1rem; }
+    .viewtime-earned { font-size: 0.75rem; color: rgba(255,255,255,0.4); margin-bottom: 0.8rem; }
+
+    /* WHAT IT MEANS */
+    .meaning { max-width: 1400px; margin: 0 auto; padding: 80px 40px; }
+    .meaning-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 60px; margin-top: 2.5rem; }
+    .meaning-col { border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1.5rem; }
+    .meaning-title { font-size: 0.85rem; font-weight: 300; margin-bottom: 0.8rem; letter-spacing: 0.05em; }
+    .meaning-body { font-size: 0.8rem; color: rgba(255,255,255,0.45); line-height: 1.8; }
+
+    /* LEDGER */
+    .ledger { max-width: 1400px; margin: 0 auto; padding: 80px 40px; }
+    .ledger-box { max-width: 560px; border: 1px solid rgba(255,255,255,0.12); padding: 2rem; margin-top: 2rem; font-family: 'Courier New', Courier, monospace; font-size: 0.78rem; line-height: 1.9; color: rgba(255,255,255,0.65); }
+    .ledger-title { color: #fff; font-size: 0.82rem; margin-bottom: 0.3rem; }
+    .ledger-subtitle { color: rgba(255,255,255,0.4); margin-bottom: 1.2rem; font-size: 0.72rem; }
+    .ledger-hr { border: none; border-top: 1px solid rgba(255,255,255,0.15); margin: 0.8rem 0; }
+    .ledger-row { display: flex; justify-content: space-between; }
+    .ledger-footer { color: rgba(255,255,255,0.35); font-size: 0.7rem; margin-top: 1rem; font-style: italic; font-family: 'Helvetica Neue', sans-serif; }
+
+    /* PRICING */
+    .pricing { max-width: 1400px; margin: 0 auto; padding: 80px 40px; }
+    .pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; margin-top: 2.5rem; }
+    .price-card { background: #000; border: 1px solid rgba(255,255,255,0.06); }
+    .price-canvas-wrap { aspect-ratio: 1; overflow: hidden; }
+    .price-canvas-wrap canvas { width: 100%; height: 100%; display: block; }
+    .price-info { padding: 1.2rem; }
+    .price-artist { font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(255,255,255,0.35); margin-bottom: 0.3rem; }
+    .price-title { font-size: 0.9rem; margin-bottom: 0.3rem; }
+    .price-edition { font-size: 0.65rem; color: rgba(255,255,255,0.3); margin-bottom: 0.8rem; }
+    .price-locked-val { font-size: 0.75rem; color: rgba(255,255,255,0.2); }
+    .price-member-val { font-size: 1.1rem; font-weight: 300; }
+
+    /* QUOTE */
+    .quote { max-width: 1400px; margin: 0 auto; padding: 100px 40px; text-align: center; }
+    .quote-text { font-size: 2rem; font-weight: 200; line-height: 1.6; max-width: 680px; margin: 0 auto; }
+
+    /* MEMBERSHIP */
+    .membership { max-width: 1400px; margin: 0 auto; padding: 80px 40px; }
+    .membership-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; margin-top: 2rem; }
+    .mem-card { padding: 2.5rem; border: 1px solid rgba(255,255,255,0.08); }
+    .mem-name { font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,255,255,0.35); margin-bottom: 0.5rem; }
+    .mem-price { font-size: 2rem; font-weight: 200; margin-bottom: 1rem; }
+    .mem-desc { font-size: 0.85rem; color: rgba(255,255,255,0.45); line-height: 1.8; margin-bottom: 1.5rem; }
+
+    footer { border-top: 1px solid rgba(255,255,255,0.08); padding: 2.5rem 40px; max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+    .footer-logo { font-size: 0.85rem; letter-spacing: 0.3em; text-transform: uppercase; }
+    .footer-links { display: flex; gap: 2rem; }
+    .footer-links a { font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(255,255,255,0.3); text-decoration: none; }
+    .footer-links a:hover { color: #fff; }
+    .footer-copy { font-size: 0.6rem; color: rgba(255,255,255,0.2); }
+
+    @media(max-width:900px){
+      .roster-grid { grid-template-columns: 1fr 1fr; }
+      .meaning-grid { grid-template-columns: 1fr; gap: 2.5rem; }
+      .pricing-grid { grid-template-columns: 1fr 1fr; }
+      .membership-grid { grid-template-columns: 1fr; }
+      .nav-inner, .roster, .meaning, .ledger, .pricing, .quote, .membership, footer { padding-left: 24px; padding-right: 24px; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="nav-logo">Layer</a>
+    <span class="nav-center">The Artists</span>
+    <div class="nav-right">
+      <button class="nav-btn" id="member-btn" onclick="toggleMember()">I Collect Layer</button>
+      <a href="https://layer.com/inquire" class="nav-link">Inquire</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <canvas id="hero-canvas"></canvas>
+  <div class="hero-content">
+    <div class="hero-artist-label">Casey Reas</div>
+    <div class="hero-location">Los Angeles</div>
+    <div class="hero-quote">"I make systems. The systems make images."</div>
+    <div class="hero-stats">6 works available &nbsp;·&nbsp; 3 collectors worldwide &nbsp;·&nbsp; ViewTime active since 2024</div>
+    <div class="locked-price"><button class="btn btn-dim">Become a Member to Acquire</button></div>
+    <div class="member-price"><a href="https://layer.com/inquire" class="btn btn-active">Acquire a Reas</a></div>
+  </div>
+</div>
+
+<!-- ROSTER -->
+<div class="roster">
+  <div class="label">Artists</div>
+  <div class="roster-grid" id="roster-grid"></div>
+</div>
+
+<!-- WHAT ACQUISITION MEANS -->
+<div class="meaning">
+  <div class="label">What Acquisition Means</div>
+  <div class="meaning-grid">
+    <div class="meaning-col">
+      <div class="meaning-title">The Work Arrives</div>
+      <div class="meaning-body">Your acquisition is installed. The work begins its residency in your space. Immediately, ViewTime begins — every hour the work displays, the artist earns.</div>
+    </div>
+    <div class="meaning-col">
+      <div class="meaning-title">The Relationship Begins</div>
+      <div class="meaning-body">You receive artist notes. Process documentation. Sketches from the generative process. A direct channel to the artist opens. Some collectors visit studios.</div>
+    </div>
+    <div class="meaning-col">
+      <div class="meaning-title">The Practice Grows</div>
+      <div class="meaning-body">As the artist creates new works, you receive early access. Some artists offer Collector Editions — work made specifically for existing collectors.</div>
+    </div>
+  </div>
+</div>
+
+<!-- LEDGER -->
+<div class="ledger">
+  <div class="label">ViewTime Ledger</div>
+  <div class="ledger-box">
+    <div class="ledger-title">CASEY REAS — "Tissue 04"</div>
+    <div class="ledger-subtitle">Acquired: November 12, 2025</div>
+    <div style="font-size:0.65rem;color:rgba(255,255,255,0.3);margin-bottom:0.5rem;">ViewTime Log</div>
+    <hr class="ledger-hr">
+    <div class="ledger-row"><span>November 2025</span><span>14h 32m</span><span>$48.20</span></div>
+    <div class="ledger-row"><span>December 2025</span><span>89h 14m</span><span>$297.14</span></div>
+    <div class="ledger-row"><span>January 2026</span><span>71h 08m</span><span>$237.04</span></div>
+    <div class="ledger-row"><span>February 2026</span><span>64h 55m</span><span>$216.52</span></div>
+    <hr class="ledger-hr">
+    <div class="ledger-row"><span>Total earned by artist</span><span></span><span>$798.90</span></div>
+    <hr class="ledger-hr">
+    <div class="ledger-footer">Your work actively supports Casey Reas's practice.</div>
+  </div>
+</div>
+
+<!-- PRICING GRID -->
+<div class="pricing">
+  <div class="label">Available Works</div>
+  <div class="pricing-grid" id="pricing-grid"></div>
+  <p style="margin-top:1.5rem;font-size:0.7rem;color:rgba(255,255,255,0.25);">Member pricing requires Cosmos ($7,000) or Founder Edition ($22,000) acquisition.</p>
+</div>
+
+<!-- QUOTE -->
+<div class="quote">
+  <div class="quote-text">"The greatest artists deserve patrons, not customers."</div>
+</div>
+
+<!-- MEMBERSHIP -->
+<div class="membership">
+  <div class="label">Membership</div>
+  <div class="membership-grid">
+    <div class="mem-card">
+      <div class="mem-name">Cosmos</div>
+      <div class="mem-price">$7,000</div>
+      <div class="mem-desc">Full collection access. First acquisition includes your Cosmos display. Art pricing on all works. ViewTime active from day one.</div>
+      <a href="https://layer.com/inquire" class="btn">Inquire</a>
+    </div>
+    <div class="mem-card">
+      <div class="mem-name">Founder Edition</div>
+      <div class="mem-price">$22,000</div>
+      <div class="mem-desc">All Cosmos benefits. First acquisition includes the Layer Canvas — 41.7 × 41.7 inches, dedicated GPU, true black, milled aluminum. Direct artist relationship.</div>
+      <a href="https://layer.com/inquire" class="btn">Inquire</a>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-logo">Layer</div>
+  <div class="footer-links">
+    <a href="#">The Artists</a><a href="#">Canvas</a><a href="#">ViewTime</a><a href="https://layer.com/inquire">Inquire</a>
+  </div>
+  <div class="footer-copy">© 2026 Layer</div>
+</footer>
+
+<script>
+let isMember = false;
+function toggleMember() {
+  isMember = !isMember;
+  document.body.classList.toggle('member-mode', isMember);
+  const btn = document.getElementById('member-btn');
+  btn.textContent = isMember ? 'I Collect Layer ✓' : 'I Collect Layer';
+  btn.classList.toggle('active', isMember);
+}
+
+const artists = [
+  {name:'Casey Reas',loc:'Los Angeles',works:6,collectors:3,vt:'$2,824',anim:'reas'},
+  {name:'Zach Lieberman',loc:'New York',works:4,collectors:5,vt:'$4,110',anim:'zach'},
+  {name:'Rik Oostenbroek',loc:'Netherlands',works:8,collectors:7,vt:'$8,940',anim:'rik'},
+  {name:'Leander Herzog',loc:'Switzerland',works:5,collectors:4,vt:'$3,200',anim:'leander'},
+  {name:'Andreas Fischer',loc:'Berlin',works:3,collectors:2,vt:'$1,640',anim:'andreas'},
+  {name:'Lake Heckaman',loc:'San Francisco',works:6,collectors:6,vt:'$5,520',anim:'lake'},
+  {name:'Arttu Koskela',loc:'Helsinki',works:4,collectors:3,vt:'$2,180',anim:'arttu'},
+  {name:'Justin Maller',loc:'Melbourne',works:7,collectors:8,vt:'$9,360',anim:'justin'},
+];
+
+const rosterGrid = document.getElementById('roster-grid');
+artists.forEach((a, i) => {
+  const card = document.createElement('div');
+  card.className = 'artist-card';
+  card.innerHTML = `
+    <div class="artist-canvas-wrap"><canvas id="ac-${i}" width="400" height="400"></canvas></div>
+    <div class="artist-info">
+      <div class="artist-name">${a.name}</div>
+      <div class="artist-location">${a.loc}</div>
+      <div class="artist-stats">
+        <div class="artist-stat"><div class="stat-val">${a.works}</div><div class="stat-label">Works</div></div>
+        <div class="artist-stat"><div class="stat-val">${a.collectors}</div><div class="stat-label">Collectors</div></div>
+      </div>
+      <div class="viewtime-earned">ViewTime earned: ${a.vt}</div>
+      <div class="locked-price"><button class="btn btn-dim" style="font-size:0.55rem;padding:0.3rem 0.8rem;">Members Only</button></div>
+      <div class="member-price"><a href="https://layer.com/inquire" class="btn" style="font-size:0.55rem;padding:0.3rem 0.8rem;">Acquire</a></div>
+    </div>
+  `;
+  rosterGrid.appendChild(card);
+});
+
+const pricingWorks = [
+  {artist:'Casey Reas',title:'"Tissue 04"',ed:'Ed. 5',member:'$28,000',bundle:'From $35,000 with Founder Edition',anim:'reas'},
+  {artist:'Zach Lieberman',title:'"Drawn Apart"',ed:'Ed. 8',member:'$18,000',bundle:'From $25,000 with Founder Edition',anim:'zach'},
+  {artist:'Rik Oostenbroek',title:'"Luminance III"',ed:'Ed. 10',member:'$12,000',bundle:'From $19,000 with Cosmos',anim:'rik'},
+  {artist:'Leander Herzog',title:'"Meridian"',ed:'Ed. 12',member:'$9,500',bundle:'From $16,500 with Cosmos',anim:'leander'},
+  {artist:'Lake Heckaman',title:'"Drift Study"',ed:'Ed. 15',member:'$8,500',bundle:'From $15,500 with Cosmos',anim:'lake'},
+  {artist:'Arttu Koskela',title:'"Aurora Forma"',ed:'Ed. 12',member:'$7,200',bundle:'From $14,200 with Cosmos',anim:'arttu'},
+];
+const pGrid = document.getElementById('pricing-grid');
+pricingWorks.forEach((w, i) => {
+  const card = document.createElement('div');
+  card.className = 'price-card';
+  card.innerHTML = `
+    <div class="price-canvas-wrap"><canvas id="pc-${i}" width="400" height="400"></canvas></div>
+    <div class="price-info">
+      <div class="price-artist">${w.artist}</div>
+      <div class="price-title">${w.title}</div>
+      <div class="price-edition">${w.ed}</div>
+      <div class="locked-price"><div class="price-locked-val">${w.bundle}</div></div>
+      <div class="member-price"><div class="price-member-val">${w.member}</div></div>
+    </div>
+  `;
+  pGrid.appendChild(card);
+});
+
+// Hero canvas
+(function(){
+  const c = document.getElementById('hero-canvas');
+  c.width = c.parentElement.offsetWidth || 1400;
+  c.height = 520;
+  const ctx = c.getContext('2d');
+  const W = c.width, H = c.height;
+  const nodes = Array.from({length:80}, () => ({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-0.5)*0.4,vy:(Math.random()-0.5)*0.4,r:Math.random()*1.5+0.4}));
+  function draw() {
+    ctx.clearRect(0,0,W,H);
+    nodes.forEach((a,i) => {
+      a.x+=a.vx; a.y+=a.vy;
+      if(a.x<0||a.x>W) a.vx*=-1; if(a.y<0||a.y>H) a.vy*=-1;
+      nodes.forEach((b,j) => { if(j<=i) return; const d=Math.hypot(a.x-b.x,a.y-b.y); if(d<120){ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.strokeStyle=`rgba(255,255,255,${(1-d/120)*0.2})`;ctx.lineWidth=0.5;ctx.stroke();} });
+      ctx.beginPath();ctx.arc(a.x,a.y,a.r,0,Math.PI*2);ctx.fillStyle='rgba(255,255,255,0.6)';ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+  ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H); draw();
+})();
+
+const animFns = {
+  reas: (ctx,W,H) => { const n=Array.from({length:40},()=>({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-0.5)*0.5,vy:(Math.random()-0.5)*0.5,r:Math.random()*1.2+0.4})); function d(){ctx.fillStyle='rgba(0,0,0,0.05)';ctx.fillRect(0,0,W,H);n.forEach((a,i)=>{a.x+=a.vx;a.y+=a.vy;if(a.x<0||a.x>W)a.vx*=-1;if(a.y<0||a.y>H)a.vy*=-1;n.forEach((b,j)=>{if(j<=i)return;const dist=Math.hypot(a.x-b.x,a.y-b.y);if(dist<80){ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.strokeStyle=`rgba(255,255,255,${(1-dist/80)*0.25})`;ctx.lineWidth=0.5;ctx.stroke();}});ctx.beginPath();ctx.arc(a.x,a.y,a.r,0,Math.PI*2);ctx.fillStyle='rgba(255,255,255,0.65)';ctx.fill();});requestAnimationFrame(d);}ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);d(); },
+  zach: (ctx,W,H) => { const b=Array.from({length:4},()=>({pts:[{x:Math.random()*W,y:Math.random()*H}],vx:(Math.random()-0.5)*2.5,vy:(Math.random()-0.5)*2.5,life:0,max:100+Math.random()*80,phase:'draw'})); function d(){ctx.fillStyle='rgba(0,0,0,0.025)';ctx.fillRect(0,0,W,H);b.forEach(br=>{if(br.phase==='draw'){const l=br.pts[br.pts.length-1];const nx=Math.max(0,Math.min(W,l.x+br.vx+(Math.random()-0.5)*2));const ny=Math.max(0,Math.min(H,l.y+br.vy+(Math.random()-0.5)*2));br.pts.push({x:nx,y:ny});br.life++;if(br.pts.length>2){ctx.beginPath();ctx.moveTo(l.x,l.y);ctx.lineTo(nx,ny);ctx.strokeStyle='rgba(255,255,255,0.45)';ctx.lineWidth=0.9;ctx.stroke();}if(br.life>=br.max){br.phase='erase';br.life=0;}}else{br.life++;if(br.life>50)Object.assign(br,{pts:[{x:Math.random()*W,y:Math.random()*H}],vx:(Math.random()-0.5)*2.5,vy:(Math.random()-0.5)*2.5,life:0,max:100+Math.random()*80,phase:'draw'});}});requestAnimationFrame(d);}ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);d(); },
+  rik: (ctx,W,H) => { let t=0; function d(){ctx.globalCompositeOperation='source-over';ctx.fillStyle='rgba(0,0,0,0.04)';ctx.fillRect(0,0,W,H);ctx.globalCompositeOperation='screen';[{c:'rgba(20,70,160,0.14)',s:0.3},{c:'rgba(0,110,180,0.1)',s:0.5},{c:'rgba(160,120,30,0.07)',s:0.2}].forEach((band,i)=>{const y=(H*(i+0.5)/3+Math.sin(t*band.s+i)*50)%H;const g=ctx.createLinearGradient(0,y-100,0,y+100);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(0.5,band.c);g.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=g;ctx.fillRect(0,y-100,W,200);});t+=0.012;ctx.globalCompositeOperation='source-over';requestAnimationFrame(d);}ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);d(); },
+  leander: (ctx,W,H) => { let t=0; function d(){ctx.fillStyle='rgba(0,0,0,0.07)';ctx.fillRect(0,0,W,H);for(let i=0;i<16;i++){ctx.beginPath();const by=H*(i+0.5)/16;ctx.moveTo(0,by);for(let x=0;x<=W;x+=4){const y=by+Math.sin(x/70+t*0.28+i*0.55)*22+Math.sin(x/35+t*0.18+i)*9;ctx.lineTo(x,y);}ctx.strokeStyle=`rgba(255,255,255,${0.04+0.08*Math.abs(Math.sin(i*0.35+t*0.1))})`;ctx.lineWidth=0.8;ctx.stroke();}t+=0.018;requestAnimationFrame(d);}ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);d(); },
+  andreas: (ctx,W,H) => { let t=0; function d(){ctx.fillStyle='rgba(0,0,0,0.07)';ctx.fillRect(0,0,W,H);for(let r=0;r<16;r++)for(let c=0;c<16;c++){const bx=W*(c+0.5)/16,by=H*(r+0.5)/16;const dx=Math.sin(t*0.4+r*0.5+c*0.3)*18;const dy=Math.cos(t*0.3+c*0.4+r*0.2)*16;ctx.beginPath();ctx.arc(bx+dx,by+dy,0.8,0,Math.PI*2);ctx.fillStyle='rgba(255,255,255,0.4)';ctx.fill();}t+=0.015;requestAnimationFrame(d);}ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);d(); },
+  lake: (ctx,W,H) => { const pts=Array.from({length:600},()=>({x:Math.random()*W,y:Math.random()*H,vy:Math.random()*0.3+0.05,vx:(Math.random()-0.5)*0.1})); function d(){ctx.fillStyle='rgba(0,0,0,0.04)';ctx.fillRect(0,0,W,H);pts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;if(p.y>H){p.y=0;p.x=Math.random()*W;}ctx.fillStyle='rgba(255,255,255,0.35)';ctx.fillRect(p.x,p.y,0.8,0.8);});requestAnimationFrame(d);}ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);d(); },
+  arttu: (ctx,W,H) => { let t=0; function d(){ctx.globalCompositeOperation='source-over';ctx.fillStyle='rgba(0,0,0,0.05)';ctx.fillRect(0,0,W,H);ctx.globalCompositeOperation='screen';for(let i=0;i<8;i++){const x=W*i/8;const sw=W/8;const hue=160+i*15+Math.sin(t*0.3+i)*20;const alpha=0.08+0.06*Math.abs(Math.sin(t*0.4+i*0.7));const cy=H*0.5+Math.sin(t*0.2+i*0.5)*H*0.4;const cg=ctx.createLinearGradient(x,cy-150,x,cy+150);cg.addColorStop(0,'rgba(0,0,0,0)');cg.addColorStop(0.5,`hsla(${hue},70%,60%,${alpha})`);cg.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=cg;ctx.fillRect(x,0,sw,H);}t+=0.008;ctx.globalCompositeOperation='source-over';requestAnimationFrame(d);}ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);d(); },
+  justin: (ctx,W,H) => { let t=0; function d(){ctx.fillStyle='rgba(0,0,0,0.05)';ctx.fillRect(0,0,W,H);for(let i=0;i<6;i++){const angle=t*0.15+i*Math.PI/3;const x1=W/2+Math.cos(angle)*100,y1=H/2+Math.sin(angle)*100;const x2=W/2+Math.cos(angle+1.2)*140,y2=H/2+Math.sin(angle+1.2)*140;const x3=W/2+Math.cos(angle+2.4)*80,y3=H/2+Math.sin(angle+2.4)*80;ctx.beginPath();ctx.moveTo(x1,y1);ctx.bezierCurveTo(x2,y2,x3,y3,W/2,H/2);ctx.strokeStyle=`rgba(255,255,255,${0.06+0.08*Math.abs(Math.sin(t+i))})`;ctx.lineWidth=1.2;ctx.stroke();}t+=0.012;requestAnimationFrame(d);}ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);d(); },
+};
+
+const animKeys = ['reas','zach','rik','leander','andreas','lake','arttu','justin'];
+animKeys.forEach((key, i) => {
+  const c = document.getElementById(`ac-${i}`);
+  if (!c) return;
+  let started = false;
+  new IntersectionObserver(entries => { if(entries[0].isIntersecting && !started){started=true; animFns[key](c.getContext('2d'), c.width, c.height);} }, {threshold:0.1}).observe(c);
+});
+
+const pAnimKeys = ['reas','zach','rik','leander','lake','arttu'];
+pAnimKeys.forEach((key, i) => {
+  const c = document.getElementById(`pc-${i}`);
+  if (!c) return;
+  let started = false;
+  new IntersectionObserver(entries => { if(entries[0].isIntersecting && !started){started=true; animFns[key](c.getContext('2d'), c.width, c.height);} }, {threshold:0.1}).observe(c);
+});
+</script>
+</body>
+</html>

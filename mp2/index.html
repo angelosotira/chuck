@@ -1,0 +1,1582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Layer — Marketplace</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: #000000;
+      color: #ffffff;
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      font-weight: 300;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      line-height: 1.6;
+    }
+
+    /* ── NAV ─────────────────────────────────────── */
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      background: #000000;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      height: 52px;
+    }
+    .nav-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 40px;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .nav-logo {
+      font-size: 0.95rem;
+      font-weight: 300;
+      letter-spacing: 0.35em;
+      color: #ffffff;
+      text-decoration: none;
+      text-transform: uppercase;
+    }
+    .nav-center {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    .nav-center-label {
+      font-size: 0.65rem;
+      font-weight: 300;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.35);
+    }
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+    .member-toggle-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+    .member-toggle {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.62rem;
+      font-weight: 300;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.35);
+      transition: color 0.2s;
+      padding: 0;
+      white-space: nowrap;
+    }
+    .member-toggle.active { color: #ffffff; }
+    .member-toggle:hover { color: rgba(255,255,255,0.7); }
+    .member-active-label {
+      font-size: 0.52rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.4);
+      opacity: 0;
+      transition: opacity 0.3s;
+      white-space: nowrap;
+    }
+    .member-active-label.visible { opacity: 1; }
+    .btn-nav {
+      font-family: inherit;
+      font-size: 0.65rem;
+      font-weight: 300;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.8);
+      background: none;
+      border: 1px solid rgba(255,255,255,0.35);
+      padding: 0.38rem 1.1rem;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      transition: color 0.2s, border-color 0.2s, background 0.2s;
+    }
+    .btn-nav:hover {
+      color: #000;
+      background: #ffffff;
+      border-color: #ffffff;
+    }
+
+    /* ── HERO / MEMBERSHIPS ──────────────────────── */
+    .hero {
+      padding: 120px 40px 100px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    .hero-eyebrow {
+      font-size: 0.62rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.3);
+      margin-bottom: 80px;
+      text-align: center;
+    }
+    .memberships {
+      display: grid;
+      grid-template-columns: 1fr 1px 1fr;
+      gap: 0;
+      align-items: start;
+    }
+    .membership-divider {
+      background: rgba(255,255,255,0.1);
+      height: 100%;
+      min-height: 400px;
+    }
+    .membership-col {
+      padding: 0 60px;
+    }
+    .membership-col:first-child { padding-left: 0; }
+    .membership-col:last-child { padding-right: 0; }
+    .membership-price {
+      font-size: clamp(5rem, 10vw, 9rem);
+      font-weight: 200;
+      line-height: 1;
+      letter-spacing: -0.02em;
+      color: #ffffff;
+      margin-bottom: 0.2em;
+    }
+    .membership-price-prefix {
+      font-size: 0.35em;
+      vertical-align: top;
+      margin-top: 0.25em;
+      display: inline-block;
+      opacity: 0.5;
+    }
+    .membership-tier {
+      font-size: 0.65rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.45);
+      margin-bottom: 2.5rem;
+    }
+    .membership-desc {
+      font-size: 0.95rem;
+      color: rgba(255,255,255,0.6);
+      line-height: 1.7;
+      margin-bottom: 1rem;
+      font-weight: 300;
+    }
+    .membership-claim {
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.4);
+      line-height: 1.7;
+      margin-bottom: 2.5rem;
+    }
+    .membership-rule {
+      border: none;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      margin-bottom: 2.5rem;
+    }
+    .membership-identity {
+      font-size: 0.62rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.2);
+      margin-bottom: 2rem;
+    }
+    .btn-outline {
+      font-family: inherit;
+      font-size: 0.65rem;
+      font-weight: 300;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.7);
+      background: none;
+      border: 1px solid rgba(255,255,255,0.25);
+      padding: 0.75rem 2.2rem;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      transition: all 0.25s ease;
+    }
+    .btn-outline:hover {
+      color: #000000;
+      background: #ffffff;
+      border-color: #ffffff;
+    }
+    .hero-footnote {
+      text-align: center;
+      margin-top: 70px;
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.2);
+      letter-spacing: 0.05em;
+      line-height: 1.8;
+    }
+
+    /* ── PULL QUOTE ──────────────────────────────── */
+    .quote-section {
+      border-top: 1px solid rgba(255,255,255,0.07);
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      padding: 120px 40px;
+      text-align: center;
+    }
+    .pull-quote {
+      max-width: 800px;
+      margin: 0 auto;
+      font-size: clamp(1.6rem, 3.5vw, 2.8rem);
+      font-weight: 200;
+      line-height: 1.4;
+      color: rgba(255,255,255,0.85);
+      letter-spacing: -0.01em;
+    }
+
+    /* ── COLLECTION ──────────────────────────────── */
+    .collection {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 100px 40px;
+    }
+    .collection-section {
+      margin-bottom: 100px;
+    }
+    .section-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      padding-top: 2rem;
+      margin-bottom: 1.5rem;
+    }
+    .section-label {
+      font-size: 0.62rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.45);
+    }
+    .section-range {
+      font-size: 0.62rem;
+      letter-spacing: 0.1em;
+      color: rgba(255,255,255,0.2);
+    }
+    .section-desc {
+      font-size: 0.82rem;
+      color: rgba(255,255,255,0.3);
+      margin-bottom: 3rem;
+      max-width: 500px;
+      line-height: 1.7;
+    }
+
+    /* Grids */
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5px; }
+
+    /* ── WORK CARD ───────────────────────────────── */
+    .work-card {
+      background: #000;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .work-card:hover { opacity: 0.85; }
+    .work-canvas-wrap {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      overflow: hidden;
+      background: #0a0a0a;
+    }
+    .work-canvas-wrap canvas {
+      width: 100% !important;
+      height: 100% !important;
+      display: block;
+    }
+    .work-info {
+      padding: 1.2rem 0 1.8rem;
+    }
+    .work-title {
+      font-size: 0.9rem;
+      font-weight: 300;
+      color: #ffffff;
+      margin-bottom: 0.3rem;
+      line-height: 1.3;
+    }
+    .work-artist {
+      font-size: 0.62rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.3);
+      margin-bottom: 0.3rem;
+    }
+    .work-edition {
+      font-size: 0.65rem;
+      color: rgba(255,255,255,0.2);
+      margin-bottom: 0.9rem;
+    }
+    .work-price-row {
+      font-size: 0.78rem;
+      font-variant-numeric: tabular-nums;
+    }
+    .price-bundle {
+      color: rgba(255,255,255,0.3);
+      font-weight: 300;
+    }
+    .price-member {
+      color: #ffffff;
+      font-weight: 300;
+      display: none;
+    }
+    body.member-mode .price-bundle { display: none; }
+    body.member-mode .price-member { display: block; }
+
+    /* Pieces cards get slightly larger text */
+    .pieces-card .work-title { font-size: 1rem; }
+    .pieces-card .work-info { padding: 1.5rem 0 2rem; }
+
+    /* ── EXPLAINER ───────────────────────────────── */
+    .explainer {
+      border-top: 1px solid rgba(255,255,255,0.07);
+      padding: 100px 40px;
+    }
+    .explainer-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0;
+    }
+    .explainer-col {
+      border-top: 1px solid rgba(255,255,255,0.15);
+      padding: 3rem 4rem 3rem 0;
+    }
+    .explainer-col:not(:first-child) {
+      padding-left: 4rem;
+      border-left: 1px solid rgba(255,255,255,0.06);
+    }
+    .explainer-step {
+      font-size: 0.58rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.2);
+      margin-bottom: 1.2rem;
+    }
+    .explainer-title {
+      font-size: 1.1rem;
+      font-weight: 300;
+      color: #ffffff;
+      margin-bottom: 1rem;
+      letter-spacing: 0.02em;
+    }
+    .explainer-body {
+      font-size: 0.82rem;
+      color: rgba(255,255,255,0.35);
+      line-height: 1.8;
+    }
+
+    /* ── COMPARISON TABLE ────────────────────────── */
+    .comparison {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 40px 100px;
+    }
+    .comparison-label {
+      font-size: 0.62rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.25);
+      margin-bottom: 3rem;
+    }
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+      font-weight: 300;
+    }
+    .comparison-table th,
+    .comparison-table td {
+      padding: 1.1rem 1.5rem;
+      text-align: left;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+    .comparison-table th {
+      font-size: 0.62rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.3);
+      font-weight: 300;
+      border-bottom: 1px solid rgba(255,255,255,0.12);
+    }
+    .comparison-table th:first-child,
+    .comparison-table td:first-child {
+      color: rgba(255,255,255,0.4);
+      padding-left: 0;
+      width: 35%;
+    }
+    .comparison-table td {
+      color: rgba(255,255,255,0.7);
+    }
+    .comparison-table td.highlight {
+      color: #ffffff;
+    }
+    .check { color: rgba(255,255,255,0.6); }
+
+    /* ── VIEWTIME ────────────────────────────────── */
+    .viewtime {
+      border-top: 1px solid rgba(255,255,255,0.07);
+      padding: 100px 40px;
+    }
+    .viewtime-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 120px;
+      align-items: center;
+    }
+    .viewtime-label {
+      font-size: 0.62rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.2);
+      margin-bottom: 1.5rem;
+    }
+    .viewtime-heading {
+      font-size: clamp(1.8rem, 3vw, 2.8rem);
+      font-weight: 200;
+      line-height: 1.3;
+      color: rgba(255,255,255,0.9);
+      margin-bottom: 2rem;
+      letter-spacing: -0.01em;
+    }
+    .viewtime-body {
+      font-size: 0.88rem;
+      color: rgba(255,255,255,0.35);
+      line-height: 1.9;
+    }
+    .viewtime-stat {
+      display: flex;
+      flex-direction: column;
+      gap: 2.5rem;
+    }
+    .stat-row {
+      border-top: 1px solid rgba(255,255,255,0.08);
+      padding-top: 1.5rem;
+    }
+    .stat-number {
+      font-size: 2.5rem;
+      font-weight: 200;
+      color: #ffffff;
+      line-height: 1;
+      margin-bottom: 0.4rem;
+      font-variant-numeric: tabular-nums;
+    }
+    .stat-label {
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.25);
+    }
+
+    /* ── FOOTER ──────────────────────────────────── */
+    footer {
+      border-top: 1px solid rgba(255,255,255,0.07);
+      padding: 50px 40px;
+    }
+    .footer-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .footer-links {
+      display: flex;
+      gap: 2rem;
+      list-style: none;
+    }
+    .footer-links a {
+      font-size: 0.62rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.2);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .footer-links a:hover { color: rgba(255,255,255,0.6); }
+    .footer-copy {
+      font-size: 0.6rem;
+      color: rgba(255,255,255,0.15);
+      letter-spacing: 0.08em;
+    }
+
+    /* ── RESPONSIVE ──────────────────────────────── */
+    @media (max-width: 1100px) {
+      .grid-4 { grid-template-columns: repeat(2, 1fr); }
+      .grid-3 { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 800px) {
+      .hero { padding: 80px 24px 70px; }
+      .memberships { grid-template-columns: 1fr; }
+      .membership-divider { display: none; }
+      .membership-col { padding: 0 0 60px; }
+      .membership-col:last-child { padding-bottom: 0; }
+      .grid-4, .grid-3 { grid-template-columns: 1fr 1fr; gap: 1px; }
+      .collection { padding: 70px 24px; }
+      .explainer-inner { grid-template-columns: 1fr; }
+      .explainer-col { padding: 2rem 0; border-left: none !important; }
+      .viewtime-inner { grid-template-columns: 1fr; gap: 60px; }
+      .comparison { padding: 0 24px 70px; }
+      .footer-inner { flex-direction: column; gap: 2rem; align-items: flex-start; }
+      .nav-center { display: none; }
+      .nav-inner { padding: 0 24px; }
+      .quote-section { padding: 80px 24px; }
+      .viewtime { padding: 70px 24px; }
+      .explainer { padding: 70px 24px; }
+    }
+    @media (max-width: 480px) {
+      .grid-4, .grid-3 { grid-template-columns: 1fr; }
+      .membership-price { font-size: 4.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="#" class="nav-logo">Layer</a>
+    <div class="nav-center">
+      <span class="nav-center-label">Marketplace</span>
+    </div>
+    <div class="nav-right">
+      <div class="member-toggle-wrap">
+        <button class="member-toggle" id="memberToggle" onclick="toggleMember()">I own a Layer</button>
+        <span class="member-active-label" id="memberActiveLabel">member pricing active</span>
+      </div>
+      <a href="mailto:collect@layer.art" class="btn-nav">Inquire</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO: MEMBERSHIPS -->
+<section class="hero">
+  <p class="hero-eyebrow">Two memberships. One collection.</p>
+  <div class="memberships">
+
+    <!-- FOUNDER EDITION -->
+    <div class="membership-col">
+      <div class="membership-price"><span class="membership-price-prefix">$</span>22,000</div>
+      <div class="membership-tier">Founder Edition</div>
+      <p class="membership-desc">The Layer Canvas. 41.7 × 41.7 inches. Dedicated GPU. True black. Milled aluminum. Silent.</p>
+      <p class="membership-claim">Your first work acquisition includes your Canvas.</p>
+      <hr class="membership-rule">
+      <div class="membership-identity">The Collector</div>
+      <a href="mailto:collect@layer.art?subject=Founder Edition Inquiry" class="btn-outline">Inquire</a>
+    </div>
+
+    <div class="membership-divider"></div>
+
+    <!-- COSMOS -->
+    <div class="membership-col">
+      <div class="membership-price"><span class="membership-price-prefix">$</span>7,000</div>
+      <div class="membership-tier">Cosmos</div>
+      <p class="membership-desc">A new form. Engineered for the work. Designed for how you live.</p>
+      <p class="membership-claim">Your first work acquisition includes your Cosmos.</p>
+      <hr class="membership-rule">
+      <div class="membership-identity">The Curious</div>
+      <a href="mailto:collect@layer.art?subject=Cosmos Inquiry" class="btn-outline">Inquire</a>
+    </div>
+
+  </div>
+  <p class="hero-footnote">
+    Membership is established with your first acquisition.<br>
+    All works available to members at art pricing thereafter.
+  </p>
+</section>
+
+<!-- PULL QUOTE -->
+<div class="quote-section">
+  <p class="pull-quote">"The greatest collections are not assembled.<br>They are cultivated."</p>
+</div>
+
+<!-- THE COLLECTION -->
+<div class="collection">
+
+  <!-- VARIANTS -->
+  <div class="collection-section">
+    <div class="section-header">
+      <span class="section-label">Variants — Open Edition</span>
+      <span class="section-range">$500–$2,000</span>
+    </div>
+    <p class="section-desc">Works available in unlimited editions. Each rendering is unique. Entry into the collection.</p>
+    <div class="grid-4">
+
+      <!-- 1: Dust Field -->
+      <div class="work-card">
+        <div class="work-canvas-wrap">
+          <canvas id="c1" width="400" height="400"></canvas>
+        </div>
+        <div class="work-info">
+          <div class="work-title">Dust Field No. 3</div>
+          <div class="work-artist">Hayk Zakoyan</div>
+          <div class="work-edition">Open edition</div>
+          <div class="work-price-row">
+            <span class="price-bundle">From $7,500 with Cosmos</span>
+            <span class="price-member">$500</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2: Trace -->
+      <div class="work-card">
+        <div class="work-canvas-wrap">
+          <canvas id="c2" width="400" height="400"></canvas>
+        </div>
+        <div class="work-info">
+          <div class="work-title">Trace</div>
+          <div class="work-artist">Anton Dubrovin</div>
+          <div class="work-edition">Open edition</div>
+          <div class="work-price-row">
+            <span class="price-bundle">From $7,800 with Cosmos</span>
+            <span class="price-member">$800</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3: Small Weather -->
+      <div class="work-card">
+        <div class="work-canvas-wrap">
+          <canvas id="c3" width="400" height="400"></canvas>
+        </div>
+        <div class="work-info">
+          <div class="work-title">Small Weather</div>
+          <div class="work-artist">Lake Heckaman</div>
+          <div class="work-edition">Open edition</div>
+          <div class="work-price-row">
+            <span class="price-bundle">From $8,200 with Cosmos</span>
+            <span class="price-member">$1,200</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4: Signal Fragment -->
+      <div class="work-card">
+        <div class="work-canvas-wrap">
+          <canvas id="c4" width="400" height="400"></canvas>
+        </div>
+        <div class="work-info">
+          <div class="work-title">Signal Fragment</div>
+          <div class="work-artist">JERES</div>
+          <div class="work-edition">Open edition</div>
+          <div class="work-price-row">
+            <span class="price-bundle">From $8,800 with Cosmos</span>
+            <span class="price-member">$1,800</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- WORKS -->
+  <div class="collection-section">
+    <div class="section-header">
+      <span class="section-label">Works — Limited Edition</span>
+      <span class="section-range">$2,500–$12,000</span>
+    </div>
+    <p class="section-desc">Edition sizes of 10 to 30. Certified. Each acquisition tracked.</p>
+    <div class="grid-3">
+
+      <!-- 5: Meridian -->
+      <div class="work-card">
+        <div class="work-canvas-wrap">
+          <canvas id="c5" width="400" height="400"></canvas>
+        </div>
+        <div class="work-info">
+          <div class="work-title">Meridian</div>
+          <div class="work-artist">Leander Herzog</div>
+          <div class="work-edition">Ed. 12</div>
+          <div class="work-price-row">
+            <span class="price-bundle">From $16,500 with Cosmos</span>
+            <span class="price-member">$9,500</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6: Tidal -->
+      <div class="work-card">
+        <div class="work-canvas-wrap">
+          <canvas id="c6" width="400" height="400"></canvas>
+        </div>
+        <div class="work-info">
+          <div class="work-title">Tidal</div>
+          <div class="work-artist">Jason Ting</div>
+          <div class="work-edition">Ed. 20</div>
+          <div class="work-price-row">
+            <span class="price-bundle">From $13,800 with Cosmos</span>
+            <span class="price-member">$6,800</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 7: Aurora Forma -->
+      <div class="work-card">
+        <div class="work-canvas-wrap">
+          <canvas id="c7" width="400" height="400"></canvas>
+        </div>
+        <div class="work-info">
+          <div class="work-title">Aurora Forma</div>
+          <div class="work-artist">Arttu Koskela</div>
+          <div class="work-edition">Ed. 12</div>
+          <div class="work-price-row">
+            <span class="price-bundle">From $14,200 with Cosmos</span>
+            <span class="price-member">$7,200</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 8: Folded Light -->
+      <div class="work-card">
+        <div class="work-canvas-wrap">
+          <canvas id="c8" width="400" height="400"></canvas>
+        </div>
+        <div class="work-info">
+          <div class="work-title">Folded Light</div>
+          <div class="work-artist">Martin Naumann</div>
+          <div class="work-edition">Ed. 20</div>
+          <div class="work-price-row">
+            <span class="price-bundle">From $15,000 with Cosmos</span>
+            <span class="price-member">$8,000</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 9: Luminance III -->
+      <div class="work-card">
+        <div class="work-canvas-wrap">
+          <canvas id="c9" width="400" height="400"></canvas>
+        </div>
+        <div class="work-info">
+          <div class="work-title">Luminance III</div>
+          <div class="work-artist">Rik Oostenbroek</div>
+          <div class="work-edition">Ed. 10</div>
+          <div class="work-price-row">
+            <span class="price-bundle">From $19,000 with Cosmos</span>
+            <span class="price-member">$12,000</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 10: Superposition 7 -->
+      <div class="work-card">
+        <div class="work-canvas-wrap">
+          <canvas id="c10" width="400" height="400"></canvas>
+        </div>
+        <div class="work-info">
+          <div class="work-title">Superposition 7</div>
+          <div class="work-artist">Andreas Fischer</div>
+          <div class="work-edition">Ed. 6</div>
+          <div class="work-price-row">
+            <span class="price-bundle">From $29,000 with Founder Edition</span>
+            <span class="price-member">$22,000</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- PIECES -->
+  <div class="collection-section">
+    <div class="section-header">
+      <span class="section-label">Pieces — Signature Edition</span>
+      <span class="section-range">$15,000–$25,000</span>
+    </div>
+    <p class="section-desc">Edition sizes of 1 to 5. The rarest works in the collection. Direct artist relationship.</p>
+    <div class="grid-3">
+
+      <!-- 11: Tissue 04 -->
+      <div class="work-card pieces-card">
+        <div class="work-canvas-wrap">
+          <canvas id="c11" width="400" height="400"></canvas>
+        </div>
+        <div class="work-info">
+          <div class="work-title">Tissue 04</div>
+          <div class="work-artist">Casey Reas</div>
+          <div class="work-edition">Ed. 5</div>
+          <div class="work-price-row">
+            <span class="price-bundle">From $35,000 with Founder Edition</span>
+            <span class="price-member">$28,000</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 12: Drawn Apart -->
+      <div class="work-card pieces-card">
+        <div class="work-canvas-wrap">
+          <canvas id="c12" width="400" height="400"></canvas>
+        </div>
+        <div class="work-info">
+          <div class="work-title">Drawn Apart</div>
+          <div class="work-artist">Zach Lieberman</div>
+          <div class="work-edition">Ed. 8</div>
+          <div class="work-price-row">
+            <span class="price-bundle">From $25,000 with Founder Edition</span>
+            <span class="price-member">$18,000</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 13: Continuum -->
+      <div class="work-card pieces-card">
+        <div class="work-canvas-wrap">
+          <canvas id="c13" width="400" height="400"></canvas>
+        </div>
+        <div class="work-info">
+          <div class="work-title">Continuum</div>
+          <div class="work-artist">Justin Maller</div>
+          <div class="work-edition">Ed. 3</div>
+          <div class="work-price-row">
+            <span class="price-bundle">From $32,000 with Founder Edition</span>
+            <span class="price-member">$25,000</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- EXPLAINER -->
+<div class="explainer">
+  <div class="explainer-inner">
+    <div class="explainer-col">
+      <div class="explainer-step">01</div>
+      <div class="explainer-title">Discover</div>
+      <div class="explainer-body">Browse 250+ works. Every piece selected by our curation board. No algorithms. No auctions. A living collection, continuously expanded.</div>
+    </div>
+    <div class="explainer-col">
+      <div class="explainer-step">02</div>
+      <div class="explainer-title">Acquire</div>
+      <div class="explainer-body">Your first work establishes your membership. Founder Edition or Cosmos — your canvas arrives with your art. All future acquisitions at member pricing.</div>
+    </div>
+    <div class="explainer-col">
+      <div class="explainer-step">03</div>
+      <div class="explainer-title">Own</div>
+      <div class="explainer-body">ViewTime royalties run continuously. The longer you live with the work, the more the artist earns. You become a patron of the ongoing practice.</div>
+    </div>
+  </div>
+</div>
+
+<!-- COMPARISON TABLE -->
+<div class="comparison">
+  <div class="comparison-label">Membership comparison</div>
+  <table class="comparison-table">
+    <thead>
+      <tr>
+        <th></th>
+        <th>Cosmos</th>
+        <th>Founder Edition</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Display</td>
+        <td>Cosmos</td>
+        <td class="highlight">Layer Canvas</td>
+      </tr>
+      <tr>
+        <td>Floor</td>
+        <td>$7,000</td>
+        <td class="highlight">$22,000</td>
+      </tr>
+      <tr>
+        <td>Art access</td>
+        <td>Full collection</td>
+        <td class="highlight">Full collection</td>
+      </tr>
+      <tr>
+        <td>Edition access</td>
+        <td>Variants + Works</td>
+        <td class="highlight">All tiers</td>
+      </tr>
+      <tr>
+        <td>ViewTime royalties</td>
+        <td><span class="check">✓</span></td>
+        <td class="highlight"><span class="check">✓</span></td>
+      </tr>
+      <tr>
+        <td>Artist relationship</td>
+        <td>Standard</td>
+        <td class="highlight">Direct</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- VIEWTIME -->
+<div class="viewtime">
+  <div class="viewtime-inner">
+    <div>
+      <div class="viewtime-label">ViewTime</div>
+      <div class="viewtime-heading">Artists earn every hour their work is on your wall.</div>
+      <div class="viewtime-body">
+        Layer tracks the time your display is active and routes micro-royalties to the artist continuously. No secondary market. No speculation. Just a permanent financial relationship between collector and creator.<br><br>
+        The longer you live with the work, the more it means — to you, and to them.
+      </div>
+    </div>
+    <div class="viewtime-stat">
+      <div class="stat-row">
+        <div class="stat-number">8,760</div>
+        <div class="stat-label">Hours in a year of potential earning</div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-number">250+</div>
+        <div class="stat-label">Works in the current collection</div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-number">100%</div>
+        <div class="stat-label">Of ViewTime royalties reach the artist directly</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <ul class="footer-links">
+      <li><a href="#">Layer</a></li>
+      <li><a href="#">Marketplace</a></li>
+      <li><a href="#">Canvas</a></li>
+      <li><a href="#">Artists</a></li>
+      <li><a href="mailto:collect@layer.art">Inquire</a></li>
+    </ul>
+    <span class="footer-copy">© 2026 Layer</span>
+  </div>
+</footer>
+
+<script>
+/* ── MEMBER TOGGLE ─────────────────────────────── */
+function toggleMember() {
+  const btn = document.getElementById('memberToggle');
+  const lbl = document.getElementById('memberActiveLabel');
+  const active = document.body.classList.toggle('member-mode');
+  btn.classList.toggle('active', active);
+  lbl.classList.toggle('visible', active);
+}
+
+/* ── ANIMATION SYSTEM ──────────────────────────── */
+// Each canvas gets an animation function. We use IntersectionObserver to start them lazily.
+const animations = {};
+const rafIds = {};
+
+function startAnim(id) {
+  if (rafIds[id]) return;
+  const canvas = document.getElementById(id);
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  let t = 0;
+  const fn = animations[id];
+  function loop() {
+    fn(ctx, W, H, t);
+    t += 0.01;
+    rafIds[id] = requestAnimationFrame(loop);
+  }
+  rafIds[id] = requestAnimationFrame(loop);
+}
+
+// Observer
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    const canvas = e.target;
+    const id = canvas.id;
+    if (e.isIntersecting) {
+      startAnim(id);
+    } else {
+      if (rafIds[id]) {
+        cancelAnimationFrame(rafIds[id]);
+        delete rafIds[id];
+      }
+    }
+  });
+}, { rootMargin: '200px' });
+
+document.querySelectorAll('canvas[id]').forEach(c => observer.observe(c));
+
+/* ─────────────────────────────────────────────────
+   C1 — Dust Field No. 3 (Hayk Zakoyan)
+   Fine dust particles drifting slowly across true black
+───────────────────────────────────────────────── */
+(function() {
+  const N = 600;
+  let particles;
+  animations['c1'] = function(ctx, W, H, t) {
+    if (!particles) {
+      particles = Array.from({length: N}, () => ({
+        x: Math.random() * W,
+        y: Math.random() * H,
+        vx: (Math.random() - 0.5) * 0.18,
+        vy: (Math.random() - 0.5) * 0.12 + 0.04,
+        r: Math.random() * 1.2 + 0.2,
+        a: Math.random() * 0.55 + 0.05,
+      }));
+    }
+    ctx.fillStyle = 'rgba(0,0,0,0.18)';
+    ctx.fillRect(0, 0, W, H);
+    particles.forEach(p => {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+      ctx.fillStyle = `rgba(255,255,255,${p.a * (0.6 + 0.4 * Math.sin(t * 0.7 + p.x))})`;
+      ctx.fill();
+      p.x += p.vx + Math.sin(t * 0.3 + p.y * 0.01) * 0.08;
+      p.y += p.vy;
+      if (p.y > H + 2) { p.y = -2; p.x = Math.random() * W; }
+      if (p.x < 0) p.x = W;
+      if (p.x > W) p.x = 0;
+    });
+  };
+})();
+
+/* ─────────────────────────────────────────────────
+   C2 — Trace (Anton Dubrovin)
+   Single slow ink trace with fading trail
+───────────────────────────────────────────────── */
+(function() {
+  let head = { x: 0, y: 0 };
+  let trail = [];
+  const TRAIL = 280;
+  let initialized = false;
+  animations['c2'] = function(ctx, W, H, t) {
+    if (!initialized) {
+      head = { x: W/2, y: H/2 };
+      initialized = true;
+    }
+    // Smooth Lissajous-like path
+    const nx = W/2 + Math.sin(t * 0.41 + 0.3) * W * 0.38 + Math.sin(t * 0.7) * W * 0.08;
+    const ny = H/2 + Math.cos(t * 0.29 + 1.1) * H * 0.38 + Math.cos(t * 0.53) * H * 0.1;
+    head.x += (nx - head.x) * 0.04;
+    head.y += (ny - head.y) * 0.04;
+    trail.push({x: head.x, y: head.y});
+    if (trail.length > TRAIL) trail.shift();
+
+    ctx.fillStyle = 'rgba(0,0,0,0.08)';
+    ctx.fillRect(0, 0, W, H);
+
+    for (let i = 1; i < trail.length; i++) {
+      const a = (i / TRAIL);
+      const w = a * 1.8;
+      ctx.beginPath();
+      ctx.moveTo(trail[i-1].x, trail[i-1].y);
+      ctx.lineTo(trail[i].x, trail[i].y);
+      ctx.strokeStyle = `rgba(255,255,255,${a * 0.7})`;
+      ctx.lineWidth = w;
+      ctx.lineCap = 'round';
+      ctx.stroke();
+    }
+    // Bright head
+    ctx.beginPath();
+    ctx.arc(head.x, head.y, 1.5, 0, Math.PI*2);
+    ctx.fillStyle = 'rgba(255,255,255,0.9)';
+    ctx.fill();
+  };
+})();
+
+/* ─────────────────────────────────────────────────
+   C3 — Small Weather (Lake Heckaman)
+   Soft pressure gradients, weather radar abstracted
+───────────────────────────────────────────────── */
+(function() {
+  let offscreen, octx;
+  animations['c3'] = function(ctx, W, H, t) {
+    if (!offscreen) {
+      offscreen = document.createElement('canvas');
+      offscreen.width = W; offscreen.height = H;
+      octx = offscreen.getContext('2d');
+    }
+    octx.clearRect(0, 0, W, H);
+    // Multiple pressure blobs
+    const blobs = [
+      { x: 0.3, y: 0.35, r: 0.45, speed: 0.11, phase: 0 },
+      { x: 0.65, y: 0.55, r: 0.38, speed: 0.07, phase: 2.1 },
+      { x: 0.5, y: 0.7, r: 0.3, speed: 0.13, phase: 4.2 },
+    ];
+    blobs.forEach((b, i) => {
+      const cx = (b.x + Math.sin(t * b.speed + b.phase) * 0.18) * W;
+      const cy = (b.y + Math.cos(t * b.speed * 0.7 + b.phase) * 0.15) * H;
+      const r = b.r * W * (0.9 + 0.1 * Math.sin(t * 0.2 + i));
+      const grad = octx.createRadialGradient(cx, cy, 0, cx, cy, r);
+      const a = 0.06 + i * 0.015;
+      grad.addColorStop(0, `rgba(255,255,255,${a + 0.04})`);
+      grad.addColorStop(0.4, `rgba(255,255,255,${a})`);
+      grad.addColorStop(1, 'rgba(0,0,0,0)');
+      octx.globalCompositeOperation = i === 0 ? 'source-over' : 'screen';
+      octx.fillStyle = grad;
+      octx.fillRect(0, 0, W, H);
+    });
+    // Contour rings
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, W, H);
+    ctx.drawImage(offscreen, 0, 0);
+    // Draw iso-lines
+    const id = octx.getImageData(0, 0, W, H).data;
+    const levels = [30, 55, 80, 105, 130];
+    levels.forEach(level => {
+      ctx.beginPath();
+      for (let y = 1; y < H-1; y++) {
+        for (let x = 1; x < W-1; x++) {
+          const v = id[(y * W + x) * 4];
+          const r = id[(y * W + x + 1) * 4];
+          const d = id[((y+1) * W + x) * 4];
+          if ((v < level && r >= level) || (v >= level && r < level) ||
+              (v < level && d >= level) || (v >= level && d < level)) {
+            ctx.moveTo(x, y);
+            ctx.arc(x, y, 0.5, 0, Math.PI*2);
+          }
+        }
+      }
+      ctx.strokeStyle = `rgba(255,255,255,0.12)`;
+      ctx.lineWidth = 0.5;
+      ctx.stroke();
+    });
+  };
+})();
+
+/* ─────────────────────────────────────────────────
+   C4 — Signal Fragment (JERES)
+   Organized patterns emerging from noise
+───────────────────────────────────────────────── */
+(function() {
+  animations['c4'] = function(ctx, W, H, t) {
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, W, H);
+    const cycle = (t % (Math.PI * 2)) / (Math.PI * 2); // 0..1
+    // Noise field
+    const gridSize = 18;
+    const cols = Math.ceil(W / gridSize);
+    const rows = Math.ceil(H / gridSize);
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const nx = c / cols;
+        const ny = r / rows;
+        // Noise-like via sin combinations
+        const n = Math.sin(nx * 11.3 + t * 0.4) * Math.cos(ny * 7.7 - t * 0.3) +
+                  Math.sin((nx + ny) * 8.1 + t * 0.15) * 0.5;
+        // Order: how close to grid center
+        const dx = nx - 0.5, dy = ny - 0.5;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        // Emergence: cycle 0→0.5 = order grows from center; 0.5→1 = dissolves
+        const order = cycle < 0.5
+          ? Math.max(0, 1 - dist / (cycle * 1.5 + 0.05))
+          : Math.max(0, 1 - dist / ((1 - cycle) * 1.5 + 0.05));
+        const a = (n * 0.5 + 0.5) * 0.3 * (1 - order) + order * 0.55;
+        ctx.fillStyle = `rgba(255,255,255,${Math.max(0, a)})`;
+        const size = gridSize * 0.35 * (0.7 + order * 0.6);
+        ctx.fillRect(
+          c * gridSize + gridSize/2 - size/2,
+          r * gridSize + gridSize/2 - size/2,
+          size, size
+        );
+      }
+    }
+  };
+})();
+
+/* ─────────────────────────────────────────────────
+   C5 — Meridian (Leander Herzog)
+   Topographic terrain lines, layered sine waves
+───────────────────────────────────────────────── */
+(function() {
+  animations['c5'] = function(ctx, W, H, t) {
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, W, H);
+    const lines = 60;
+    for (let i = 0; i < lines; i++) {
+      const y0 = (i / lines) * H;
+      ctx.beginPath();
+      for (let x = 0; x <= W; x += 2) {
+        const nx = x / W;
+        const wave =
+          Math.sin(nx * 6.2 + t * 0.4 + i * 0.08) * 14 +
+          Math.sin(nx * 14.1 - t * 0.2 + i * 0.15) * 6 +
+          Math.sin(nx * 3.3 + t * 0.1 + i * 0.22) * 22;
+        const y = y0 + wave * (0.4 + 0.6 * Math.sin(i * 0.18 + t * 0.05));
+        if (x === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      const a = 0.08 + 0.2 * Math.abs(Math.sin(i * 0.18 + t * 0.07));
+      ctx.strokeStyle = `rgba(255,255,255,${a})`;
+      ctx.lineWidth = 0.7;
+      ctx.stroke();
+    }
+  };
+})();
+
+/* ─────────────────────────────────────────────────
+   C6 — Tidal (Jason Ting)
+   Wave interference, concentric rings
+───────────────────────────────────────────────── */
+(function() {
+  animations['c6'] = function(ctx, W, H, t) {
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, W, H);
+    const sources = [
+      { x: 0.35, y: 0.4, freq: 0.07, phase: 0 },
+      { x: 0.65, y: 0.6, freq: 0.06, phase: 1.6 },
+      { x: 0.5, y: 0.28, freq: 0.05, phase: 3.2 },
+    ];
+    const step = 3;
+    for (let py = 0; py < H; py += step) {
+      for (let px = 0; px < W; px += step) {
+        let sum = 0;
+        sources.forEach(s => {
+          const dx = px/W - s.x, dy = py/H - s.y;
+          const d = Math.sqrt(dx*dx + dy*dy);
+          sum += Math.sin(d * 60 - t * 2.5 * s.freq * 100 + s.phase);
+        });
+        const a = (sum / sources.length + 1) / 2;
+        if (a > 0.58) {
+          ctx.fillStyle = `rgba(255,255,255,${(a - 0.58) * 1.8})`;
+          ctx.fillRect(px, py, step, step);
+        }
+      }
+    }
+  };
+})();
+
+/* ─────────────────────────────────────────────────
+   C7 — Aurora Forma (Arttu Koskela)
+   Vertical aurora curtains, screen blend
+───────────────────────────────────────────────── */
+(function() {
+  animations['c7'] = function(ctx, W, H, t) {
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, W, H);
+    const bands = 7;
+    ctx.globalCompositeOperation = 'screen';
+    for (let b = 0; b < bands; b++) {
+      const cx = (b / (bands-1)) * W + Math.sin(t * 0.15 + b * 0.9) * 40;
+      const wid = W * (0.15 + 0.1 * Math.sin(t * 0.08 + b));
+      const grad = ctx.createLinearGradient(0, 0, 0, H);
+      const hue = (b / bands);
+      // Aurora-like: whites shifting to very dim blues/greens
+      const a1 = 0.08 + 0.06 * Math.sin(t * 0.3 + b * 1.4);
+      const a2 = 0.18 + 0.08 * Math.sin(t * 0.22 + b);
+      grad.addColorStop(0, `rgba(255,255,255,0)`);
+      grad.addColorStop(0.2 + 0.1 * Math.sin(t * 0.2 + b), `rgba(220,230,255,${a1})`);
+      grad.addColorStop(0.5 + 0.15 * Math.cos(t * 0.15 + b), `rgba(255,255,255,${a2})`);
+      grad.addColorStop(0.8, `rgba(210,220,255,${a1 * 0.5})`);
+      grad.addColorStop(1, `rgba(0,0,0,0)`);
+      // Shimmer along x
+      const shimmer = Math.sin(t * 0.7 + b * 2.3) * 15;
+      const bandGrad = ctx.createLinearGradient(cx - wid/2 + shimmer, 0, cx + wid/2 + shimmer, 0);
+      bandGrad.addColorStop(0, 'rgba(0,0,0,0)');
+      bandGrad.addColorStop(0.5, `rgba(255,255,255,1)`);
+      bandGrad.addColorStop(1, 'rgba(0,0,0,0)');
+      // Draw the vertical band using a temp canvas approach:
+      const tmp = document.createElement('canvas');
+      tmp.width = W; tmp.height = H;
+      const tx = tmp.getContext('2d');
+      tx.fillStyle = grad;
+      tx.fillRect(0, 0, W, H);
+      // Mask with horizontal fade
+      tx.globalCompositeOperation = 'destination-in';
+      tx.fillStyle = bandGrad;
+      tx.fillRect(0, 0, W, H);
+      ctx.drawImage(tmp, 0, 0);
+    }
+    ctx.globalCompositeOperation = 'source-over';
+  };
+})();
+
+/* ─────────────────────────────────────────────────
+   C8 — Folded Light (Martin Naumann)
+   Triangular mesh, per-face light shading
+───────────────────────────────────────────────── */
+(function() {
+  let pts;
+  const COLS = 12, ROWS = 12;
+  animations['c8'] = function(ctx, W, H, t) {
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, W, H);
+    const cw = W / COLS, ch = H / ROWS;
+    // Generate base grid with animated perturbation
+    const grid = [];
+    for (let r = 0; r <= ROWS; r++) {
+      grid[r] = [];
+      for (let c = 0; c <= COLS; c++) {
+        const bx = c * cw, by = r * ch;
+        const nx = c / COLS, ny = r / ROWS;
+        const px = (c > 0 && c < COLS) ? Math.sin(t * 0.4 + nx * 8 + ny * 5) * cw * 0.4 : 0;
+        const py = (r > 0 && r < ROWS) ? Math.cos(t * 0.3 + ny * 7 + nx * 6) * ch * 0.4 : 0;
+        grid[r][c] = { x: bx + px, y: by + py };
+      }
+    }
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        const a = grid[r][c], b = grid[r][c+1], d = grid[r+1][c], e = grid[r+1][c+1];
+        // Two triangles per cell
+        [[a,b,e],[a,e,d]].forEach(([p1,p2,p3]) => {
+          // Simple normal-based shading via cross product z
+          const ux = p2.x-p1.x, uy = p2.y-p1.y;
+          const vx = p3.x-p1.x, vy = p3.y-p1.y;
+          const nz = ux*vy - uy*vx;
+          // Light direction — slightly animated
+          const lx = Math.sin(t * 0.2), ly = Math.cos(t * 0.15);
+          const dot = (ux * lx + uy * ly) / (Math.sqrt(ux*ux+uy*uy) + 0.001);
+          const bright = Math.max(0, Math.min(1, (dot + 1) * 0.5));
+          const face = bright * 0.55 + 0.05;
+          ctx.beginPath();
+          ctx.moveTo(p1.x, p1.y);
+          ctx.lineTo(p2.x, p2.y);
+          ctx.lineTo(p3.x, p3.y);
+          ctx.closePath();
+          ctx.fillStyle = `rgba(255,255,255,${face * 0.7})`;
+          ctx.fill();
+          ctx.strokeStyle = 'rgba(0,0,0,0.8)';
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+        });
+      }
+    }
+  };
+})();
+
+/* ─────────────────────────────────────────────────
+   C9 — Luminance III (Rik Oostenbroek)
+   Deep aurora — blues and golds fused
+───────────────────────────────────────────────── */
+(function() {
+  animations['c9'] = function(ctx, W, H, t) {
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, W, H);
+    ctx.globalCompositeOperation = 'screen';
+    // Deep blue aurora base
+    const blobs = [
+      { cx: 0.5, cy: 0.45, rx: 0.6, ry: 0.5, r: [20,50,120], sp: 0.08, ph: 0 },
+      { cx: 0.35, cy: 0.55, rx: 0.45, ry: 0.4, r: [80,60,20], sp: 0.06, ph: 1.8 },
+      { cx: 0.65, cy: 0.35, rx: 0.4, ry: 0.35, r: [255,200,80], sp: 0.1, ph: 3.6 },
+    ];
+    blobs.forEach(b => {
+      const cx = (b.cx + Math.sin(t * b.sp + b.ph) * 0.12) * W;
+      const cy = (b.cy + Math.cos(t * b.sp * 0.7 + b.ph) * 0.1) * H;
+      const rx = b.rx * W * (0.9 + 0.1 * Math.sin(t * 0.13 + b.ph));
+      const ry = b.ry * H;
+      const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(rx,ry));
+      grad.addColorStop(0, `rgba(${b.r[0]},${b.r[1]},${b.r[2]},0.25)`);
+      grad.addColorStop(0.5, `rgba(${b.r[0]},${b.r[1]},${b.r[2]},0.1)`);
+      grad.addColorStop(1, `rgba(${b.r[0]},${b.r[1]},${b.r[2]},0)`);
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.scale(rx / Math.max(rx,ry), ry / Math.max(rx,ry));
+      ctx.translate(-cx, -cy);
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, W, H);
+      ctx.restore();
+    });
+    ctx.globalCompositeOperation = 'source-over';
+    // Fine horizontal shimmer lines
+    for (let y = 0; y < H; y += 4) {
+      const a = 0.04 * Math.pow(Math.sin(y/H * Math.PI + Math.sin(t * 0.1) * 2), 2);
+      ctx.fillStyle = `rgba(255,255,255,${a})`;
+      ctx.fillRect(0, y, W, 1);
+    }
+  };
+})();
+
+/* ─────────────────────────────────────────────────
+   C10 — Superposition 7 (Andreas Fischer)
+   Geometric grid morphing rigid ↔ fluid
+───────────────────────────────────────────────── */
+(function() {
+  animations['c10'] = function(ctx, W, H, t) {
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, W, H);
+    const N = 14;
+    const cellW = W / N, cellH = H / N;
+    // Phase: morph between grid and fluid
+    const morph = (Math.sin(t * 0.25) + 1) / 2; // 0=rigid, 1=fluid
+    for (let r = 0; r < N; r++) {
+      for (let c = 0; c < N; c++) {
+        const bx = c * cellW + cellW/2;
+        const by = r * cellH + cellH/2;
+        const nx = c / N, ny = r / N;
+        // Fluid displacement
+        const dx = Math.sin(t * 0.6 + nx * 7.3 + ny * 5.1) * cellW * 1.2;
+        const dy = Math.cos(t * 0.5 + ny * 6.8 + nx * 4.2) * cellH * 1.2;
+        const px = bx + dx * morph;
+        const py = by + dy * morph;
+        // Size: grid = uniform; fluid = varies
+        const size = cellW * (0.2 + morph * 0.3 * Math.abs(Math.sin(t + nx * 9 + ny * 7)));
+        const a = 0.15 + morph * 0.35 * Math.abs(Math.sin(t * 0.8 + nx * 5 + ny * 4));
+        ctx.beginPath();
+        if (morph < 0.5) {
+          // Square
+          ctx.rect(px - size/2, py - size/2, size, size);
+        } else {
+          // Circle
+          ctx.arc(px, py, size / 2, 0, Math.PI * 2);
+        }
+        ctx.fillStyle = `rgba(255,255,255,${a + 0.1})`;
+        ctx.fill();
+      }
+    }
+  };
+})();
+
+/* ─────────────────────────────────────────────────
+   C11 — Tissue 04 (Casey Reas)
+   Biological particle mesh, cellular pulsing
+───────────────────────────────────────────────── */
+(function() {
+  let nodes;
+  const N = 80;
+  animations['c11'] = function(ctx, W, H, t) {
+    if (!nodes) {
+      nodes = Array.from({length: N}, (_, i) => ({
+        x: Math.random() * W, y: Math.random() * H,
+        vx: (Math.random()-.5) * 0.4, vy: (Math.random()-.5) * 0.4,
+        phase: Math.random() * Math.PI * 2,
+        r: 2 + Math.random() * 3,
+      }));
+    }
+    ctx.fillStyle = 'rgba(0,0,0,0.12)';
+    ctx.fillRect(0, 0, W, H);
+    // Update
+    nodes.forEach(n => {
+      n.x += n.vx + Math.sin(t * 0.3 + n.phase) * 0.3;
+      n.y += n.vy + Math.cos(t * 0.25 + n.phase) * 0.25;
+      if (n.x < 0) n.x = W; if (n.x > W) n.x = 0;
+      if (n.y < 0) n.y = H; if (n.y > H) n.y = 0;
+    });
+    // Connections
+    const DIST = 70;
+    for (let i = 0; i < N; i++) {
+      for (let j = i+1; j < N; j++) {
+        const dx = nodes[i].x - nodes[j].x, dy = nodes[i].y - nodes[j].y;
+        const d = Math.sqrt(dx*dx + dy*dy);
+        if (d < DIST) {
+          const a = (1 - d/DIST) * 0.25;
+          const pulse = 0.7 + 0.3 * Math.sin(t * 2 + nodes[i].phase);
+          ctx.beginPath();
+          ctx.moveTo(nodes[i].x, nodes[i].y);
+          ctx.lineTo(nodes[j].x, nodes[j].y);
+          ctx.strokeStyle = `rgba(255,255,255,${a * pulse})`;
+          ctx.lineWidth = (1 - d/DIST) * 1.2;
+          ctx.stroke();
+        }
+      }
+    }
+    // Nodes
+    nodes.forEach(n => {
+      const pulse = 0.7 + 0.3 * Math.sin(t * 1.8 + n.phase);
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, n.r * pulse, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255,255,255,${0.5 * pulse})`;
+      ctx.fill();
+    });
+  };
+})();
+
+/* ─────────────────────────────────────────────────
+   C12 — Drawn Apart (Zach Lieberman)
+   Calligraphic brushes drawing and erasing themselves
+───────────────────────────────────────────────── */
+(function() {
+  let strokes = [];
+  const NUM_STROKES = 6;
+  function makeStroke(i) {
+    return {
+      pts: [],
+      speed: 0.008 + i * 0.003,
+      progress: Math.random(),
+      width: 1.5 + i * 0.8,
+      phase: i * (Math.PI * 2 / NUM_STROKES),
+      decay: 0.004 + Math.random() * 0.003,
+      growing: true,
+      maxPts: 120 + i * 20,
+    };
+  }
+  for (let i = 0; i < NUM_STROKES; i++) strokes.push(makeStroke(i));
+
+  animations['c12'] = function(ctx, W, H, t) {
+    ctx.fillStyle = 'rgba(0,0,0,0.05)';
+    ctx.fillRect(0, 0, W, H);
+    strokes.forEach((s, i) => {
+      s.progress += s.speed;
+      const cx = W/2 + Math.sin(s.progress * 2.3 + s.phase) * W * 0.35;
+      const cy = H/2 + Math.cos(s.progress * 1.7 + s.phase + 0.5) * H * 0.35;
+      s.pts.push({x: cx, y: cy});
+      if (s.pts.length > s.maxPts) s.pts.shift();
+      if (s.pts.length < 2) return;
+      ctx.beginPath();
+      ctx.moveTo(s.pts[0].x, s.pts[0].y);
+      for (let p = 1; p < s.pts.length; p++) {
+        const a = (p / s.pts.length);
+        ctx.lineTo(s.pts[p].x, s.pts[p].y);
+      }
+      ctx.strokeStyle = `rgba(255,255,255,${0.15 + i * 0.04})`;
+      ctx.lineWidth = s.width * (0.8 + 0.2 * Math.sin(t * 2 + s.phase));
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.stroke();
+    });
+  };
+})();
+
+/* ─────────────────────────────────────────────────
+   C13 — Continuum (Justin Maller)
+   Flowing liquid metal, slow rotation, high contrast
+───────────────────────────────────────────────── */
+(function() {
+  animations['c13'] = function(ctx, W, H, t) {
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, W, H);
+    const cx = W/2, cy = H/2;
+    const R = Math.min(W,H) * 0.42;
+    const layers = 8;
+    ctx.globalCompositeOperation = 'screen';
+    for (let l = 0; l < layers; l++) {
+      const lf = l / layers;
+      const r = R * (0.3 + lf * 0.7);
+      const rot = t * (0.08 - lf * 0.01) + lf * Math.PI * 0.5;
+      const pts = 180;
+      ctx.beginPath();
+      for (let i = 0; i <= pts; i++) {
+        const a = (i / pts) * Math.PI * 2 + rot;
+        const ripple = 1 + 0.15 * Math.sin(a * 4 + t * 0.5 + lf * 3) +
+                           0.07 * Math.sin(a * 9 - t * 0.3 + lf * 7);
+        const x = cx + Math.cos(a) * r * ripple;
+        const y = cy + Math.sin(a) * r * ripple;
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      const bright = 0.04 + lf * 0.08;
+      ctx.strokeStyle = `rgba(255,255,255,${bright + 0.05 * Math.sin(t + lf * 2)})`;
+      ctx.lineWidth = 1 + lf * 0.5;
+      ctx.stroke();
+      // Highlight arcs
+      const hStart = rot + Math.PI * 0.2;
+      const hEnd = hStart + Math.PI * (0.3 + 0.1 * Math.sin(t * 0.4 + lf));
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, hStart, hEnd);
+      ctx.strokeStyle = `rgba(255,255,255,${0.25 + lf * 0.08})`;
+      ctx.lineWidth = 2 + lf;
+      ctx.stroke();
+    }
+    ctx.globalCompositeOperation = 'source-over';
+  };
+})();
+
+</script>
+</body>
+</html>

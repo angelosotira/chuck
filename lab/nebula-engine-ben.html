@@ -276,6 +276,12 @@ float snoise(vec3 v) {
   return 42.0 * dot(m*m, vec4(dot(p0,x0), dot(p1,x1), dot(p2,x2), dot(p3,x3)));
 }
 
+// ─── Desaturate helper ───────────────────────────────────────────────────────
+vec3 desat(vec3 c, float amt) {
+  float lum = dot(c, vec3(0.2126, 0.7152, 0.0722));
+  return mix(c, vec3(lum), amt);
+}
+
 // ─── fBm — 8 octaves ─────────────────────────────────────────────────────────
 float fbm(vec2 p, float seed) {
   float v = 0.0, a = 0.5, f = 1.0;
@@ -310,15 +316,73 @@ void main() {
   // Everything seeds from and recedes toward this point
   vec2 focalPt = vec2(-0.28, 0.18);
 
+  // ── Score compression — must come before colour assignment ──────────────
+  float compressedScores[8];
+  float maxScore = 0.0;
+  for (int i = 0; i < 8; i++) maxScore = max(maxScore, u_scores[i]);
+  for (int i = 0; i < 8; i++) {
+    float s = u_scores[i] / max(maxScore, 0.001);
+    compressedScores[i] = pow(s, 2.2);
+  }
+
+  // ── 60-30-10 colour script (Ben) ─────────────────────────────────────────
+  // Raw hues for each planet axis — full saturation source palette
+  vec3 rawCol[8];
+  rawCol[0] = vec3(1.00, 0.55, 0.05); // Sun      — amber
+  rawCol[1] = vec3(0.40, 0.65, 1.00); // Moon     — cool blue
+  rawCol[2] = vec3(0.00, 0.95, 0.95); // Mercury  — cyan
+  rawCol[3] = vec3(1.00, 0.20, 0.60); // Venus    — rose
+  rawCol[4] = vec3(0.90, 0.10, 0.00); // Mars     — deep red
+  rawCol[5] = vec3(0.10, 0.85, 0.30); // Jupiter  — green
+  rawCol[6] = vec3(0.50, 0.10, 1.00); // Saturn   — violet
+  rawCol[7] = vec3(0.80, 0.00, 1.00); // Uranus   — purple
+
+  // Derive 3 colour roles from score ranking:
+  // - dominant (rank 0):  60% role — desaturated base field, neutral/muted
+  // - secondary (rank 1): 30% role — mid saturation, supports dominant
+  // - accent (rank 2):    10% role — full saturation, the sharp moment
+  //
+  // All other axes (ranks 3-7) get pulled strongly toward the dominant tint
+  // so they don't compete — they wash into the base field
+
+  // Find rank order (simple insertion sort on scores, 8 items)
+  int rank[8];
+  rank[0]=0; rank[1]=1; rank[2]=2; rank[3]=3;
+  rank[4]=4; rank[5]=5; rank[6]=6; rank[7]=7;
+  for (int i = 1; i < 8; i++) {
+    int key = rank[i];
+    float ks = compressedScores[key];
+    int j = i - 1;
+    while (j >= 0 && compressedScores[rank[j]] < ks) {
+      rank[j+1] = rank[j]; j--;
+    }
+    rank[j+1] = key;
+  }
+
+  // Build per-axis colors using 60-30-10 discipline
   vec3 col[8];
-  col[0] = vec3(1.00, 0.55, 0.05);
-  col[1] = vec3(0.40, 0.65, 1.00);
-  col[2] = vec3(0.00, 0.95, 0.95);
-  col[3] = vec3(1.00, 0.20, 0.60);
-  col[4] = vec3(0.90, 0.10, 0.00);
-  col[5] = vec3(0.10, 0.85, 0.30);
-  col[6] = vec3(0.50, 0.10, 1.00);
-  col[7] = vec3(0.80, 0.00, 1.00);
+  for (int i = 0; i < 8; i++) {
+    // What position is this axis in the ranking?
+    int pos = 7;
+    for (int r = 0; r < 8; r++) { if (rank[r] == i) { pos = r; break; } }
+
+    vec3 baseHue = rawCol[i];
+    if (pos == 0) {
+      // 60% — desaturated, slightly warm-shifted base field
+      col[i] = desat(baseHue, 0.72) * vec3(1.05, 1.02, 0.92);
+    } else if (pos == 1) {
+      // 30% — moderate saturation, cooler support tone
+      col[i] = desat(baseHue, 0.40);
+    } else if (pos == 2) {
+      // 10% — full saturation accent, the sharp bright moment
+      col[i] = baseHue * 1.15; // push it
+    } else {
+      // Remainder — strongly desaturated, pulled toward dominant hue
+      // They become part of the field, not independent voices
+      vec3 domCol = desat(rawCol[rank[0]], 0.72) * vec3(1.05, 1.02, 0.92);
+      col[i] = mix(domCol, desat(baseHue, 0.88), 0.18);
+    }
+  }
 
   float seeds[8];
   seeds[0] = 0.0; seeds[1] = 17.3; seeds[2] = 34.6; seeds[3] = 51.9;
@@ -348,17 +412,6 @@ void main() {
   float spatialFade = exp(-focalDist * focalDist * 0.55);
   // Not fully dark at edge — leaves just enough to feel the field extends beyond
   float negSpace = mix(0.08, 1.0, spatialFade);
-
-  // ── HIERARCHY #4: Score compression — dominant axis louder ───────────────
-  // Instead of linear score → brightness, cube it so high-score axes dominate
-  // This creates value hierarchy: one or two axes speak, others whisper
-  float compressedScores[8];
-  float maxScore = 0.0;
-  for (int i = 0; i < 8; i++) maxScore = max(maxScore, u_scores[i]);
-  for (int i = 0; i < 8; i++) {
-    float s = u_scores[i] / max(maxScore, 0.001); // normalise to dominant
-    compressedScores[i] = pow(s, 2.2); // power curve — creates clear leader
-  }
 
   vec3 nebulaColor = vec3(0.0, 0.0, mix(0.01, 0.002, u_accretion));
 

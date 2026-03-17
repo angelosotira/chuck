@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Layer — Gift a Work</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { background: #000; color: #fff; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-weight: 300; -webkit-font-smoothing: antialiased; line-height: 1.6; }
+
+    nav { position: sticky; top: 0; z-index: 200; background: #000; border-bottom: 1px solid rgba(255,255,255,0.08); height: 50px; }
+    .nav-inner { max-width: 1400px; margin: 0 auto; padding: 0 40px; height: 100%; display: flex; align-items: center; justify-content: space-between; }
+    .nav-logo { font-size: 1rem; letter-spacing: 0.35em; text-transform: uppercase; color: #fff; text-decoration: none; }
+    .nav-center { position: absolute; left: 50%; transform: translateX(-50%); font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(255,255,255,0.3); }
+    .nav-right { display: flex; align-items: center; gap: 1.5rem; }
+    .nav-btn { font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; background: none; border: 1px solid rgba(255,255,255,0.35); color: rgba(255,255,255,0.6); padding: 0.35rem 1rem; cursor: pointer; font-family: inherit; font-weight: 300; transition: all 0.2s; }
+    .nav-btn:hover, .nav-btn.active { border-color: #fff; color: #fff; }
+    .nav-link { font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(255,255,255,0.35); text-decoration: none; }
+    .nav-link:hover { color: #fff; }
+
+    .label { font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,255,255,0.35); }
+    .muted { color: rgba(255,255,255,0.45); }
+    .btn { display: inline-block; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; border: 1px solid rgba(255,255,255,0.35); background: none; color: rgba(255,255,255,0.7); padding: 0.55rem 1.8rem; cursor: pointer; font-family: inherit; font-weight: 300; transition: all 0.2s; text-decoration: none; }
+    .btn:hover { border-color: #fff; color: #fff; }
+    hr.rule { border: none; border-top: 1px solid rgba(255,255,255,0.08); }
+
+    /* HERO */
+    .hero { max-width: 1400px; margin: 0 auto; padding: 100px 40px 80px; display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+    .hero-text {}
+    .hero-headline { font-size: 3.5rem; font-weight: 200; line-height: 1.3; margin-bottom: 1.5rem; }
+    .hero-sub { font-size: 0.95rem; color: rgba(255,255,255,0.45); max-width: 460px; line-height: 1.9; margin-bottom: 2.5rem; }
+    .hero-canvas-wrap { aspect-ratio: 1; }
+    .hero-canvas-wrap canvas { width: 100%; height: 100%; display: block; }
+
+    /* OCCASION SELECTOR */
+    .occasions { max-width: 1400px; margin: 0 auto; padding: 80px 40px; }
+    .occ-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; margin-top: 2rem; }
+    .occ-card { padding: 1.5rem; border: 1px solid rgba(255,255,255,0.06); cursor: pointer; transition: border-color 0.2s; }
+    .occ-card:hover { border-color: rgba(255,255,255,0.3); }
+    .occ-icon { font-size: 1.5rem; margin-bottom: 0.8rem; opacity: 0.6; }
+    .occ-name { font-size: 0.85rem; font-weight: 300; margin-bottom: 0.4rem; }
+    .occ-desc { font-size: 0.75rem; color: rgba(255,255,255,0.35); line-height: 1.6; }
+
+    /* THE GIFT WORKS */
+    .gift-works { max-width: 1400px; margin: 0 auto; padding: 80px 40px; }
+    .gw-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; margin-top: 2rem; }
+    .gw-card { background: #000; border: 1px solid rgba(255,255,255,0.04); }
+    .gw-canvas-wrap { aspect-ratio: 1; overflow: hidden; }
+    .gw-canvas-wrap canvas { width: 100%; height: 100%; display: block; }
+    .gw-info { padding: 1.2rem; }
+    .gw-artist { font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(255,255,255,0.35); margin-bottom: 0.25rem; }
+    .gw-title { font-size: 0.9rem; margin-bottom: 0.25rem; }
+    .gw-edition { font-size: 0.65rem; color: rgba(255,255,255,0.3); margin-bottom: 0.6rem; }
+    .gw-price { font-size: 0.85rem; color: rgba(255,255,255,0.5); margin-bottom: 0.8rem; }
+    .gw-includes { font-size: 0.72rem; color: rgba(255,255,255,0.3); margin-bottom: 1rem; font-style: italic; }
+
+    /* HOW GIFTING WORKS */
+    .how-gift { max-width: 1400px; margin: 0 auto; padding: 80px 40px; }
+    .hg-steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 40px; margin-top: 2rem; }
+    .hg-step { border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1.5rem; }
+    .hg-num { font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,255,255,0.25); margin-bottom: 0.8rem; }
+    .hg-title { font-size: 0.9rem; margin-bottom: 0.6rem; }
+    .hg-body { font-size: 0.78rem; color: rgba(255,255,255,0.4); line-height: 1.8; }
+
+    /* GIFT CERTIFICATE MOCK */
+    .cert-section { max-width: 1400px; margin: 0 auto; padding: 80px 40px; display: flex; justify-content: center; }
+    .gift-cert { max-width: 600px; width: 100%; border: 1px solid rgba(255,255,255,0.15); padding: 3rem; text-align: center; }
+    .cert-logo { font-size: 0.85rem; letter-spacing: 0.4em; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 2rem; }
+    .cert-canvas-center { margin: 0 auto 2rem; width: 240px; height: 240px; }
+    .cert-canvas-center canvas { width: 100%; height: 100%; display: block; }
+    .cert-work-name { font-size: 1.4rem; font-weight: 200; margin-bottom: 0.3rem; }
+    .cert-artist-name { font-size: 0.75rem; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 2rem; }
+    hr.cert-hr { border: none; border-top: 1px solid rgba(255,255,255,0.08); margin: 1.5rem 0; }
+    .cert-from { font-size: 0.7rem; color: rgba(255,255,255,0.35); margin-bottom: 0.3rem; letter-spacing: 0.1em; }
+    .cert-message { font-size: 0.88rem; color: rgba(255,255,255,0.6); font-style: italic; line-height: 1.7; max-width: 380px; margin: 0 auto 1.5rem; }
+    .cert-auth { font-size: 0.6rem; letter-spacing: 0.15em; color: rgba(255,255,255,0.2); font-family: 'Courier New', monospace; }
+
+    /* PRICE RANGES */
+    .price-guide { max-width: 1400px; margin: 0 auto; padding: 80px 40px; }
+    .pg-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; margin-top: 2rem; }
+    .pg-card { padding: 2rem; border: 1px solid rgba(255,255,255,0.06); }
+    .pg-range { font-size: 1.5rem; font-weight: 200; margin-bottom: 0.4rem; }
+    .pg-name { font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(255,255,255,0.35); margin-bottom: 0.8rem; }
+    .pg-desc { font-size: 0.8rem; color: rgba(255,255,255,0.4); line-height: 1.7; margin-bottom: 1.2rem; }
+    .pg-examples { font-size: 0.72rem; color: rgba(255,255,255,0.25); font-style: italic; }
+
+    /* QUOTE */
+    .quote { max-width: 1400px; margin: 0 auto; padding: 100px 40px; text-align: center; }
+    .quote-text { font-size: 2rem; font-weight: 200; line-height: 1.6; max-width: 680px; margin: 0 auto; }
+
+    /* CTA */
+    .cta { max-width: 1400px; margin: 0 auto; padding: 80px 40px; display: grid; grid-template-columns: 1fr 1fr; gap: 2px; }
+    .cta-card { padding: 2.5rem; border: 1px solid rgba(255,255,255,0.08); }
+    .cta-title { font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,255,255,0.35); margin-bottom: 0.5rem; }
+    .cta-desc { font-size: 0.85rem; color: rgba(255,255,255,0.45); margin-bottom: 1.5rem; line-height: 1.7; }
+
+    footer { border-top: 1px solid rgba(255,255,255,0.08); padding: 2.5rem 40px; max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+    .footer-logo { font-size: 0.85rem; letter-spacing: 0.3em; text-transform: uppercase; }
+    .footer-links { display: flex; gap: 2rem; }
+    .footer-links a { font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(255,255,255,0.3); text-decoration: none; }
+    .footer-links a:hover { color: #fff; }
+    .footer-copy { font-size: 0.6rem; color: rgba(255,255,255,0.2); }
+
+    @media(max-width:900px){
+      .hero { grid-template-columns: 1fr; gap: 40px; padding: 60px 24px 40px; }
+      .occ-grid { grid-template-columns: 1fr 1fr; }
+      .gw-grid { grid-template-columns: 1fr 1fr; }
+      .hg-steps { grid-template-columns: 1fr 1fr; gap: 2rem; }
+      .pg-grid { grid-template-columns: 1fr; }
+      .cta { grid-template-columns: 1fr; }
+      .nav-inner,.occasions,.gift-works,.how-gift,.cert-section,.price-guide,.quote,footer { padding-left:24px;padding-right:24px; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="nav-logo">Layer</a>
+    <span class="nav-center">Gift a Work</span>
+    <div class="nav-right">
+      <button class="nav-btn" id="member-btn" onclick="toggleMember()">I Own a Layer</button>
+      <a href="https://layer.com/inquire" class="nav-link">Inquire</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-text">
+    <div class="hero-headline">Give someone<br>a work of art<br>they'll live with.</div>
+    <div class="hero-sub">A Layer work is not a gift that disappears. It evolves every day, earns for the artist every hour it plays, and grows with the person you give it to.</div>
+    <a href="#gift-works" class="btn">Browse Works to Gift</a>
+  </div>
+  <div class="hero-canvas-wrap">
+    <canvas id="hero-canvas" width="600" height="600"></canvas>
+  </div>
+</div>
+
+<!-- OCCASIONS -->
+<div class="occasions">
+  <div class="label">The Occasion</div>
+  <div class="occ-grid">
+    <div class="occ-card">
+      <div class="occ-icon">○</div>
+      <div class="occ-name">Wedding</div>
+      <div class="occ-desc">A work for the home they're building together. Something that grows with them.</div>
+    </div>
+    <div class="occ-card">
+      <div class="occ-icon">△</div>
+      <div class="occ-name">Milestone</div>
+      <div class="occ-desc">A promotion, a retirement, a new home. A work commensurate with the moment.</div>
+    </div>
+    <div class="occ-card">
+      <div class="occ-icon">□</div>
+      <div class="occ-name">Corporate</div>
+      <div class="occ-desc">For the client, the partner, the board member. Something genuinely remarkable.</div>
+    </div>
+    <div class="occ-card">
+      <div class="occ-icon">◇</div>
+      <div class="occ-name">Just Because</div>
+      <div class="occ-desc">No occasion required. The people in your life who deserve something real.</div>
+    </div>
+  </div>
+</div>
+
+<!-- GIFT WORKS -->
+<div class="gift-works" id="gift-works">
+  <div class="label">Works Available to Gift</div>
+  <div class="gw-grid" id="gw-grid"></div>
+</div>
+
+<!-- HOW GIFTING WORKS -->
+<div class="how-gift">
+  <div class="label">How It Works</div>
+  <div class="hg-steps">
+    <div class="hg-step">
+      <div class="hg-num">01 — Select</div>
+      <div class="hg-title">Choose a work</div>
+      <div class="hg-body">Browse the collection. Select a work for the person and the space you have in mind. We'll help if you need guidance.</div>
+    </div>
+    <div class="hg-step">
+      <div class="hg-num">02 — Personalize</div>
+      <div class="hg-title">Write your message</div>
+      <div class="hg-body">A gift message accompanies the provenance certificate. It becomes part of the work's permanent record.</div>
+    </div>
+    <div class="hg-step">
+      <div class="hg-num">03 — Deliver</div>
+      <div class="hg-title">Canvas or digital reveal</div>
+      <div class="hg-body">If the recipient owns a Layer Canvas, the work is added to their collection immediately. Otherwise, a Cosmos display arrives with the gift.</div>
+    </div>
+    <div class="hg-step">
+      <div class="hg-num">04 — Earn</div>
+      <div class="hg-title">The artist earns</div>
+      <div class="hg-body">From the moment the work begins playing, ViewTime royalties flow to the artist. Your gift is an act of patronage — ongoing, not once.</div>
+    </div>
+  </div>
+</div>
+
+<!-- GIFT CERTIFICATE MOCK -->
+<div class="cert-section">
+  <div class="gift-cert">
+    <div class="cert-logo">Layer</div>
+    <div class="cert-canvas-center"><canvas id="cert-canvas" width="240" height="240"></canvas></div>
+    <div class="cert-work-name">"Tissue 04"</div>
+    <div class="cert-artist-name">Casey Reas</div>
+    <hr class="cert-hr">
+    <div class="cert-from">A gift from</div>
+    <div class="cert-work-name" style="font-size:1rem;margin-bottom:1.5rem;">Angelo Sotira</div>
+    <div class="cert-message">"This work will change every time you look at it. That's the point."</div>
+    <hr class="cert-hr">
+    <div class="cert-auth">LAYER-GIFT-2026-CR-T04 · Edition 2 of 5</div>
+  </div>
+</div>
+
+<!-- PRICE GUIDE -->
+<div class="price-guide">
+  <div class="label">By Budget</div>
+  <div class="pg-grid">
+    <div class="pg-card">
+      <div class="pg-range">$500 – $2,000</div>
+      <div class="pg-name">The Entry</div>
+      <div class="pg-desc">Open edition variant works. Beautiful, living, and genuinely meaningful. First access for the recipient if they don't yet own a Canvas.</div>
+      <div class="pg-examples">Anton Dubrovin · Hayk Zakoyan · Lake Heckaman</div>
+    </div>
+    <div class="pg-card">
+      <div class="pg-range">$7,000 – $12,000</div>
+      <div class="pg-name">The Collection</div>
+      <div class="pg-desc">Limited edition works with the Cosmos display included. A complete gift — display and art arrive together.</div>
+      <div class="pg-examples">Leander Herzog · Arttu Koskela · Jason Ting</div>
+    </div>
+    <div class="pg-card">
+      <div class="pg-range">$22,000+</div>
+      <div class="pg-name">The Statement</div>
+      <div class="pg-desc">The Founder Edition Canvas with a signature work. The most significant gift in digital art. For the person who deserves the best.</div>
+      <div class="pg-examples">Casey Reas · Zach Lieberman · Justin Maller</div>
+    </div>
+  </div>
+</div>
+
+<!-- QUOTE -->
+<div class="quote">
+  <div class="quote-text">"The best gifts are the ones<br>that keep becoming."</div>
+</div>
+
+<!-- CTA -->
+<div class="cta">
+  <div class="cta-card">
+    <div class="cta-title">Gift a Work</div>
+    <div class="cta-desc">Tell us the occasion, the person, and your budget. We'll curate three options and handle everything from selection to delivery.</div>
+    <a href="https://layer.com/inquire" class="btn">Start a Gift</a>
+  </div>
+  <div class="cta-card">
+    <div class="cta-title">Corporate Gifting</div>
+    <div class="cta-desc">For clients, partners, and teams. Volume pricing available. Custom gift notes and white-glove installation for recipients with existing Canvases.</div>
+    <a href="https://layer.com/inquire" class="btn">Corporate Inquiries</a>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-logo">Layer</div>
+  <div class="footer-links">
+    <a href="#">Gift a Work</a><a href="#">Artists</a><a href="#">Canvas</a><a href="https://layer.com/inquire">Inquire</a>
+  </div>
+  <div class="footer-copy">© 2026 Layer</div>
+</footer>
+
+<script>
+let isMember = false;
+function toggleMember() {
+  isMember = !isMember;
+  document.getElementById('member-btn').textContent = isMember ? 'I Own a Layer ✓' : 'I Own a Layer';
+  document.getElementById('member-btn').classList.toggle('active', isMember);
+}
+
+const giftWorks = [
+  {artist:'Hayk Zakoyan',title:'"Nebular Forms"',ed:'Open Edition',price:'$4,800',includes:'Includes Cosmos display for new collectors',anim:'nebula'},
+  {artist:'Anton Dubrovin',title:'"Still Process"',ed:'Open Edition',price:'$2,200',includes:'For existing Layer collectors',anim:'ink'},
+  {artist:'Lake Heckaman',title:'"Drift Study"',ed:'Ed. 15',price:'$8,500 with Cosmos',includes:'Includes Cosmos display',anim:'drift'},
+  {artist:'Arttu Koskela',title:'"Aurora Forma"',ed:'Ed. 12',price:'$7,200 with Cosmos',includes:'Includes Cosmos display',anim:'aurora'},
+  {artist:'Leander Herzog',title:'"Meridian"',ed:'Ed. 12',price:'$9,500 with Cosmos',includes:'Includes Cosmos display',anim:'terrain'},
+  {artist:'Casey Reas',title:'"Tissue 04"',ed:'Ed. 5 — 3 remaining',price:'$28,000 with Founder Edition',includes:'Includes Founder Edition Canvas',anim:'reas'},
+];
+
+const gwGrid = document.getElementById('gw-grid');
+giftWorks.forEach((w, i) => {
+  const card = document.createElement('div');
+  card.className = 'gw-card';
+  card.innerHTML = `
+    <div class="gw-canvas-wrap"><canvas id="gw-${i}" width="400" height="400"></canvas></div>
+    <div class="gw-info">
+      <div class="gw-artist">${w.artist}</div>
+      <div class="gw-title">${w.title}</div>
+      <div class="gw-edition">${w.ed}</div>
+      <div class="gw-price">${w.price}</div>
+      <div class="gw-includes">${w.includes}</div>
+      <a href="https://layer.com/inquire" class="btn" style="font-size:0.6rem;padding:0.4rem 1.2rem;">Gift This Work</a>
+    </div>
+  `;
+  gwGrid.appendChild(card);
+});
+
+const animFns = {
+  reas: (ctx,W,H) => { const n=Array.from({length:45},()=>({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-0.5)*0.45,vy:(Math.random()-0.5)*0.45,r:Math.random()*1.2+0.4}));function d(){ctx.fillStyle='rgba(0,0,0,0.05)';ctx.fillRect(0,0,W,H);n.forEach((a,i)=>{a.x+=a.vx;a.y+=a.vy;if(a.x<0||a.x>W)a.vx*=-1;if(a.y<0||a.y>H)a.vy*=-1;n.forEach((b,j)=>{if(j<=i)return;const d2=Math.hypot(a.x-b.x,a.y-b.y);if(d2<90){ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.strokeStyle=`rgba(255,255,255,${(1-d2/90)*0.22})`;ctx.lineWidth=0.5;ctx.stroke();}});ctx.beginPath();ctx.arc(a.x,a.y,a.r,0,Math.PI*2);ctx.fillStyle='rgba(255,255,255,0.65)';ctx.fill();});requestAnimationFrame(d);}ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);d(); },
+  nebula: (ctx,W,H) => { const stars=Array.from({length:150},()=>({x:Math.random()*W,y:Math.random()*H,r:Math.random()*0.7+0.2}));const clouds=[{x:W*0.35,y:H*0.5,r:W*0.4,col:'80,20,120'},{x:W*0.65,y:H*0.4,r:W*0.35,col:'120,30,80'},{x:W*0.5,y:H*0.6,r:W*0.25,col:'160,160,255'}];let t=0;function d(){ctx.fillStyle='rgba(0,0,0,0.04)';ctx.fillRect(0,0,W,H);clouds.forEach((cl,i)=>{const dx=Math.sin(t*0.08+i)*25,dy=Math.cos(t*0.06+i)*18;const g=ctx.createRadialGradient(cl.x+dx,cl.y+dy,0,cl.x+dx,cl.y+dy,cl.r);g.addColorStop(0,`rgba(${cl.col},0.1)`);g.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);});stars.forEach(s=>{ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fillStyle='rgba(255,255,255,0.4)';ctx.fill();});t+=0.01;requestAnimationFrame(d);}ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);d(); },
+  ink: (ctx,W,H) => { const drops=[];let t=0;function addDrop(){drops.push({x:Math.random()*W,y:Math.random()*H,r:0,maxR:30+Math.random()*60,alpha:0.12+Math.random()*0.08});}for(let i=0;i<5;i++)addDrop();function d(){ctx.fillStyle='rgba(0,0,0,0.02)';ctx.fillRect(0,0,W,H);drops.forEach((dr,i)=>{dr.r+=0.3;const g=ctx.createRadialGradient(dr.x,dr.y,0,dr.x,dr.y,dr.r);g.addColorStop(0,`rgba(255,255,255,${dr.alpha*(1-dr.r/dr.maxR)})`);g.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=g;ctx.fillRect(dr.x-dr.r,dr.y-dr.r,dr.r*2,dr.r*2);if(dr.r>=dr.maxR){drops[i]={x:Math.random()*W,y:Math.random()*H,r:0,maxR:30+Math.random()*60,alpha:0.12+Math.random()*0.08};}});t+=0.01;requestAnimationFrame(d);}ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);d(); },
+  drift: (ctx,W,H) => { const pts=Array.from({length:500},()=>({x:Math.random()*W,y:Math.random()*H,vy:Math.random()*0.25+0.04,vx:(Math.random()-0.5)*0.08}));function d(){ctx.fillStyle='rgba(0,0,0,0.04)';ctx.fillRect(0,0,W,H);pts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;if(p.y>H){p.y=0;p.x=Math.random()*W;}ctx.fillStyle='rgba(255,255,255,0.3)';ctx.fillRect(p.x,p.y,0.8,0.8);});requestAnimationFrame(d);}ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);d(); },
+  aurora: (ctx,W,H) => { let t=0;function d(){ctx.globalCompositeOperation='source-over';ctx.fillStyle='rgba(0,0,0,0.04)';ctx.fillRect(0,0,W,H);ctx.globalCompositeOperation='screen';[{c:'rgba(20,70,160,0.12)',s:0.3},{c:'rgba(0,110,180,0.09)',s:0.5},{c:'rgba(140,100,20,0.06)',s:0.2}].forEach((b,i)=>{const y=(H*(i+0.5)/3+Math.sin(t*b.s+i)*40)%H;const g=ctx.createLinearGradient(0,y-90,0,y+90);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(0.5,b.c);g.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=g;ctx.fillRect(0,y-90,W,180);});t+=0.012;ctx.globalCompositeOperation='source-over';requestAnimationFrame(d);}ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);d(); },
+  terrain: (ctx,W,H) => { let t=0;function d(){ctx.fillStyle='rgba(0,0,0,0.06)';ctx.fillRect(0,0,W,H);for(let i=0;i<18;i++){ctx.beginPath();const by=H*(i+0.5)/18;ctx.moveTo(0,by);for(let x=0;x<=W;x+=4){const y=by+Math.sin(x/70+t*0.25+i*0.5)*20+Math.sin(x/35+t*0.15+i)*8;ctx.lineTo(x,y);}ctx.strokeStyle=`rgba(255,255,255,${0.04+0.07*Math.abs(Math.sin(i*0.35+t*0.1))})`;ctx.lineWidth=0.8;ctx.stroke();}t+=0.015;requestAnimationFrame(d);}ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);d(); },
+};
+
+// Hero canvas
+(function(){
+  const c = document.getElementById('hero-canvas');
+  const ctx = c.getContext('2d');
+  animFns.nebula(ctx, c.width, c.height);
+})();
+
+// Cert canvas
+(function(){
+  const c = document.getElementById('cert-canvas');
+  if (!c) return;
+  let started = false;
+  new IntersectionObserver(entries => { if(entries[0].isIntersecting && !started){started=true; animFns.reas(c.getContext('2d'), c.width, c.height);} }, {threshold:0.1}).observe(c);
+})();
+
+const gwAnimKeys = ['nebula','ink','drift','aurora','terrain','reas'];
+gwAnimKeys.forEach((key, i) => {
+  const c = document.getElementById(`gw-${i}`);
+  if (!c) return;
+  let started = false;
+  new IntersectionObserver(entries => { if(entries[0].isIntersecting && !started){started=true; animFns[key](c.getContext('2d'), c.width, c.height);} }, {threshold:0.1}).observe(c);
+});
+</script>
+</body>
+</html>

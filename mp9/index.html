@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Layer — Spaces</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { background: #000; color: #fff; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-weight: 300; -webkit-font-smoothing: antialiased; line-height: 1.6; }
+
+    nav { position: sticky; top: 0; z-index: 200; background: #000; border-bottom: 1px solid rgba(255,255,255,0.08); height: 50px; }
+    .nav-inner { max-width: 1400px; margin: 0 auto; padding: 0 40px; height: 100%; display: flex; align-items: center; justify-content: space-between; }
+    .nav-logo { font-size: 1rem; letter-spacing: 0.35em; text-transform: uppercase; color: #fff; text-decoration: none; }
+    .nav-tabs { display: flex; gap: 0; }
+    .nav-tab { font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; background: none; border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.4); padding: 0.3rem 1rem; cursor: pointer; font-family: inherit; font-weight: 300; transition: all 0.2s; }
+    .nav-tab:first-child { border-right: none; }
+    .nav-tab:hover { color: rgba(255,255,255,0.7); border-color: rgba(255,255,255,0.4); }
+    .nav-tab.active { border-color: rgba(255,255,255,0.6); color: #fff; background: rgba(255,255,255,0.04); }
+    .nav-right { display: flex; align-items: center; gap: 1.5rem; }
+    .nav-link { font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(255,255,255,0.35); text-decoration: none; }
+    .nav-link:hover { color: #fff; }
+
+    .label { font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,255,255,0.35); }
+    .muted { color: rgba(255,255,255,0.45); }
+    .btn { display: inline-block; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; border: 1px solid rgba(255,255,255,0.35); background: none; color: rgba(255,255,255,0.7); padding: 0.55rem 1.8rem; cursor: pointer; font-family: inherit; font-weight: 300; transition: all 0.2s; text-decoration: none; }
+    .btn:hover { border-color: #fff; color: #fff; }
+    hr.rule { border: none; border-top: 1px solid rgba(255,255,255,0.08); }
+
+    /* MODE VISIBILITY */
+    .res-only { display: block; }
+    .hosp-only { display: none; }
+    body.hospitality-mode .res-only { display: none; }
+    body.hospitality-mode .hosp-only { display: block; }
+    .res-grid-show { display: grid; }
+    .hosp-grid-show { display: none; }
+    body.hospitality-mode .res-grid-show { display: none; }
+    body.hospitality-mode .hosp-grid-show { display: grid; }
+
+    /* STATEMENT */
+    .statement { max-width: 1400px; margin: 0 auto; padding: 100px 40px 80px; }
+    .statement-headline { font-size: 3.5rem; font-weight: 200; line-height: 1.3; margin-bottom: 1.5rem; max-width: 700px; }
+    .statement-sub { font-size: 0.95rem; color: rgba(255,255,255,0.45); max-width: 520px; line-height: 1.8; }
+
+    /* SPACE TYPE CARDS */
+    .spaces { max-width: 1400px; margin: 0 auto; padding: 0 40px 80px; }
+    .spaces-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; }
+    .space-card { position: relative; height: 340px; overflow: hidden; }
+    .space-canvas { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0.25; }
+    .space-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.2) 100%); }
+    .space-content { position: absolute; bottom: 0; left: 0; right: 0; padding: 2rem; }
+    .space-type { font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 0.5rem; }
+    .space-desc { font-size: 0.85rem; color: rgba(255,255,255,0.7); line-height: 1.6; }
+
+    /* PRICING */
+    .pricing { max-width: 1400px; margin: 0 auto; padding: 80px 40px; }
+
+    /* RESIDENTIAL PRICING */
+    .res-pricing-grid { grid-template-columns: 1fr 1fr; gap: 2px; margin-top: 2rem; }
+    .mem-card { padding: 2.5rem; border: 1px solid rgba(255,255,255,0.08); }
+    .mem-name { font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,255,255,0.35); margin-bottom: 0.5rem; }
+    .mem-price { font-size: 2.5rem; font-weight: 200; margin-bottom: 1rem; }
+    .mem-desc { font-size: 0.85rem; color: rgba(255,255,255,0.45); line-height: 1.8; margin-bottom: 1.5rem; }
+    .mem-features { list-style: none; margin-bottom: 2rem; }
+    .mem-features li { font-size: 0.8rem; color: rgba(255,255,255,0.4); padding: 0.4rem 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .mem-features li::before { content: "— "; color: rgba(255,255,255,0.15); }
+
+    /* HOSPITALITY RATE CARD */
+    .rate-grid { grid-template-columns: repeat(3, 1fr); gap: 2px; margin-top: 2rem; }
+    .rate-card { padding: 2.5rem; border: 1px solid rgba(255,255,255,0.08); }
+    .rate-tier { font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,255,255,0.35); margin-bottom: 0.5rem; }
+    .rate-price { font-size: 2rem; font-weight: 200; margin-bottom: 0.3rem; }
+    .rate-unit { font-size: 0.7rem; color: rgba(255,255,255,0.35); margin-bottom: 1rem; }
+    .rate-desc { font-size: 0.82rem; color: rgba(255,255,255,0.45); line-height: 1.7; margin-bottom: 1.5rem; }
+    .rate-features { list-style: none; margin-bottom: 2rem; }
+    .rate-features li { font-size: 0.78rem; color: rgba(255,255,255,0.35); padding: 0.35rem 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .rate-features li::before { content: "— "; color: rgba(255,255,255,0.12); }
+    .rate-note { font-size: 0.75rem; color: rgba(255,255,255,0.3); margin-top: 1.5rem; line-height: 1.6; max-width: 700px; }
+
+    /* FEATURED SPACES */
+    .featured { max-width: 1400px; margin: 0 auto; padding: 80px 40px; }
+    .featured-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; margin-top: 2rem; }
+    .feat-card { position: relative; }
+    .feat-canvas-wrap { aspect-ratio: 4/3; overflow: hidden; }
+    .feat-canvas-wrap canvas { width: 100%; height: 100%; display: block; }
+    .feat-info { padding: 1.2rem 0; }
+    .feat-venue { font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 0.3rem; }
+    .feat-desc { font-size: 0.82rem; color: rgba(255,255,255,0.5); line-height: 1.7; }
+
+    /* DATA POINTS */
+    .data-pts { max-width: 1400px; margin: 0 auto; padding: 80px 40px; }
+    .data-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; margin-top: 2rem; }
+    .data-card { padding: 2rem; border: 1px solid rgba(255,255,255,0.06); }
+    .data-val { font-size: 1.5rem; font-weight: 200; margin-bottom: 0.4rem; }
+    .data-label { font-size: 0.65rem; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.35); }
+
+    /* QUOTE */
+    .quote { max-width: 1400px; margin: 0 auto; padding: 100px 40px; text-align: center; }
+    .quote-text { font-size: 2rem; font-weight: 200; line-height: 1.6; max-width: 680px; margin: 0 auto; }
+
+    /* BOTTOM CTA */
+    .cta-section { max-width: 1400px; margin: 0 auto; padding: 80px 40px; }
+    .cta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; }
+    .cta-card { padding: 2.5rem; border: 1px solid rgba(255,255,255,0.08); }
+    .cta-title { font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,255,255,0.35); margin-bottom: 0.5rem; }
+    .cta-desc { font-size: 0.85rem; color: rgba(255,255,255,0.45); margin-bottom: 1.5rem; line-height: 1.7; }
+
+    footer { border-top: 1px solid rgba(255,255,255,0.08); padding: 2.5rem 40px; max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+    .footer-logo { font-size: 0.85rem; letter-spacing: 0.3em; text-transform: uppercase; }
+    .footer-links { display: flex; gap: 2rem; }
+    .footer-links a { font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(255,255,255,0.3); text-decoration: none; }
+    .footer-links a:hover { color: #fff; }
+    .footer-copy { font-size: 0.6rem; color: rgba(255,255,255,0.2); }
+
+    @media(max-width:900px){
+      .spaces-grid, .res-pricing-grid, .rate-grid, .featured-grid, .data-grid, .cta-grid { grid-template-columns: 1fr; }
+      .data-grid { grid-template-columns: 1fr 1fr; }
+      .statement-headline { font-size: 2.2rem; }
+      .nav-inner,.statement,.spaces,.pricing,.featured,.data-pts,.quote,.cta-section,footer { padding-left:24px;padding-right:24px; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="nav-logo">Layer</a>
+    <div class="nav-tabs">
+      <button class="nav-tab active" id="tab-res" onclick="setMode('residential')">Residential</button>
+      <button class="nav-tab" id="tab-hosp" onclick="setMode('hospitality')">Hospitality</button>
+    </div>
+    <div class="nav-right">
+      <a href="https://layer.com/inquire" class="nav-link">Inquire</a>
+    </div>
+  </div>
+</nav>
+
+<!-- STATEMENT -->
+<div class="statement">
+  <div class="statement-headline res-only">Art that belongs<br>to the space.</div>
+  <div class="statement-headline hosp-only">The standard for<br>hospitality art.</div>
+  <div class="statement-sub res-only">From private homes to private rooms. Layer is the way serious collectors live with generative art.</div>
+  <div class="statement-sub hosp-only">From boutique hotels to flagship properties. Layer programs living generative art into the built environment. Every canvas adapts. Every artist earns.</div>
+</div>
+
+<!-- SPACE TYPE CARDS -->
+<div class="spaces">
+  <div class="spaces-grid">
+    <div class="space-card">
+      <canvas class="space-canvas" id="sc-0" width="500" height="340"></canvas>
+      <div class="space-overlay"></div>
+      <div class="space-content">
+        <div class="space-type">Residential</div>
+        <div class="space-desc">The private collection. Work selected for your aesthetic, displayed with intention.</div>
+      </div>
+    </div>
+    <div class="space-card">
+      <canvas class="space-canvas" id="sc-1" width="500" height="340"></canvas>
+      <div class="space-overlay"></div>
+      <div class="space-content">
+        <div class="space-type">Hospitality</div>
+        <div class="space-desc">The considered lobby. Work that defines the tone of the space before a word is spoken.</div>
+      </div>
+    </div>
+    <div class="space-card">
+      <canvas class="space-canvas" id="sc-2" width="500" height="340"></canvas>
+      <div class="space-overlay"></div>
+      <div class="space-content">
+        <div class="space-type">Institutional</div>
+        <div class="space-desc">The permanent installation. Museum and gallery partnerships with artists at depth.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PRICING -->
+<div class="pricing">
+  <div class="label">Membership</div>
+
+  <!-- RESIDENTIAL -->
+  <div class="res-pricing-grid res-grid-show">
+    <div class="mem-card">
+      <div class="mem-name">Cosmos</div>
+      <div class="mem-price">$7,000</div>
+      <div class="mem-desc">Entry into the collection. Your first acquisition includes the Cosmos display.</div>
+      <ul class="mem-features">
+        <li>Full collection access — 250+ works</li>
+        <li>48-hour drop priority</li>
+        <li>Art pricing on all works</li>
+        <li>ViewTime royalties active</li>
+      </ul>
+      <a href="https://layer.com/inquire" class="btn">Inquire</a>
+    </div>
+    <div class="mem-card">
+      <div class="mem-name">Founder Edition</div>
+      <div class="mem-price">$22,000</div>
+      <div class="mem-desc">The Layer Canvas — 41.7 × 41.7 inches, dedicated GPU, true black, milled aluminum. Silent.</div>
+      <ul class="mem-features">
+        <li>All Cosmos benefits</li>
+        <li>Edition of 1–5 access</li>
+        <li>Direct artist relationship</li>
+        <li>Founder Edition Canvas included</li>
+      </ul>
+      <a href="https://layer.com/inquire" class="btn">Inquire</a>
+    </div>
+  </div>
+
+  <!-- HOSPITALITY RATE CARD -->
+  <div class="rate-grid hosp-grid-show">
+    <div class="rate-card">
+      <div class="rate-tier">Standard</div>
+      <div class="rate-price">$1,200</div>
+      <div class="rate-unit">per canvas / month</div>
+      <div class="rate-desc">Single canvas. Full Layer Curation. Quarterly rotation. Setup and installation included.</div>
+      <ul class="rate-features">
+        <li>Full 250+ work library</li>
+        <li>Quarterly curation rotation</li>
+        <li>White-glove installation</li>
+        <li>Remote management</li>
+      </ul>
+      <a href="https://layer.com/inquire" class="btn">Inquire</a>
+    </div>
+    <div class="rate-card">
+      <div class="rate-tier">Multi-Canvas</div>
+      <div class="rate-price">Contact</div>
+      <div class="rate-unit">3–10 canvases</div>
+      <div class="rate-desc">Custom curation for your property. Works selected to complement the space, lighting, and brand.</div>
+      <ul class="rate-features">
+        <li>Custom curation brief</li>
+        <li>Monthly rotation option</li>
+        <li>Dedicated account manager</li>
+        <li>Artist introductions available</li>
+      </ul>
+      <a href="https://layer.com/inquire" class="btn">Inquire</a>
+    </div>
+    <div class="rate-card">
+      <div class="rate-tier">Flagship</div>
+      <div class="rate-price">Bespoke</div>
+      <div class="rate-unit">10+ canvases</div>
+      <div class="rate-desc">Full property programming. Exclusive works. Artist residency. The defining art program for landmark properties.</div>
+      <ul class="rate-features">
+        <li>Exclusive work commissions</li>
+        <li>Artist residency programs</li>
+        <li>Co-branded programming</li>
+        <li>Full property mapping</li>
+      </ul>
+      <a href="https://layer.com/inquire" class="btn">Inquire</a>
+    </div>
+  </div>
+  <div class="rate-note hosp-only">Hospitality licenses include white-glove installation, quarterly curation rotations, remote canvas management, and a dedicated account team. ViewTime royalties ensure artists are paid for every display hour across your property.</div>
+</div>
+
+<!-- FEATURED SPACES (hospitality only) -->
+<div class="featured hosp-only">
+  <div class="label">Featured Installations</div>
+  <div class="featured-grid">
+    <div class="feat-card">
+      <div class="feat-canvas-wrap"><canvas id="fc-0" width="500" height="375"></canvas></div>
+      <div class="feat-info">
+        <div class="feat-venue">The NoMad, New York</div>
+        <div class="feat-desc">3 Layer Canvases in lobby and bar. Rotating monthly with emerging generative artists. Casey Reas selected for the dining room.</div>
+      </div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-canvas-wrap"><canvas id="fc-1" width="500" height="375"></canvas></div>
+      <div class="feat-info">
+        <div class="feat-venue">Rosewood Miramar, Santa Barbara</div>
+        <div class="feat-desc">Founder Edition installation in private dining. Leander Herzog — "Meridian" — curated specifically for the ocean-facing room.</div>
+      </div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-canvas-wrap"><canvas id="fc-2" width="500" height="375"></canvas></div>
+      <div class="feat-info">
+        <div class="feat-venue">The Standard, Miami Beach</div>
+        <div class="feat-desc">12 Canvases across public spaces and pool deck. Custom artist residency programming with quarterly artist-in-residence events.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DATA POINTS -->
+<div class="data-pts">
+  <div class="data-grid">
+    <div class="data-card"><div class="data-val">100+</div><div class="data-label">Artists · Curated exclusively</div></div>
+    <div class="data-card"><div class="data-val">250+</div><div class="data-label">Works · Never the same twice</div></div>
+    <div class="data-card"><div class="data-val">ViewTime</div><div class="data-label">Artists paid every display hour</div></div>
+    <div class="data-card"><div class="data-val">41.7"</div><div class="data-label">Square · Engineered for the medium</div></div>
+  </div>
+</div>
+
+<!-- QUOTE -->
+<div class="quote">
+  <div class="quote-text">"The right work, in the right light,<br>changes how a room feels."</div>
+</div>
+
+<!-- CTA -->
+<div class="cta-section">
+  <div class="cta-grid">
+    <div class="cta-card res-only">
+      <div class="cta-title">Personal Collecting</div>
+      <div class="cta-desc">Start with Cosmos ($7,000) or the Founder Edition Canvas ($22,000). Your first acquisition includes your display.</div>
+      <a href="https://layer.com/inquire" class="btn">Inquire about Membership</a>
+    </div>
+    <div class="cta-card hosp-only">
+      <div class="cta-title">Hospitality &amp; Commercial</div>
+      <div class="cta-desc">Tell us about your property. We'll put together a curation brief and pricing proposal within 48 hours.</div>
+      <a href="https://layer.com/inquire" class="btn">Inquire about Spaces</a>
+    </div>
+    <div class="cta-card">
+      <div class="cta-title">Artists &amp; Galleries</div>
+      <div class="cta-desc">Layer works with a curated roster of generative artists. If you're interested in joining the collection, introduce yourself.</div>
+      <a href="https://layer.com/inquire" class="btn">Artist Inquiries</a>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-logo">Layer</div>
+  <div class="footer-links">
+    <a href="#">Spaces</a><a href="#">Artists</a><a href="#">Canvas</a><a href="https://layer.com/inquire">Inquire</a>
+  </div>
+  <div class="footer-copy">© 2026 Layer</div>
+</footer>
+
+<script>
+function setMode(m) {
+  document.body.className = m === 'hospitality' ? 'hospitality-mode' : '';
+  document.getElementById('tab-res').classList.toggle('active', m === 'residential');
+  document.getElementById('tab-hosp').classList.toggle('active', m === 'hospitality');
+}
+
+const animFns = {
+  nebula: (ctx, W, H) => {
+    const stars = Array.from({length:150}, () => ({x:Math.random()*W, y:Math.random()*H, r:Math.random()*0.7+0.2}));
+    const clouds = [{x:W*0.35,y:H*0.5,r:W*0.4,col:'80,20,120'},{x:W*0.65,y:H*0.4,r:W*0.35,col:'120,30,80'},{x:W*0.5,y:H*0.6,r:W*0.25,col:'160,160,255'}];
+    let t = 0;
+    function d() {
+      ctx.fillStyle = 'rgba(0,0,0,0.04)'; ctx.fillRect(0,0,W,H);
+      clouds.forEach((cl, i) => {
+        const dx = Math.sin(t*0.08+i)*25, dy = Math.cos(t*0.06+i)*18;
+        const g = ctx.createRadialGradient(cl.x+dx,cl.y+dy,0,cl.x+dx,cl.y+dy,cl.r);
+        g.addColorStop(0, `rgba(${cl.col},0.1)`); g.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
+      });
+      stars.forEach(s => { ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2); ctx.fillStyle='rgba(255,255,255,0.4)'; ctx.fill(); });
+      t += 0.01; requestAnimationFrame(d);
+    }
+    ctx.fillStyle = '#000'; ctx.fillRect(0,0,W,H); d();
+  },
+  terrain: (ctx, W, H) => {
+    let t = 0;
+    function d() {
+      ctx.fillStyle = 'rgba(0,0,0,0.06)'; ctx.fillRect(0,0,W,H);
+      for (let i = 0; i < 20; i++) {
+        ctx.beginPath();
+        const by = H*(i+0.5)/20; ctx.moveTo(0, by);
+        for (let x = 0; x <= W; x += 4) { const y = by + Math.sin(x/70+t*0.25+i*0.5)*20 + Math.sin(x/35+t*0.15+i)*8; ctx.lineTo(x,y); }
+        ctx.strokeStyle = `rgba(255,255,255,${0.04+0.07*Math.abs(Math.sin(i*0.35+t*0.1))})`; ctx.lineWidth = 0.8; ctx.stroke();
+      }
+      t += 0.015; requestAnimationFrame(d);
+    }
+    ctx.fillStyle = '#000'; ctx.fillRect(0,0,W,H); d();
+  },
+  nodes: (ctx, W, H) => {
+    const n = Array.from({length:35}, () => ({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-0.5)*0.3,vy:(Math.random()-0.5)*0.3,r:Math.random()*1+0.4}));
+    function d() {
+      ctx.fillStyle = 'rgba(0,0,0,0.05)'; ctx.fillRect(0,0,W,H);
+      n.forEach((a,i) => {
+        a.x+=a.vx; a.y+=a.vy; if(a.x<0||a.x>W)a.vx*=-1; if(a.y<0||a.y>H)a.vy*=-1;
+        n.forEach((b,j) => { if(j<=i)return; const dist=Math.hypot(a.x-b.x,a.y-b.y); if(dist<100){ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.strokeStyle=`rgba(255,255,255,${(1-dist/100)*0.2})`;ctx.lineWidth=0.5;ctx.stroke();} });
+        ctx.beginPath(); ctx.arc(a.x,a.y,a.r,0,Math.PI*2); ctx.fillStyle='rgba(255,255,255,0.55)'; ctx.fill();
+      });
+      requestAnimationFrame(d);
+    }
+    ctx.fillStyle = '#000'; ctx.fillRect(0,0,W,H); d();
+  },
+  aurora: (ctx, W, H) => {
+    let t = 0;
+    function d() {
+      ctx.globalCompositeOperation = 'source-over'; ctx.fillStyle = 'rgba(0,0,0,0.04)'; ctx.fillRect(0,0,W,H);
+      ctx.globalCompositeOperation = 'screen';
+      [{c:'rgba(20,70,160,0.12)',s:0.3},{c:'rgba(0,110,180,0.09)',s:0.5},{c:'rgba(140,100,20,0.06)',s:0.2}].forEach((b,i) => {
+        const y = (H*(i+0.5)/3 + Math.sin(t*b.s+i)*40) % H;
+        const g = ctx.createLinearGradient(0,y-90,0,y+90);
+        g.addColorStop(0,'rgba(0,0,0,0)'); g.addColorStop(0.5,b.c); g.addColorStop(1,'rgba(0,0,0,0)');
+        ctx.fillStyle=g; ctx.fillRect(0,y-90,W,180);
+      });
+      t += 0.012; ctx.globalCompositeOperation = 'source-over'; requestAnimationFrame(d);
+    }
+    ctx.fillStyle = '#000'; ctx.fillRect(0,0,W,H); d();
+  },
+  drift: (ctx, W, H) => {
+    const pts = Array.from({length:500}, () => ({x:Math.random()*W,y:Math.random()*H,vy:Math.random()*0.25+0.04,vx:(Math.random()-0.5)*0.08}));
+    function d() {
+      ctx.fillStyle = 'rgba(0,0,0,0.04)'; ctx.fillRect(0,0,W,H);
+      pts.forEach(p => { p.x+=p.vx; p.y+=p.vy; if(p.y>H){p.y=0;p.x=Math.random()*W;} ctx.fillStyle='rgba(255,255,255,0.3)'; ctx.fillRect(p.x,p.y,0.8,0.8); });
+      requestAnimationFrame(d);
+    }
+    ctx.fillStyle = '#000'; ctx.fillRect(0,0,W,H); d();
+  }
+};
+
+// Space cards
+const spaceAnims = ['nebula','terrain','nodes'];
+spaceAnims.forEach((key, i) => {
+  const c = document.getElementById(`sc-${i}`);
+  if (!c) return;
+  let started = false;
+  new IntersectionObserver(entries => { if(entries[0].isIntersecting && !started){started=true; animFns[key](c.getContext('2d'), c.width, c.height);} }, {threshold:0.1}).observe(c);
+});
+
+// Featured cards
+const featAnims = ['aurora','nodes','drift'];
+featAnims.forEach((key, i) => {
+  const c = document.getElementById(`fc-${i}`);
+  if (!c) return;
+  let started = false;
+  new IntersectionObserver(entries => { if(entries[0].isIntersecting && !started){started=true; animFns[key](c.getContext('2d'), c.width, c.height);} }, {threshold:0.1}).observe(c);
+});
+</script>
+</body>
+</html>

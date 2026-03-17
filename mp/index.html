@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Layer — Marketplace Explorations</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { background: #000; color: #fff; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-weight: 300; -webkit-font-smoothing: antialiased; }
+
+    header {
+      max-width: 1400px; margin: 0 auto; padding: 80px 40px 60px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .header-logo { font-size: 0.85rem; letter-spacing: 0.4em; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 2rem; }
+    .header-title { font-size: 3rem; font-weight: 200; line-height: 1.3; margin-bottom: 1rem; }
+    .header-sub { font-size: 0.9rem; color: rgba(255,255,255,0.4); max-width: 560px; line-height: 1.8; }
+    .header-meta { margin-top: 1.5rem; font-size: 0.7rem; color: rgba(255,255,255,0.25); letter-spacing: 0.1em; }
+
+    .grid { max-width: 1400px; margin: 0 auto; padding: 60px 40px 100px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; }
+
+    .mp-card { background: #000; border: 1px solid rgba(255,255,255,0.06); overflow: hidden; transition: border-color 0.2s; text-decoration: none; color: inherit; display: block; }
+    .mp-card:hover { border-color: rgba(255,255,255,0.3); }
+
+    .mp-thumb { aspect-ratio: 16/10; overflow: hidden; position: relative; }
+    .mp-thumb canvas { width: 100%; height: 100%; display: block; }
+    .mp-num { position: absolute; top: 1rem; left: 1rem; font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(255,255,255,0.3); background: rgba(0,0,0,0.6); padding: 0.2rem 0.5rem; }
+
+    .mp-info { padding: 1.5rem; }
+    .mp-title { font-size: 1rem; font-weight: 300; margin-bottom: 0.4rem; }
+    .mp-concept { font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.35); margin-bottom: 0.8rem; }
+    .mp-desc { font-size: 0.8rem; color: rgba(255,255,255,0.45); line-height: 1.7; margin-bottom: 1.2rem; }
+    .mp-link { font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(255,255,255,0.3); border-bottom: 1px solid rgba(255,255,255,0.12); padding-bottom: 0.1rem; transition: all 0.2s; }
+    .mp-card:hover .mp-link { color: #fff; border-color: rgba(255,255,255,0.5); }
+
+    .mp-tag { display: inline-block; font-size: 0.55rem; letter-spacing: 0.12em; text-transform: uppercase; border: 1px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.3); padding: 0.2rem 0.5rem; margin-right: 0.4rem; margin-bottom: 0.8rem; }
+
+    footer { border-top: 1px solid rgba(255,255,255,0.06); padding: 2rem 40px; max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; }
+    footer span { font-size: 0.6rem; color: rgba(255,255,255,0.2); letter-spacing: 0.1em; }
+
+    @media(max-width:900px){ .grid { grid-template-columns: 1fr 1fr; } header,footer { padding-left: 24px; padding-right: 24px; } .grid { padding-left: 24px; padding-right: 24px; } }
+    @media(max-width:600px){ .grid { grid-template-columns: 1fr; } .header-title { font-size: 2rem; } }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-logo">Layer</div>
+  <div class="header-title">Marketplace<br>Explorations</div>
+  <div class="header-sub">10 concept pages exploring how Layer could position itself as an art company — not a hardware company. Each tests a different model, a different buyer psychology, a different entry point.</div>
+  <div class="header-meta">March 2026 · chuck.neoteric.art · All toggles active — member pricing reveals on click</div>
+</header>
+
+<div class="grid" id="grid"></div>
+
+<footer>
+  <span>Layer — Internal concept work — March 2026</span>
+  <span>chuck.neoteric.art/mp/</span>
+</footer>
+
+<script>
+const mps = [
+  {
+    num: 'MP1',
+    title: 'The Marketplace',
+    concept: 'Art-first baseline',
+    desc: 'The simplest version of the idea: what if the curation page had prices? Member toggle reveals pricing across a 12-work gallery. The foundation every other concept builds on.',
+    url: '/mp1/',
+    tags: ['Member toggle', 'Gallery grid', 'Generative art'],
+    anim: 'nodes'
+  },
+  {
+    num: 'MP2',
+    title: 'Two Membership Tiers',
+    concept: 'Founder Edition vs Cosmos',
+    desc: 'Introduces the $22K Founder Canvas and $7K Cosmos as two entry points. Art ranges from $500 variants to $28K pieces. Tests whether a lower floor opens the market without cheapening the top.',
+    url: '/mp2/',
+    tags: ['Cosmos', 'Founder Edition', 'Art tiers'],
+    anim: 'aurora'
+  },
+  {
+    num: 'MP3',
+    title: 'The Drop',
+    concept: 'Monthly limited releases',
+    desc: 'One artist. One work. Every month. Members get a 48-hour priority window. Upcoming drops are blurred until you\'re a member. Borrowed from Supreme and SNKRS — scarcity + cadence creates anticipation.',
+    url: '/mp3/',
+    tags: ['Drop model', 'Countdown', 'Blurred reveals'],
+    anim: 'terrain'
+  },
+  {
+    num: 'MP4',
+    title: 'The Artist Relationship',
+    concept: 'Acquisition as enrollment',
+    desc: 'The ViewTime ledger is the centerpiece: showing exactly how much Casey Reas earned from your specific canvas in November. Acquisition stops being a transaction and becomes patronage.',
+    url: '/mp4/',
+    tags: ['ViewTime ledger', 'Artist roster', 'Patronage'],
+    anim: 'zach'
+  },
+  {
+    num: 'MP5',
+    title: 'Your Living Collection',
+    concept: 'Art Intelligence personalization',
+    desc: 'Morning/afternoon/evening previews show the same collection feeling different across the day. The Art Intelligence dashboard makes the abstract system visceral. Your collection has a personality.',
+    url: '/mp5/',
+    tags: ['Art Intelligence', 'Time of day', 'Personalization'],
+    anim: 'drift'
+  },
+  {
+    num: 'MP6',
+    title: 'The Living Record',
+    concept: 'Provenance & stewardship',
+    desc: 'A certificate of acquisition that grows over time. ViewTime logs continuously. If you sell the work, the record transfers. "You don\'t own a generative work. You steward it."',
+    url: '/mp6/',
+    tags: ['Provenance cert', 'Transferable', 'Authentication'],
+    anim: 'nebula'
+  },
+  {
+    num: 'MP7',
+    title: 'The Private Room',
+    concept: 'Full lockout / lobby vs inside',
+    desc: 'Most aggressive version. Non-members see the animations but nothing else — no titles, no artists, no prices. The "Enter" button is the entire experience. Velvet rope, not a paywall.',
+    url: '/mp7/',
+    tags: ['Full lockout', 'Lobby', 'Private gallery'],
+    anim: 'andreas'
+  },
+  {
+    num: 'MP8',
+    title: 'The Collector\'s Brief',
+    concept: 'Pure text, zero animation',
+    desc: 'No generative art at all. Reads like a Sotheby\'s private sale document. Lot table, facts block, single Inquire CTA. Tests whether authority through restraint can carry the whole pitch.',
+    url: '/mp8/',
+    tags: ['Text only', 'Auction house tone', 'Lot table'],
+    anim: 'static'
+  },
+  {
+    num: 'MP9',
+    title: 'The Hospitality Play',
+    concept: 'Residential vs commercial licensing',
+    desc: 'Two-tab toggle: Residential (personal collecting) vs Hospitality (monthly licensing per canvas). Hotels, clubs, restaurants. Tests whether Layer has a B2B parallel track.',
+    url: '/mp9/',
+    tags: ['Hospitality', 'Commercial licensing', 'B2B'],
+    anim: 'lake'
+  },
+  {
+    num: 'MP10',
+    title: 'Gift a Work',
+    concept: 'New buyer category via gifting',
+    desc: 'Weddings, milestones, corporate. A gift certificate mock. Occasions-based entry that unlocks a buyer who\'d never think to buy art for themselves. Price guide from $500 to $22K+.',
+    url: '/mp10/',
+    tags: ['Gifting', 'New category', 'Gift certificate'],
+    anim: 'justin'
+  }
+];
+
+const animFns = {
+  nodes: (ctx,W,H) => { const n=Array.from({length:30},()=>({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-0.5)*0.4,vy:(Math.random()-0.5)*0.4,r:Math.random()*1.2+0.3}));function d(){ctx.fillStyle='rgba(0,0,0,0.06)';ctx.fillRect(0,0,W,H);n.forEach((a,i)=>{a.x+=a.vx;a.y+=a.vy;if(a.x<0||a.x>W)a.vx*=-1;if(a.y<0||a.y>H)a.vy*=-1;n.forEach((b,j)=>{if(j<=i)return;const d2=Math.hypot(a.x-b.x,a.y-b.y);if(d2<90){ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.strokeStyle=`rgba(255,255,255,${(1-d2/90)*0.2})`;ctx.lineWidth=0.5;ctx.stroke();}});ctx.beginPath();ctx.arc(a.x,a.y,a.r,0,Math.PI*2);ctx.fillStyle='rgba(255,255,255,0.6)';ctx.fill();});requestAnimationFrame(d);}ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);d(); },
+  aurora: (ctx,W,H) => { let t=0;function d(){ctx.globalCompositeOperation='source-over';ctx.fillStyle='rgba(0,0,0,0.04)';ctx.fillRect(0,0,W,H);ctx.globalCompositeOperation='screen';[{c:'rgba(20,70,160,0.12)',s:0.3},{c:'rgba(0,110,180,0.09)',s:0.5},{c:'rgba(140,100,20,0.06)',s:0.2}].forEach((b,i)=>{const y=(H*(i+0.5)/3+Math.sin(t*b.s+i)*35)%H;const g=ctx.createLinearGradient(0,y-80,0,y+80);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(0.5,b.c);g.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=g;ctx.fillRect(0,y-80,W,160);});t+=0.012;ctx.globalCompositeOperation='source-over';requestAnimationFrame(d);}ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);d(); },
+  terrain: (ctx,W,H) => { let t=0;function d(){ctx.fillStyle='rgba(0,0,0,0.07)';ctx.fillRect(0,0,W,H);for(let i=0;i<14;i++){ctx.beginPath();const by=H*(i+0.5)/14;ctx.moveTo(0,by);for(let x=0;x<=W;x+=4){const y=by+Math.sin(x/70+t*0.25+i*0.5)*15+Math.sin(x/35+t*0.15+i)*6;ctx.lineTo(x,y);}ctx.strokeStyle=`rgba(255,255,255,${0.04+0.07*Math.abs(Math.sin(i*0.35+t*0.1))})`;ctx.lineWidth=0.7;ctx.stroke();}t+=0.015;requestAnimationFrame(d);}ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);d(); },
+  zach: (ctx,W,H) => { const b=Array.from({length:4},()=>({pts:[{x:Math.random()*W,y:Math.random()*H}],vx:(Math.random()-0.5)*2,vy:(Math.random()-0.5)*2,life:0,max:100+Math.random()*80,phase:'draw'}));function d(){ctx.fillStyle='rgba(0,0,0,0.025)';ctx.fillRect(0,0,W,H);b.forEach(br=>{if(br.phase==='draw'){const l=br.pts[br.pts.length-1];const nx=Math.max(0,Math.min(W,l.x+br.vx+(Math.random()-0.5)*2));const ny=Math.max(0,Math.min(H,l.y+br.vy+(Math.random()-0.5)*2));br.pts.push({x:nx,y:ny});br.life++;if(br.pts.length>2){ctx.beginPath();ctx.moveTo(l.x,l.y);ctx.lineTo(nx,ny);ctx.strokeStyle='rgba(255,255,255,0.4)';ctx.lineWidth=0.9;ctx.stroke();}if(br.life>=br.max){br.phase='erase';br.life=0;}}else{br.life++;if(br.life>50)Object.assign(br,{pts:[{x:Math.random()*W,y:Math.random()*H}],vx:(Math.random()-0.5)*2,vy:(Math.random()-0.5)*2,life:0,max:100+Math.random()*80,phase:'draw'});}});requestAnimationFrame(d);}ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);d(); },
+  drift: (ctx,W,H) => { const pts=Array.from({length:400},()=>({x:Math.random()*W,y:Math.random()*H,vy:Math.random()*0.2+0.04,vx:(Math.random()-0.5)*0.07}));function d(){ctx.fillStyle='rgba(0,0,0,0.04)';ctx.fillRect(0,0,W,H);pts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;if(p.y>H){p.y=0;p.x=Math.random()*W;}ctx.fillStyle='rgba(255,255,255,0.28)';ctx.fillRect(p.x,p.y,0.7,0.7);});requestAnimationFrame(d);}ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);d(); },
+  nebula: (ctx,W,H) => { const stars=Array.from({length:100},()=>({x:Math.random()*W,y:Math.random()*H,r:Math.random()*0.6+0.2}));const clouds=[{x:W*0.35,y:H*0.5,r:W*0.4,col:'80,20,120'},{x:W*0.65,y:H*0.4,r:W*0.3,col:'120,30,80'}];let t=0;function d(){ctx.fillStyle='rgba(0,0,0,0.05)';ctx.fillRect(0,0,W,H);clouds.forEach((cl,i)=>{const dx=Math.sin(t*0.08+i)*20,dy=Math.cos(t*0.06+i)*14;const g=ctx.createRadialGradient(cl.x+dx,cl.y+dy,0,cl.x+dx,cl.y+dy,cl.r);g.addColorStop(0,`rgba(${cl.col},0.09)`);g.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);});stars.forEach(s=>{ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fillStyle='rgba(255,255,255,0.35)';ctx.fill();});t+=0.01;requestAnimationFrame(d);}ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);d(); },
+  andreas: (ctx,W,H) => { let t=0;function d(){ctx.fillStyle='rgba(0,0,0,0.07)';ctx.fillRect(0,0,W,H);for(let r=0;r<14;r++)for(let c=0;c<14;c++){const bx=W*(c+0.5)/14,by=H*(r+0.5)/14;const dx=Math.sin(t*0.4+r*0.5+c*0.3)*14;const dy=Math.cos(t*0.3+c*0.4+r*0.2)*12;ctx.beginPath();ctx.arc(bx+dx,by+dy,0.7,0,Math.PI*2);ctx.fillStyle='rgba(255,255,255,0.35)';ctx.fill();}t+=0.015;requestAnimationFrame(d);}ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);d(); },
+  static: (ctx,W,H) => { ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);ctx.fillStyle='rgba(255,255,255,0.06)';for(let i=0;i<8;i++){ctx.fillRect(40+i*20,H/2-8,2,16);}ctx.font='300 11px Helvetica Neue,Helvetica,Arial,sans-serif';ctx.fillStyle='rgba(255,255,255,0.2)';ctx.letterSpacing='0.15em';ctx.textAlign='center';ctx.fillText('NO ANIMATION',W/2,H/2+40); },
+  lake: (ctx,W,H) => { const pts=Array.from({length:350},()=>({x:Math.random()*W,y:Math.random()*H,vy:Math.random()*0.22+0.03,vx:(Math.random()-0.5)*0.06}));function d(){ctx.fillStyle='rgba(0,0,0,0.04)';ctx.fillRect(0,0,W,H);pts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;if(p.y>H){p.y=0;p.x=Math.random()*W;}ctx.fillStyle='rgba(255,255,255,0.25)';ctx.fillRect(p.x,p.y,0.7,0.7);});requestAnimationFrame(d);}ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);d(); },
+  justin: (ctx,W,H) => { let t=0;function d(){ctx.fillStyle='rgba(0,0,0,0.05)';ctx.fillRect(0,0,W,H);for(let i=0;i<6;i++){const angle=t*0.15+i*Math.PI/3;const x1=W/2+Math.cos(angle)*60,y1=H/2+Math.sin(angle)*60;const x2=W/2+Math.cos(angle+1.2)*90,y2=H/2+Math.sin(angle+1.2)*90;const x3=W/2+Math.cos(angle+2.4)*50,y3=H/2+Math.sin(angle+2.4)*50;ctx.beginPath();ctx.moveTo(x1,y1);ctx.bezierCurveTo(x2,y2,x3,y3,W/2,H/2);ctx.strokeStyle=`rgba(255,255,255,${0.05+0.07*Math.abs(Math.sin(t+i))})`;ctx.lineWidth=1.1;ctx.stroke();}t+=0.012;requestAnimationFrame(d);}ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);d(); },
+};
+
+const grid = document.getElementById('grid');
+mps.forEach((mp, i) => {
+  const card = document.createElement('a');
+  card.className = 'mp-card';
+  card.href = mp.url;
+  card.innerHTML = `
+    <div class="mp-thumb">
+      <canvas id="thumb-${i}" width="640" height="400"></canvas>
+      <div class="mp-num">${mp.num}</div>
+    </div>
+    <div class="mp-info">
+      <div class="mp-concept">${mp.concept}</div>
+      <div class="mp-title">${mp.title}</div>
+      <div class="mp-desc">${mp.desc}</div>
+      <div style="margin-bottom:1rem;">${mp.tags.map(t => `<span class="mp-tag">${t}</span>`).join('')}</div>
+      <span class="mp-link">View →</span>
+    </div>
+  `;
+  grid.appendChild(card);
+});
+
+// Lazy init animations
+mps.forEach((mp, i) => {
+  const c = document.getElementById(`thumb-${i}`);
+  if (!c) return;
+  if (mp.anim === 'static') {
+    animFns.static(c.getContext('2d'), c.width, c.height);
+    return;
+  }
+  let started = false;
+  new IntersectionObserver(entries => {
+    if (entries[0].isIntersecting && !started) {
+      started = true;
+      animFns[mp.anim](c.getContext('2d'), c.width, c.height);
+    }
+  }, {threshold: 0.1}).observe(c);
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,1303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Layer — The Art of Living</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    :root {
+      --cream: #f5f1eb;
+      --warm-dark: #1a1714;
+      --mid: #2e2b28;
+      --muted: rgba(26,23,20,0.5);
+      --border: rgba(26,23,20,0.12);
+      --accent: #c8a96e;
+      --font-serif: 'Georgia', 'Times New Roman', serif;
+      --font-sans: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background: var(--cream);
+      color: var(--warm-dark);
+      font-family: var(--font-sans);
+      font-weight: 300;
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.6;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 200;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 2.5rem;
+      background: rgba(245,241,235,0.88);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo {
+      font-size: 0.75rem;
+      letter-spacing: 0.32em;
+      text-transform: uppercase;
+      color: var(--warm-dark);
+      text-decoration: none;
+      font-weight: 400;
+    }
+    .nav-links {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 2rem;
+    }
+    .nav-links a {
+      font-size: 0.6rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--warm-dark); }
+    .nav-right { display: flex; align-items: center; gap: 1rem; }
+    .nav-text {
+      font-size: 0.6rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+    .nav-text:hover { color: var(--warm-dark); }
+    .nav-btn {
+      font-family: var(--font-sans);
+      font-size: 0.6rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      background: none;
+      border: 1px solid rgba(26,23,20,0.35);
+      color: var(--warm-dark);
+      padding: 0.4rem 1rem;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    .nav-btn:hover {
+      background: var(--warm-dark);
+      color: var(--cream);
+    }
+
+    /* ── HERO ── */
+    #hero {
+      position: relative;
+      height: 100vh;
+      min-height: 680px;
+      margin-top: 56px;
+      overflow: hidden;
+    }
+
+    /* Carolyn's interior — layered CSS gradient stand-in pending real photography */
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(to bottom, rgba(20,16,12,0.55) 0%, rgba(20,16,12,0.15) 40%, rgba(20,16,12,0.45) 100%),
+        linear-gradient(105deg, #1a110a 0%, #2d1f14 25%, #3d2a1c 45%, #2a1e16 65%, #1c1410 100%);
+      /* Replace with: background-image: url('/mp11/hero-interior.jpg'); background-size: cover; background-position: center; */
+    }
+
+    /* Simulated artwork on wall — a glowing canvas in the dark room */
+    .hero-artwork {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-22%, -50%);
+      width: 280px;
+      height: 380px;
+      background: #000;
+      box-shadow: 0 0 80px rgba(180,120,60,0.18), 0 0 200px rgba(100,60,30,0.12), 0 30px 80px rgba(0,0,0,0.6);
+    }
+    .hero-artwork canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* Lamp glow — simulates the interior lighting from Carolyn's reference */
+    .hero-lamp-glow {
+      position: absolute;
+      bottom: 0;
+      right: 15%;
+      width: 300px;
+      height: 500px;
+      background: radial-gradient(ellipse at bottom center, rgba(200,169,110,0.22) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-content {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 3.5rem 2.5rem;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+    }
+
+    .hero-left { max-width: 560px; }
+
+    .hero-eyebrow {
+      font-size: 0.6rem;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1rem;
+    }
+
+    .hero-headline {
+      font-family: var(--font-serif);
+      font-size: clamp(2.8rem, 5.5vw, 4.5rem);
+      font-weight: 400;
+      line-height: 1.1;
+      color: #fff;
+      margin-bottom: 1.5rem;
+    }
+
+    .hero-headline em {
+      font-style: italic;
+    }
+
+    .hero-sub {
+      font-size: 0.9rem;
+      color: rgba(255,255,255,0.65);
+      line-height: 1.75;
+      max-width: 420px;
+      margin-bottom: 2.5rem;
+    }
+
+    .hero-cta {
+      display: inline-block;
+      font-size: 0.6rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.5);
+      padding: 0.7rem 1.8rem;
+      text-decoration: none;
+      transition: all 0.25s;
+    }
+    .hero-cta:hover {
+      background: rgba(255,255,255,0.12);
+      border-color: #fff;
+    }
+
+    .hero-now-showing {
+      text-align: right;
+    }
+    .now-showing-label {
+      font-size: 0.55rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.4);
+      margin-bottom: 0.5rem;
+    }
+    .now-showing-title {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-size: 1.1rem;
+      color: rgba(255,255,255,0.9);
+      display: block;
+    }
+    .now-showing-artist {
+      font-size: 0.6rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.5);
+      display: block;
+      margin-top: 0.3rem;
+    }
+
+    /* ── IN SITU SECTION ── */
+    #in-situ {
+      background: var(--cream);
+      padding: 7rem 2.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .section-eyebrow {
+      font-size: 0.6rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+
+    .section-headline {
+      font-family: var(--font-serif);
+      font-size: clamp(2rem, 3.5vw, 2.8rem);
+      font-weight: 400;
+      text-align: center;
+      color: var(--warm-dark);
+      margin-bottom: 1rem;
+      line-height: 1.2;
+    }
+
+    .section-body {
+      font-size: 0.95rem;
+      color: var(--muted);
+      text-align: center;
+      max-width: 520px;
+      margin: 0 auto 4rem;
+      line-height: 1.8;
+    }
+
+    /* Masonry grid — 3 columns like Carolyn's */
+    .situ-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      grid-template-rows: auto auto;
+      gap: 1.25rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .situ-card {
+      position: relative;
+      overflow: hidden;
+      background: #1a1714;
+    }
+
+    /* Tall card spans 2 rows */
+    .situ-card.tall {
+      grid-row: span 2;
+    }
+
+    .situ-card-img {
+      width: 100%;
+      height: 100%;
+      min-height: 320px;
+      display: block;
+      position: relative;
+    }
+
+    /* Each card has a canvas rendering the artwork */
+    .situ-canvas-bg {
+      width: 100%;
+      height: 100%;
+      min-height: 320px;
+      display: block;
+    }
+
+    /* Interior photo overlay — warm atmosphere tint */
+    .situ-overlay {
+      position: absolute;
+      inset: 0;
+      /* Simulates interior light: bright upper (window), shadow lower */
+      background: linear-gradient(to bottom, rgba(240,230,210,0.08) 0%, rgba(10,8,6,0.35) 100%);
+      pointer-events: none;
+    }
+
+    /* Artwork-on-wall simulation inside each card */
+    .situ-artwork-frame {
+      position: absolute;
+      box-shadow: 0 4px 30px rgba(0,0,0,0.5);
+    }
+
+    .situ-card-info {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 1.5rem;
+      background: linear-gradient(to top, rgba(10,8,6,0.85) 0%, transparent 100%);
+    }
+
+    .situ-room-type {
+      font-size: 0.55rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.45);
+      margin-bottom: 0.4rem;
+    }
+
+    .situ-artwork-name {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-size: 1rem;
+      color: rgba(255,255,255,0.9);
+    }
+
+    .situ-artist-name {
+      font-size: 0.6rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.45);
+      margin-top: 0.2rem;
+    }
+
+    /* ── COLLECTION HIGHLIGHT ── */
+    #collection {
+      background: var(--warm-dark);
+      color: #fff;
+      padding: 7rem 2.5rem;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    #collection .section-eyebrow { color: rgba(255,255,255,0.35); }
+    #collection .section-headline { color: #fff; }
+    #collection .section-body { color: rgba(255,255,255,0.5); }
+
+    .collection-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 2rem 1.5rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .work-card {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      cursor: pointer;
+    }
+
+    .work-canvas-wrap {
+      position: relative;
+      width: 100%;
+      padding-bottom: 140%;
+      background: #0d0b09;
+      overflow: hidden;
+    }
+
+    .work-canvas-wrap canvas {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    /* Hover — show "living in a room" tint */
+    .work-canvas-wrap::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(200,169,110,0.0);
+      transition: background 0.4s;
+      pointer-events: none;
+    }
+    .work-card:hover .work-canvas-wrap::after {
+      background: rgba(200,169,110,0.06);
+    }
+
+    .work-info { display: flex; flex-direction: column; gap: 0.25rem; }
+    .work-artist {
+      font-size: 0.58rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.4);
+    }
+    .work-title {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-size: 1rem;
+      color: rgba(255,255,255,0.9);
+    }
+    .work-meta {
+      font-size: 0.6rem;
+      color: rgba(255,255,255,0.3);
+      letter-spacing: 0.08em;
+    }
+    .work-price {
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.7);
+      margin-top: 0.15rem;
+    }
+    .locked-price {}
+    .member-price { display: none; }
+    body.member-mode .locked-price { display: none; }
+    body.member-mode .member-price { display: block; }
+
+    /* ── FEATURE PAIR — the room and the art ── */
+    #feature-pair {
+      background: var(--cream);
+      padding: 0;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: 600px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .feature-room {
+      background: #1c1410;
+      position: relative;
+      overflow: hidden;
+      min-height: 600px;
+    }
+
+    .feature-room-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      position: absolute;
+      inset: 0;
+      opacity: 0.6;
+    }
+
+    /* Simulated Layer Canvas on the wall */
+    .feature-canvas-on-wall {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 55%;
+      aspect-ratio: 3/4;
+      background: #000;
+      box-shadow: 0 0 60px rgba(180,130,60,0.2), 0 20px 60px rgba(0,0,0,0.7);
+    }
+
+    .feature-canvas-on-wall canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* Room atmosphere lines — suggest floorboards, shadow */
+    .feature-room-floor {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 180px;
+      background: linear-gradient(to top, rgba(10,6,4,0.7) 0%, transparent 100%);
+    }
+
+    .feature-right {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 5rem 4rem;
+      background: var(--cream);
+    }
+
+    .feature-label {
+      font-size: 0.58rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+    }
+
+    .feature-headline {
+      font-family: var(--font-serif);
+      font-size: clamp(1.8rem, 2.8vw, 2.4rem);
+      font-weight: 400;
+      line-height: 1.25;
+      color: var(--warm-dark);
+      margin-bottom: 1.5rem;
+    }
+
+    .feature-body {
+      font-size: 0.95rem;
+      color: var(--muted);
+      line-height: 1.85;
+      max-width: 400px;
+      margin-bottom: 2.5rem;
+    }
+
+    .feature-work-detail {
+      border-top: 1px solid var(--border);
+      padding-top: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .feature-work-artist {
+      font-size: 0.58rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .feature-work-title {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-size: 1.2rem;
+      color: var(--warm-dark);
+    }
+
+    .feature-work-meta {
+      font-size: 0.7rem;
+      color: var(--muted);
+      margin-top: 0.2rem;
+    }
+
+    .feature-work-price {
+      font-size: 0.8rem;
+      color: var(--warm-dark);
+      margin-top: 0.3rem;
+    }
+
+    /* ── QUOTE ── */
+    #pull-quote {
+      background: var(--warm-dark);
+      padding: 6rem 2.5rem;
+      text-align: center;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .pull-quote-text {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-size: clamp(1.5rem, 3vw, 2.2rem);
+      font-weight: 400;
+      color: rgba(255,255,255,0.85);
+      max-width: 700px;
+      margin: 0 auto;
+      line-height: 1.45;
+    }
+
+    /* ── ART INTELLIGENCE ── */
+    #art-intelligence {
+      background: var(--cream);
+      padding: 7rem 2.5rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6rem;
+      align-items: center;
+      max-width: 1200px;
+      margin: 0 auto;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .ai-headline {
+      font-family: var(--font-serif);
+      font-size: clamp(1.8rem, 3vw, 2.6rem);
+      font-weight: 400;
+      line-height: 1.2;
+      color: var(--warm-dark);
+      margin-bottom: 1.5rem;
+    }
+
+    .ai-body {
+      font-size: 0.95rem;
+      color: var(--muted);
+      line-height: 1.85;
+      max-width: 420px;
+    }
+
+    .ai-dashboard {
+      font-family: 'Courier New', monospace;
+      font-size: 0.78rem;
+      line-height: 1.9;
+      border: 1px solid var(--border);
+      padding: 1.75rem 2rem;
+      color: rgba(26,23,20,0.65);
+      background: rgba(26,23,20,0.03);
+    }
+
+    .dash-label {
+      font-size: 0.55rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.3rem;
+    }
+
+    .dash-divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 1.1rem 0;
+    }
+
+    /* ── MEMBERSHIP ── */
+    #membership {
+      background: var(--cream);
+      padding: 7rem 2.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .membership-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      max-width: 800px;
+      margin: 3rem auto 0;
+    }
+
+    .membership-card {
+      border: 1px solid var(--border);
+      padding: 2.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      transition: border-color 0.2s;
+    }
+
+    .membership-card:hover { border-color: rgba(26,23,20,0.4); }
+
+    .membership-tier {
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .membership-price {
+      font-family: var(--font-serif);
+      font-size: 1.6rem;
+      color: var(--warm-dark);
+      line-height: 1;
+    }
+
+    .membership-desc {
+      font-size: 0.88rem;
+      color: var(--muted);
+      line-height: 1.7;
+      flex: 1;
+    }
+
+    .membership-cta {
+      display: inline-block;
+      font-size: 0.58rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--warm-dark);
+      border: 1px solid rgba(26,23,20,0.35);
+      padding: 0.55rem 1.5rem;
+      text-decoration: none;
+      margin-top: 0.5rem;
+      transition: all 0.2s;
+      align-self: flex-start;
+    }
+    .membership-cta:hover {
+      background: var(--warm-dark);
+      color: var(--cream);
+      border-color: var(--warm-dark);
+    }
+
+    .membership-footnote {
+      font-size: 0.75rem;
+      color: var(--muted);
+      text-align: center;
+      margin-top: 2.5rem;
+      letter-spacing: 0.08em;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--warm-dark);
+      padding: 3rem 2.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .footer-logo {
+      font-size: 0.7rem;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.5);
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 2rem;
+    }
+
+    .footer-links a {
+      font-size: 0.58rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.3);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .footer-links a:hover { color: rgba(255,255,255,0.7); }
+
+    .footer-copy {
+      font-size: 0.58rem;
+      letter-spacing: 0.12em;
+      color: rgba(255,255,255,0.2);
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="#">Layer</a>
+  <div class="nav-links">
+    <a href="#collection">Collection</a>
+    <a href="#">Canvas</a>
+    <a href="#">Artists</a>
+  </div>
+  <div class="nav-right">
+    <span class="nav-text" id="member-btn" onclick="toggleMember()">Member View</span>
+    <a class="nav-btn" href="#">Inquire</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-lamp-glow"></div>
+
+  <!-- The Layer Canvas glowing on the wall -->
+  <div class="hero-artwork">
+    <canvas id="hero-canvas" width="560" height="760"></canvas>
+  </div>
+
+  <div class="hero-content">
+    <div class="hero-left">
+      <p class="hero-eyebrow">Generative Art for the Considered Home</p>
+      <h1 class="hero-headline">The Art<br>of <em>Living</em></h1>
+      <p class="hero-sub">Layer Canvas brings the world's finest generative art into your home. Living, breathing works that evolve with your space — and with you.</p>
+      <a href="#collection" class="hero-cta">Explore the Collection</a>
+    </div>
+    <div class="hero-now-showing">
+      <p class="now-showing-label">Now Showing</p>
+      <span class="now-showing-title">"Tissue 04"</span>
+      <span class="now-showing-artist">Casey Reas</span>
+    </div>
+  </div>
+</section>
+
+<!-- IN SITU — art in real spaces -->
+<section id="in-situ">
+  <p class="section-eyebrow">Layer Canvas In Situ</p>
+  <h2 class="section-headline">At Home, With Art</h2>
+  <p class="section-body">Art that doesn't just hang on your wall — it inhabits your space. Living works in dialogue with the rooms they're in.</p>
+
+  <div class="situ-grid">
+
+    <!-- Card 1: tall left — bright living room -->
+    <div class="situ-card tall">
+      <canvas class="situ-canvas-bg" id="situ-1" width="600" height="900"></canvas>
+      <div class="situ-overlay"></div>
+      <!-- Warm room atmosphere overlay -->
+      <div style="position:absolute;inset:0;background:linear-gradient(to bottom right, rgba(245,235,215,0.06) 0%, rgba(10,6,4,0.3) 100%);pointer-events:none;"></div>
+      <div class="situ-card-info">
+        <p class="situ-room-type">Living Room · New York</p>
+        <p class="situ-artwork-name">"Luminance III"</p>
+        <p class="situ-artist-name">Rik Oostenbroek</p>
+      </div>
+    </div>
+
+    <!-- Card 2: top right — dark study -->
+    <div class="situ-card">
+      <canvas class="situ-canvas-bg" id="situ-2" width="600" height="430"></canvas>
+      <div class="situ-overlay"></div>
+      <div style="position:absolute;inset:0;background:rgba(20,10,5,0.25);pointer-events:none;"></div>
+      <div class="situ-card-info">
+        <p class="situ-room-type">Study · London</p>
+        <p class="situ-artwork-name">"Drawn Apart"</p>
+        <p class="situ-artist-name">Zach Lieberman</p>
+      </div>
+    </div>
+
+    <!-- Card 3: bottom right — dining room -->
+    <div class="situ-card">
+      <canvas class="situ-canvas-bg" id="situ-3" width="600" height="430"></canvas>
+      <div class="situ-overlay"></div>
+      <div style="position:absolute;inset:0;background:rgba(240,230,200,0.05);pointer-events:none;"></div>
+      <div class="situ-card-info">
+        <p class="situ-room-type">Dining Room · Los Angeles</p>
+        <p class="situ-artwork-name">"Meridian"</p>
+        <p class="situ-artist-name">Leander Herzog</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- FEATURE PAIR — split: room left, copy right -->
+<section id="feature-pair">
+  <div class="feature-room">
+    <canvas class="feature-room-canvas" id="feature-canvas" width="800" height="900"></canvas>
+    <div class="feature-canvas-on-wall">
+      <canvas id="feature-wall-canvas" width="400" height="540"></canvas>
+    </div>
+    <div class="feature-room-floor"></div>
+    <!-- Warm window light from right -->
+    <div style="position:absolute;top:0;right:0;bottom:0;width:40%;background:linear-gradient(to left, rgba(200,169,110,0.06) 0%, transparent 100%);pointer-events:none;"></div>
+  </div>
+  <div class="feature-right">
+    <p class="feature-label">The Work</p>
+    <h2 class="feature-headline">Some art changes the room.<br>This art <em>becomes</em> the room.</h2>
+    <p class="feature-body">Every work in the Layer collection was made for a screen — not photographed, not reproduced. The code that runs on the Canvas is the artwork itself. It lives, breathes, and responds to the time of day, the season, your preferences, your space.</p>
+    <div class="feature-work-detail">
+      <p class="feature-work-artist">Casey Reas</p>
+      <p class="feature-work-title">"Tissue 04"</p>
+      <p class="feature-work-meta">Edition 5 of 5 &nbsp;·&nbsp; In 12 collections &nbsp;·&nbsp; Est. value: $35,000+</p>
+      <p class="feature-work-price locked-price">From $35,000 with Founder Edition</p>
+      <p class="feature-work-price member-price">$28,000 — Member Price</p>
+    </div>
+  </div>
+</section>
+
+<!-- PULL QUOTE -->
+<section id="pull-quote">
+  <p class="pull-quote-text">"The art changes. Your space changes. You change."</p>
+</section>
+
+<!-- COLLECTION -->
+<section id="collection">
+  <p class="section-eyebrow">The Collection</p>
+  <h2 class="section-headline">Works that reward living with</h2>
+  <p class="section-body">250+ works. 100+ artists. Every piece native to the medium — code running on canvas, not prints, not reproductions.</p>
+
+  <div class="collection-grid">
+
+    <div class="work-card">
+      <div class="work-canvas-wrap"><canvas class="work-canvas" data-anim="reas" width="300" height="420"></canvas></div>
+      <div class="work-info">
+        <span class="work-artist">Casey Reas</span>
+        <span class="work-title">"Tissue 04"</span>
+        <span class="work-meta">Ed. 5 · In 12 collections</span>
+        <span class="work-price locked-price">From $35,000 with Founder Edition</span>
+        <span class="work-price member-price">$28,000</span>
+      </div>
+    </div>
+
+    <div class="work-card">
+      <div class="work-canvas-wrap"><canvas class="work-canvas" data-anim="zach" width="300" height="420"></canvas></div>
+      <div class="work-info">
+        <span class="work-artist">Zach Lieberman</span>
+        <span class="work-title">"Drawn Apart"</span>
+        <span class="work-meta">Ed. 8 · In 9 collections</span>
+        <span class="work-price locked-price">From $25,000 with Founder Edition</span>
+        <span class="work-price member-price">$18,000</span>
+      </div>
+    </div>
+
+    <div class="work-card">
+      <div class="work-canvas-wrap"><canvas class="work-canvas" data-anim="rik" width="300" height="420"></canvas></div>
+      <div class="work-info">
+        <span class="work-artist">Rik Oostenbroek</span>
+        <span class="work-title">"Luminance III"</span>
+        <span class="work-meta">Ed. 10 · In 7 collections</span>
+        <span class="work-price locked-price">From $19,000 with Cosmos</span>
+        <span class="work-price member-price">$12,000</span>
+      </div>
+    </div>
+
+    <div class="work-card">
+      <div class="work-canvas-wrap"><canvas class="work-canvas" data-anim="leander" width="300" height="420"></canvas></div>
+      <div class="work-info">
+        <span class="work-artist">Leander Herzog</span>
+        <span class="work-title">"Meridian"</span>
+        <span class="work-meta">Ed. 12 · In 6 collections</span>
+        <span class="work-price locked-price">From $16,500 with Cosmos</span>
+        <span class="work-price member-price">$9,500</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ART INTELLIGENCE -->
+<section style="background:var(--cream);border-bottom:1px solid var(--border);">
+  <div id="art-intelligence">
+    <div>
+      <h2 class="ai-headline">Art<br><em>Intelligence</em></h2>
+      <p class="ai-body">Every Layer Canvas runs a model. It knows the natural light in your room. It knows what you return to. It responds to the hour, the season, your mood. Your collection is never static — it learns to live with you.</p>
+    </div>
+    <div class="ai-dashboard">
+      <div class="dash-label">Current Work</div>
+      Casey Reas — "Tissue 04"<br>
+      Playing since: 6:14 PM &nbsp;·&nbsp; Duration: 1h 42m
+      <hr class="dash-divider">
+      <div class="dash-label">Next Scheduled</div>
+      Zach Lieberman — "Drawn Apart"<br>
+      8:00 PM &nbsp;·&nbsp; Mood index: contemplative
+      <hr class="dash-divider">
+      <div class="dash-label">Collection Insights</div>
+      Works acquired: 4<br>
+      Preferred palette: dark / high contrast<br>
+      Peak display hours: 7–10 PM<br>
+      Artist affinity: Reas 94% &nbsp; Lieberman 87%
+    </div>
+  </div>
+</section>
+
+<!-- MEMBERSHIP -->
+<section id="membership">
+  <p class="section-eyebrow">Membership</p>
+  <h2 class="section-headline">How to begin</h2>
+  <p class="section-body">Two ways in. Both include the collection, both include Art Intelligence. One includes the Canvas itself.</p>
+  <div class="membership-grid">
+    <div class="membership-card">
+      <div class="membership-tier">Cosmos</div>
+      <div class="membership-price">From $7,000</div>
+      <div class="membership-desc">Full collection access. Art Intelligence included. 48-hour drop priority. Works displayed on your existing screen.</div>
+      <a class="membership-cta" href="#">Inquire</a>
+    </div>
+    <div class="membership-card">
+      <div class="membership-tier">Founder Edition</div>
+      <div class="membership-price">From $22,000</div>
+      <div class="membership-desc">All Cosmos benefits. The Layer Canvas — museum-grade, GPU-powered, made for this. Direct artist relationship.</div>
+      <a class="membership-cta" href="#">Inquire</a>
+    </div>
+  </div>
+  <p class="membership-footnote">Art Intelligence begins learning from day one.</p>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <span class="footer-logo">Layer</span>
+  <div class="footer-links">
+    <a href="#">Collection</a>
+    <a href="#">Canvas</a>
+    <a href="#">Artists</a>
+    <a href="#">Inquire</a>
+  </div>
+  <span class="footer-copy">© 2026 Layer</span>
+</footer>
+
+<script>
+// ── MEMBER TOGGLE ─────────────────────────────────────────────────────────────
+function toggleMember() {
+  document.body.classList.toggle('member-mode');
+  const btn = document.getElementById('member-btn');
+  const on = document.body.classList.contains('member-mode');
+  btn.textContent = on ? 'Member View ✓' : 'Member View';
+}
+
+// ── NOISE ─────────────────────────────────────────────────────────────────────
+function noise(x, y, t) {
+  return Math.sin(x * 0.04 + t) * Math.cos(y * 0.035 + t * 0.7) * 0.5 + 0.5;
+}
+
+// ── HERO CANVAS — Reas-style tissue ──────────────────────────────────────────
+(function() {
+  const cv = document.getElementById('hero-canvas');
+  if (!cv) return;
+  const ctx = cv.getContext('2d');
+  const W = cv.width, H = cv.height;
+  let t = 0;
+  const N = 120;
+  const pts = Array.from({length: N}, () => ({
+    x: Math.random() * W,
+    y: Math.random() * H,
+    vx: (Math.random() - 0.5) * 0.4,
+    vy: (Math.random() - 0.5) * 0.35,
+    life: Math.random(),
+    maxLife: 0.4 + Math.random() * 0.6,
+    r: 1.5 + Math.random() * 3,
+    hue: 200 + Math.random() * 80
+  }));
+  function draw() {
+    t += 0.004;
+    ctx.fillStyle = 'rgba(0,0,0,0.035)';
+    ctx.fillRect(0, 0, W, H);
+    for (const p of pts) {
+      p.x += p.vx + Math.sin(t + p.y * 0.008) * 0.3;
+      p.y += p.vy + Math.cos(t * 0.7 + p.x * 0.007) * 0.25;
+      p.life += 0.003;
+      if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
+      if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
+      if (p.life > p.maxLife) {
+        p.x = Math.random() * W; p.y = Math.random() * H;
+        p.life = 0; p.hue = 200 + Math.random() * 80;
+      }
+      const a = Math.sin(p.life / p.maxLife * Math.PI) * 0.18;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = `hsla(${p.hue},60%,55%,${a})`;
+      ctx.fill();
+    }
+    requestAnimationFrame(draw);
+  }
+  ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
+  requestAnimationFrame(draw);
+})();
+
+// ── SITU CANVASES ─────────────────────────────────────────────────────────────
+// Card 1 — Rik Oostenbroek: fluid luminant waves, warm room feel
+(function() {
+  const cv = document.getElementById('situ-1');
+  if (!cv) return;
+  const ctx = cv.getContext('2d');
+  const W = cv.width, H = cv.height;
+  let t = 0;
+  function draw() {
+    t += 0.005;
+    // Warm interior background
+    const bg = ctx.createLinearGradient(0, 0, W, H);
+    bg.addColorStop(0, '#1a1008');
+    bg.addColorStop(0.4, '#241808');
+    bg.addColorStop(1, '#0e0a06');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, W, H);
+    // Glowing artwork centered on wall
+    const cx = W * 0.5, cy = H * 0.38;
+    const aw = W * 0.55, ah = H * 0.48;
+    ctx.save();
+    ctx.translate(cx - aw/2, cy - ah/2);
+    for (let i = 0; i < 6; i++) {
+      const n = noise(i * 80 + t * 20, t * 15, t + i);
+      const grad = ctx.createRadialGradient(aw*0.5, ah*0.5, 0, aw*0.5, ah*0.5, aw*0.6);
+      const h = 280 + i * 25 + t * 10;
+      grad.addColorStop(0, `hsla(${h},70%,65%,${0.08 + n * 0.06})`);
+      grad.addColorStop(1, `hsla(${h+40},50%,30%,0)`);
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, aw, ah);
+    }
+    // Frame glow
+    ctx.shadowColor = 'rgba(180,140,80,0.3)';
+    ctx.shadowBlur = 30;
+    ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(0, 0, aw, ah);
+    ctx.restore();
+    requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+})();
+
+// Card 2 — Zach Lieberman: node lines in a dark study
+(function() {
+  const cv = document.getElementById('situ-2');
+  if (!cv) return;
+  const ctx = cv.getContext('2d');
+  const W = cv.width, H = cv.height;
+  const N = 40, DIST = 70;
+  const nodes = Array.from({length: N}, () => ({
+    x: Math.random() * W * 0.55 + W * 0.2,
+    y: Math.random() * H * 0.55 + H * 0.2,
+    vx: (Math.random() - 0.5) * 0.35,
+    vy: (Math.random() - 0.5) * 0.35
+  }));
+  // Deep navy wall
+  function draw() {
+    ctx.fillStyle = '#0d1520';
+    ctx.fillRect(0, 0, W, H);
+    for (const n of nodes) {
+      n.x += n.vx; n.y += n.vy;
+      if (n.x < W*0.15 || n.x > W*0.85) n.vx *= -1;
+      if (n.y < H*0.1 || n.y > H*0.9) n.vy *= -1;
+    }
+    for (let i = 0; i < N; i++) {
+      for (let j = i+1; j < N; j++) {
+        const dx = nodes[i].x - nodes[j].x, dy = nodes[i].y - nodes[j].y;
+        const d = Math.sqrt(dx*dx + dy*dy);
+        if (d < DIST) {
+          ctx.beginPath();
+          ctx.moveTo(nodes[i].x, nodes[i].y);
+          ctx.lineTo(nodes[j].x, nodes[j].y);
+          ctx.strokeStyle = `rgba(100,160,220,${(1-d/DIST)*0.4})`;
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+        }
+      }
+    }
+    for (const n of nodes) {
+      ctx.beginPath(); ctx.arc(n.x, n.y, 1.2, 0, Math.PI*2);
+      ctx.fillStyle = 'rgba(140,190,240,0.7)'; ctx.fill();
+    }
+    requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+})();
+
+// Card 3 — Leander Herzog: warm gradient field
+(function() {
+  const cv = document.getElementById('situ-3');
+  if (!cv) return;
+  const ctx = cv.getContext('2d');
+  const W = cv.width, H = cv.height;
+  let t = 0;
+  function draw() {
+    t += 0.004;
+    // Warm dining room — light walls, art prominent
+    const bg = ctx.createLinearGradient(0, 0, W, H);
+    bg.addColorStop(0, '#f0e8d8');
+    bg.addColorStop(1, '#d8ccb8');
+    ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+    // The artwork on the wall
+    const cx = W * 0.5, cy = H * 0.38, aw = W * 0.5, ah = H * 0.45;
+    ctx.save();
+    ctx.translate(cx - aw/2, cy - ah/2);
+    for (let i = 0; i < 8; i++) {
+      const n = noise(i*60 + t*18, t*12, t + i);
+      const grad = ctx.createLinearGradient(0, 0, aw, ah);
+      grad.addColorStop(0, `hsla(${30 + i*20},${60+n*30}%,${55+n*20}%,${0.25+n*0.15})`);
+      grad.addColorStop(1, `hsla(${50 + i*15},50%,40%,0.05)`);
+      ctx.fillStyle = grad; ctx.fillRect(0, 0, aw, ah);
+    }
+    ctx.strokeStyle = 'rgba(0,0,0,0.08)'; ctx.lineWidth = 1; ctx.strokeRect(0, 0, aw, ah);
+    ctx.restore();
+    requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+})();
+
+// ── FEATURE CANVAS — atmospheric dark room ────────────────────────────────────
+(function() {
+  const cv = document.getElementById('feature-canvas');
+  if (!cv) return;
+  const ctx = cv.getContext('2d');
+  const W = cv.width, H = cv.height;
+  // Static warm room atmosphere
+  const bg = ctx.createLinearGradient(0, 0, W, H);
+  bg.addColorStop(0, '#1c1208');
+  bg.addColorStop(0.5, '#251a0e');
+  bg.addColorStop(1, '#100c06');
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+  // Floor suggestion
+  ctx.fillStyle = 'rgba(0,0,0,0.4)';
+  ctx.fillRect(0, H * 0.75, W, H * 0.25);
+  // Warm sidelight
+  const glow = ctx.createRadialGradient(W, H*0.3, 0, W, H*0.3, W*0.7);
+  glow.addColorStop(0, 'rgba(200,160,80,0.08)');
+  glow.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = glow; ctx.fillRect(0, 0, W, H);
+})();
+
+// Feature wall canvas — Reas Tissue
+(function() {
+  const cv = document.getElementById('feature-wall-canvas');
+  if (!cv) return;
+  const ctx = cv.getContext('2d');
+  const W = cv.width, H = cv.height;
+  let t = 0;
+  const N = 200;
+  const pts = Array.from({length: N}, () => ({
+    x: Math.random() * W, y: Math.random() * H,
+    vx: (Math.random()-0.5)*0.5, vy: (Math.random()-0.5)*0.45,
+    r: 2 + Math.random()*4, hue: 180 + Math.random()*100,
+    life: Math.random(), maxLife: 0.3 + Math.random()*0.7
+  }));
+  function draw() {
+    t += 0.005;
+    ctx.fillStyle = 'rgba(0,0,0,0.04)'; ctx.fillRect(0, 0, W, H);
+    for (const p of pts) {
+      p.x += p.vx + Math.sin(t + p.y*0.01)*0.4;
+      p.y += p.vy + Math.cos(t*0.8 + p.x*0.009)*0.35;
+      p.life += 0.004;
+      if (p.x<0) p.x=W; if (p.x>W) p.x=0;
+      if (p.y<0) p.y=H; if (p.y>H) p.y=0;
+      if (p.life > p.maxLife) { p.x=Math.random()*W; p.y=Math.random()*H; p.life=0; p.hue=180+Math.random()*100; }
+      const a = Math.sin(p.life/p.maxLife*Math.PI)*0.2;
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+      ctx.fillStyle = `hsla(${p.hue},55%,60%,${a})`; ctx.fill();
+    }
+    requestAnimationFrame(draw);
+  }
+  ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H);
+  requestAnimationFrame(draw);
+})();
+
+// ── COLLECTION WORK CANVASES ──────────────────────────────────────────────────
+function initReas(cv) {
+  const ctx = cv.getContext('2d');
+  const W = cv.width, H = cv.height;
+  let t = 0;
+  const pts = Array.from({length: 80}, () => ({
+    x: Math.random()*W, y: Math.random()*H,
+    vx:(Math.random()-.5)*.5, vy:(Math.random()-.5)*.45,
+    r:1.5+Math.random()*3.5, hue:190+Math.random()*90,
+    life:Math.random(), maxLife:.4+Math.random()*.6
+  }));
+  function draw() {
+    t+=.005; ctx.fillStyle='rgba(0,0,0,.04)'; ctx.fillRect(0,0,W,H);
+    for (const p of pts) {
+      p.x+=p.vx+Math.sin(t+p.y*.009)*.4; p.y+=p.vy+Math.cos(t*.7+p.x*.008)*.3;
+      p.life+=.004;
+      if(p.x<0)p.x=W; if(p.x>W)p.x=0; if(p.y<0)p.y=H; if(p.y>H)p.y=0;
+      if(p.life>p.maxLife){p.x=Math.random()*W;p.y=Math.random()*H;p.life=0;p.hue=190+Math.random()*90;}
+      const a=Math.sin(p.life/p.maxLife*Math.PI)*.2;
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`hsla(${p.hue},60%,55%,${a})`; ctx.fill();
+    }
+    requestAnimationFrame(draw);
+  }
+  ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H); requestAnimationFrame(draw);
+}
+
+function initZach(cv) {
+  const ctx = cv.getContext('2d');
+  const W = cv.width, H = cv.height;
+  const N=50, DIST=65;
+  const nodes=Array.from({length:N},()=>({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.5,vy:(Math.random()-.5)*.5}));
+  function draw() {
+    ctx.fillStyle='rgba(0,0,0,.055)'; ctx.fillRect(0,0,W,H);
+    for(const n of nodes){n.x+=n.vx;n.y+=n.vy;if(n.x<0||n.x>W)n.vx*=-1;if(n.y<0||n.y>H)n.vy*=-1;}
+    for(let i=0;i<N;i++)for(let j=i+1;j<N;j++){
+      const dx=nodes[i].x-nodes[j].x,dy=nodes[i].y-nodes[j].y,d=Math.sqrt(dx*dx+dy*dy);
+      if(d<DIST){ctx.beginPath();ctx.moveTo(nodes[i].x,nodes[i].y);ctx.lineTo(nodes[j].x,nodes[j].y);ctx.strokeStyle=`rgba(120,180,240,${(1-d/DIST)*.45})`;ctx.lineWidth=.5;ctx.stroke();}
+    }
+    for(const n of nodes){ctx.beginPath();ctx.arc(n.x,n.y,1.2,0,Math.PI*2);ctx.fillStyle='rgba(160,210,255,.8)';ctx.fill();}
+    requestAnimationFrame(draw);
+  }
+  ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H); requestAnimationFrame(draw);
+}
+
+function initRik(cv) {
+  const ctx = cv.getContext('2d');
+  const W = cv.width, H = cv.height;
+  let t=0;
+  function draw() {
+    t+=.006;
+    const bg=ctx.createLinearGradient(0,0,W,H);
+    bg.addColorStop(0,'#080008'); bg.addColorStop(1,'#000505');
+    ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
+    for(let i=0;i<5;i++){
+      const cx=W*.3+Math.sin(t+i)*W*.25, cy=H*.4+Math.cos(t*.8+i)*H*.25;
+      const grad=ctx.createRadialGradient(cx,cy,0,cx,cy,W*.5);
+      const h=260+i*28+t*8;
+      grad.addColorStop(0,`hsla(${h},80%,60%,.22)`);
+      grad.addColorStop(.5,`hsla(${h+30},60%,40%,.08)`);
+      grad.addColorStop(1,`hsla(0,0%,0%,0)`);
+      ctx.fillStyle=grad; ctx.beginPath(); ctx.arc(cx,cy,W*.5,0,Math.PI*2); ctx.fill();
+    }
+    requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+}
+
+function initLeander(cv) {
+  const ctx = cv.getContext('2d');
+  const W = cv.width, H = cv.height;
+  let t=0, lines=[];
+  for(let i=0;i<30;i++) lines.push({y:Math.random()*H,vy:(Math.random()-.5)*.4,thick:.5+Math.random()*2,a:.05+Math.random()*.2});
+  function draw() {
+    t+=.004;
+    ctx.fillStyle='rgba(0,0,0,.06)'; ctx.fillRect(0,0,W,H);
+    for(const l of lines){
+      l.y+=l.vy;
+      if(l.y<0)l.y=H; if(l.y>H)l.y=0;
+      ctx.beginPath(); ctx.moveTo(0,l.y); ctx.lineTo(W,l.y);
+      ctx.strokeStyle=`rgba(255,255,255,${l.a})`; ctx.lineWidth=l.thick; ctx.stroke();
+    }
+    requestAnimationFrame(draw);
+  }
+  ctx.fillStyle='#050505'; ctx.fillRect(0,0,W,H); requestAnimationFrame(draw);
+}
+
+// Init all work canvases
+document.querySelectorAll('.work-canvas').forEach(cv => {
+  const anim = cv.dataset.anim;
+  cv.width = 300; cv.height = 420;
+  if (anim === 'reas') initReas(cv);
+  else if (anim === 'zach') initZach(cv);
+  else if (anim === 'rik') initRik(cv);
+  else if (anim === 'leander') initLeander(cv);
+});
+</script>
+</body>
+</html>

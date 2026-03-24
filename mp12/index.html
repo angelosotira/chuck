@@ -1,0 +1,1404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Layer — Living Digital Art, Curated for Life</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; font-size: 16px; }
+
+    :root {
+      --black:  #0a0806;
+      --dark:   #141210;
+      --mid:    #1e1c18;
+      --warm:   #2a2620;
+      --fg:     #f0ece4;
+      --muted:  rgba(240,236,228,0.42);
+      --border: rgba(240,236,228,0.08);
+      --accent: #c8a96e;
+      --font-serif: 'Georgia', 'Times New Roman', serif;
+      --font-sans: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      --max: 1320px;
+    }
+
+    body {
+      background: var(--black);
+      color: var(--fg);
+      font-family: var(--font-sans);
+      font-weight: 300;
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ─── TYPOGRAPHY SYSTEM ─────────────────────────────────────────────────── */
+    .label {
+      font-size: 0.58rem;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .label-accent { color: var(--accent); }
+
+    h1, h2, h3 {
+      font-family: var(--font-serif);
+      font-weight: 400;
+      line-height: 1.1;
+    }
+
+    .btn {
+      display: inline-block;
+      font-family: var(--font-sans);
+      font-size: 0.6rem;
+      font-weight: 300;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      padding: 0.65rem 1.8rem;
+      border: 1px solid rgba(240,236,228,0.4);
+      color: var(--fg);
+      text-decoration: none;
+      cursor: pointer;
+      background: none;
+      transition: all 0.25s;
+    }
+    .btn:hover { background: rgba(240,236,228,0.08); border-color: var(--fg); }
+    .btn-filled {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--black);
+    }
+    .btn-filled:hover { background: #d4b878; border-color: #d4b878; }
+
+    /* ─── NAV ──────────────────────────────────────────────────────────────── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 500;
+      height: 58px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 2.5rem;
+      background: rgba(10,8,6,0.82);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      transition: background 0.4s;
+    }
+
+    .nav-logo {
+      font-size: 0.72rem;
+      letter-spacing: 0.38em;
+      text-transform: uppercase;
+      color: var(--fg);
+      text-decoration: none;
+      font-weight: 400;
+    }
+
+    .nav-center {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 2.5rem;
+    }
+    .nav-center a {
+      font-size: 0.6rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .nav-center a:hover { color: var(--fg); }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+    }
+    .nav-cta {
+      font-size: 0.6rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      background: var(--accent);
+      color: var(--black);
+      border: none;
+      padding: 0.45rem 1.2rem;
+      cursor: pointer;
+      font-family: var(--font-sans);
+      font-weight: 400;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+    .nav-cta:hover { background: #d4b878; }
+
+    /* member mode */
+    .member-only { display: none; }
+    body.member-mode .member-only { display: block; }
+    body.member-mode .non-member { display: none; }
+
+    /* ─── HERO ─────────────────────────────────────────────────────────────── */
+    #hero {
+      position: relative;
+      width: 100%;
+      height: 100vh;
+      min-height: 700px;
+      overflow: hidden;
+      display: flex;
+      align-items: flex-end;
+    }
+
+    /* Full-bleed art canvas — this IS the hero video */
+    #hero-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Dark gradient to make text legible; preserves art in upper half */
+    .hero-vignette {
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(to top, rgba(10,8,6,0.88) 0%, rgba(10,8,6,0.3) 35%, transparent 60%),
+        linear-gradient(to right, rgba(10,8,6,0.4) 0%, transparent 50%);
+      pointer-events: none;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 0 2.5rem 4rem;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: flex-end;
+      gap: 3rem;
+    }
+
+    .hero-left { max-width: 640px; }
+
+    .hero-eyebrow {
+      margin-bottom: 1.2rem;
+    }
+
+    .hero-headline {
+      font-size: clamp(3rem, 5.5vw, 5rem);
+      margin-bottom: 1.5rem;
+      letter-spacing: -0.01em;
+    }
+
+    .hero-headline em {
+      font-style: italic;
+      color: var(--accent);
+    }
+
+    .hero-sub {
+      font-size: 1rem;
+      color: var(--muted);
+      line-height: 1.8;
+      max-width: 480px;
+      margin-bottom: 2.5rem;
+    }
+
+    .hero-ctas {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .hero-now-showing {
+      text-align: right;
+      padding-bottom: 0.25rem;
+    }
+    .now-label { margin-bottom: 0.6rem; }
+    .now-title {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-size: 1.05rem;
+      color: var(--fg);
+      display: block;
+    }
+    .now-artist {
+      display: block;
+      font-size: 0.6rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-top: 0.3rem;
+    }
+
+    /* ─── ART GRID — Section 2 ─────────────────────────────────────────────── */
+    #art-grid {
+      background: var(--dark);
+      padding: 6rem 2.5rem;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .art-grid-header {
+      max-width: var(--max);
+      margin: 0 auto 3.5rem;
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+    }
+
+    .art-grid-headline {
+      font-size: clamp(1.6rem, 2.5vw, 2rem);
+    }
+
+    .art-grid-link {
+      font-size: 0.6rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .art-grid-link:hover { color: var(--fg); }
+
+    .art-grid-items {
+      max-width: var(--max);
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.5rem;
+    }
+
+    .art-item {
+      display: flex;
+      flex-direction: column;
+      gap: 0.9rem;
+      cursor: pointer;
+    }
+
+    .art-item-canvas-wrap {
+      position: relative;
+      width: 100%;
+      padding-bottom: 125%;
+      background: #050403;
+      overflow: hidden;
+    }
+    .art-item-canvas-wrap canvas {
+      position: absolute;
+      inset: 0;
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    /* Hover: subtle warm glow — hints at interactivity */
+    .art-item-canvas-wrap::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(200,169,110,0);
+      transition: background 0.5s;
+      pointer-events: none;
+    }
+    .art-item:hover .art-item-canvas-wrap::after {
+      background: rgba(200,169,110,0.05);
+    }
+
+    .art-item-info { display: flex; flex-direction: column; gap: 0.2rem; }
+    .art-item-artist {
+      font-size: 0.58rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .art-item-title {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-size: 0.95rem;
+      color: var(--fg);
+    }
+    .art-item-meta {
+      font-size: 0.6rem;
+      color: rgba(240,236,228,0.28);
+      letter-spacing: 0.06em;
+    }
+    .art-item-value {
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-top: 0.15rem;
+    }
+
+    /* ─── IN SITU — Art in the home ───────────────────────────────────────── */
+    #in-situ {
+      padding: 0;
+      background: var(--black);
+    }
+
+    /* Full-bleed cinematic grid */
+    .situ-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      grid-template-rows: 480px 480px;
+      gap: 3px;
+    }
+
+    .situ-card {
+      position: relative;
+      overflow: hidden;
+      background: var(--dark);
+    }
+
+    .situ-card.wide { grid-column: span 2; }
+    .situ-card.tall { grid-row: span 2; }
+
+    .situ-card-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    .situ-card:hover .situ-card-canvas {
+      transform: scale(1.03);
+    }
+
+    /* Atmospheric overlay — window light from direction */
+    .situ-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .situ-card-label {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 2rem 1.75rem 1.5rem;
+      background: linear-gradient(to top, rgba(10,8,6,0.82) 0%, transparent 100%);
+    }
+    .situ-room { margin-bottom: 0.5rem; }
+    .situ-artwork-title {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-size: 1.05rem;
+      color: var(--fg);
+    }
+    .situ-artwork-artist {
+      font-size: 0.58rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: rgba(240,236,228,0.45);
+      margin-top: 0.25rem;
+    }
+
+    /* ─── FEATURE — split screen ───────────────────────────────────────────── */
+    #feature {
+      display: grid;
+      grid-template-columns: 55% 45%;
+      min-height: 680px;
+      border-top: 1px solid var(--border);
+    }
+
+    .feature-art {
+      position: relative;
+      overflow: hidden;
+      background: var(--black);
+    }
+    .feature-art-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    /* The Canvas device on the wall */
+    .feature-canvas-device {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-48%, -50%);
+      width: 42%;
+      aspect-ratio: 1;
+      background: #000;
+      box-shadow:
+        0 0 0 2px rgba(255,255,255,0.04),
+        0 0 80px rgba(200,169,110,0.12),
+        0 40px 100px rgba(0,0,0,0.8);
+    }
+    .feature-canvas-device canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .feature-copy {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 5rem 4rem;
+      background: var(--dark);
+      border-left: 1px solid var(--border);
+    }
+    .feature-copy .label { margin-bottom: 1.5rem; }
+    .feature-copy h2 {
+      font-size: clamp(1.8rem, 2.5vw, 2.4rem);
+      margin-bottom: 1.5rem;
+      letter-spacing: -0.01em;
+    }
+    .feature-copy p {
+      font-size: 0.95rem;
+      color: var(--muted);
+      line-height: 1.85;
+      max-width: 380px;
+      margin-bottom: 2.5rem;
+    }
+    .feature-work-card {
+      border-top: 1px solid var(--border);
+      padding-top: 1.5rem;
+    }
+    .feature-work-artist {
+      font-size: 0.58rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.4rem;
+    }
+    .feature-work-title {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-size: 1.3rem;
+      color: var(--fg);
+      margin-bottom: 0.4rem;
+    }
+    .feature-work-meta {
+      font-size: 0.65rem;
+      color: rgba(240,236,228,0.3);
+      line-height: 1.7;
+    }
+    .feature-work-price {
+      font-size: 0.82rem;
+      color: var(--fg);
+      margin-top: 0.8rem;
+    }
+
+    /* ─── PULL QUOTE ───────────────────────────────────────────────────────── */
+    #pull-quote {
+      padding: 7rem 2.5rem;
+      text-align: center;
+      background: var(--black);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .pull-quote-text {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-size: clamp(1.6rem, 3vw, 2.4rem);
+      color: rgba(240,236,228,0.82);
+      max-width: 720px;
+      margin: 0 auto;
+      line-height: 1.4;
+    }
+    .pull-quote-attr {
+      margin-top: 1.5rem;
+      font-size: 0.6rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    /* ─── VALUE PROPOSITION ────────────────────────────────────────────────── */
+    #value-prop {
+      padding: 7rem 2.5rem;
+      background: var(--mid);
+      border-bottom: 1px solid var(--border);
+    }
+    .vp-inner {
+      max-width: var(--max);
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6rem;
+      align-items: center;
+    }
+    .vp-left h2 {
+      font-size: clamp(1.8rem, 2.8vw, 2.5rem);
+      margin-bottom: 1.5rem;
+      letter-spacing: -0.01em;
+    }
+    .vp-left p {
+      font-size: 0.95rem;
+      color: var(--muted);
+      line-height: 1.85;
+      max-width: 420px;
+    }
+    .vp-stats {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+    .vp-stat {
+      border-left: 2px solid var(--accent);
+      padding-left: 1.5rem;
+    }
+    .vp-stat-num {
+      font-family: var(--font-serif);
+      font-size: 2.4rem;
+      color: var(--fg);
+      line-height: 1;
+      margin-bottom: 0.4rem;
+    }
+    .vp-stat-desc {
+      font-size: 0.82rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    /* ─── ART INTELLIGENCE ─────────────────────────────────────────────────── */
+    #art-intelligence {
+      padding: 7rem 2.5rem;
+      background: var(--dark);
+      border-bottom: 1px solid var(--border);
+    }
+    .ai-inner {
+      max-width: var(--max);
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6rem;
+      align-items: center;
+    }
+    .ai-left h2 {
+      font-size: clamp(1.8rem, 2.8vw, 2.5rem);
+      margin-bottom: 1.5rem;
+    }
+    .ai-left p {
+      font-size: 0.95rem;
+      color: var(--muted);
+      line-height: 1.85;
+      max-width: 400px;
+    }
+    .ai-dashboard {
+      font-family: 'Courier New', monospace;
+      font-size: 0.78rem;
+      line-height: 1.95;
+      border: 1px solid var(--border);
+      padding: 2rem 2.25rem;
+      color: rgba(240,236,228,0.55);
+      background: rgba(10,8,6,0.5);
+    }
+    .ai-dash-label {
+      font-size: 0.52rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.3rem;
+    }
+    .ai-dash-divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 1.1rem 0;
+    }
+    .ai-dash-active { color: var(--accent); }
+
+    /* ─── CANVAS SECTION ───────────────────────────────────────────────────── */
+    #canvas-section {
+      padding: 7rem 2.5rem;
+      background: var(--black);
+      border-bottom: 1px solid var(--border);
+    }
+    .canvas-inner {
+      max-width: var(--max);
+      margin: 0 auto;
+      text-align: center;
+    }
+    .canvas-inner h2 {
+      font-size: clamp(1.8rem, 3vw, 2.6rem);
+      margin-bottom: 1rem;
+    }
+    .canvas-inner > p {
+      font-size: 0.95rem;
+      color: var(--muted);
+      max-width: 520px;
+      margin: 0 auto 4rem;
+      line-height: 1.8;
+    }
+    .canvas-device-render {
+      position: relative;
+      width: 320px;
+      aspect-ratio: 1;
+      margin: 0 auto 3rem;
+      background: #000;
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,0.06),
+        0 0 120px rgba(200,169,110,0.1),
+        0 60px 120px rgba(0,0,0,0.9);
+    }
+    .canvas-device-render canvas { width: 100%; height: 100%; display: block; }
+    .canvas-specs {
+      display: flex;
+      justify-content: center;
+      gap: 4rem;
+      margin-top: 3rem;
+    }
+    .canvas-spec { display: flex; flex-direction: column; gap: 0.4rem; text-align: center; }
+    .canvas-spec-val {
+      font-family: var(--font-serif);
+      font-size: 1.6rem;
+      color: var(--fg);
+    }
+    .canvas-spec-key {
+      font-size: 0.58rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    /* ─── MEMBERSHIP ───────────────────────────────────────────────────────── */
+    #membership {
+      padding: 7rem 2.5rem;
+      background: var(--mid);
+      border-bottom: 1px solid var(--border);
+    }
+    .membership-inner {
+      max-width: var(--max);
+      margin: 0 auto;
+      text-align: center;
+    }
+    .membership-inner h2 {
+      font-size: clamp(1.8rem, 3vw, 2.4rem);
+      margin-bottom: 0.8rem;
+    }
+    .membership-inner > p {
+      font-size: 0.95rem;
+      color: var(--muted);
+      max-width: 480px;
+      margin: 0 auto 4rem;
+      line-height: 1.8;
+    }
+    .membership-cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      max-width: 780px;
+      margin: 0 auto;
+    }
+    .membership-card {
+      border: 1px solid var(--border);
+      padding: 2.5rem;
+      text-align: left;
+      transition: border-color 0.3s;
+    }
+    .membership-card:hover { border-color: rgba(240,236,228,0.25); }
+    .membership-card.featured { border-color: var(--accent); }
+    .membership-tier {
+      font-size: 0.6rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 1rem;
+    }
+    .membership-price {
+      font-family: var(--font-serif);
+      font-size: 1.9rem;
+      color: var(--fg);
+      line-height: 1;
+      margin-bottom: 0.3rem;
+    }
+    .membership-price-note {
+      font-size: 0.7rem;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+    }
+    .membership-desc {
+      font-size: 0.88rem;
+      color: var(--muted);
+      line-height: 1.75;
+      margin-bottom: 2rem;
+    }
+    .membership-cta {
+      display: inline-block;
+      font-size: 0.6rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      border: 1px solid rgba(240,236,228,0.35);
+      color: var(--fg);
+      padding: 0.55rem 1.5rem;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    .membership-cta:hover { background: rgba(240,236,228,0.06); border-color: var(--fg); }
+    .membership-card.featured .membership-cta {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--black);
+      font-weight: 400;
+    }
+    .membership-card.featured .membership-cta:hover { background: #d4b878; border-color: #d4b878; }
+    .membership-footnote {
+      font-size: 0.72rem;
+      color: var(--muted);
+      text-align: center;
+      margin-top: 2rem;
+      letter-spacing: 0.06em;
+    }
+
+    /* ─── FOOTER ───────────────────────────────────────────────────────────── */
+    footer {
+      background: var(--black);
+      padding: 3rem 2.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid var(--border);
+    }
+    .footer-logo {
+      font-size: 0.7rem;
+      letter-spacing: 0.38em;
+      text-transform: uppercase;
+      color: rgba(240,236,228,0.35);
+    }
+    .footer-links { display: flex; gap: 2rem; }
+    .footer-links a {
+      font-size: 0.58rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: rgba(240,236,228,0.25);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .footer-links a:hover { color: rgba(240,236,228,0.65); }
+    .footer-copy {
+      font-size: 0.58rem;
+      color: rgba(240,236,228,0.18);
+      letter-spacing: 0.08em;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════ NAV -->
+<nav>
+  <a class="nav-logo" href="#">Layer</a>
+  <nav class="nav-center">
+    <a href="#art-grid">Art</a>
+    <a href="#canvas-section">Canvas</a>
+    <a href="#">App</a>
+    <a href="#">Artists</a>
+    <a href="#">Trade</a>
+    <a href="#">About</a>
+  </nav>
+  <div class="nav-right">
+    <span class="label" style="cursor:pointer;transition:color .2s" id="member-btn" onclick="toggleMember()">Member View</span>
+    <a class="nav-cta" href="#membership">Get Layer</a>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════════ HERO -->
+<section id="hero">
+  <!-- Art IS the hero background — full bleed, breathing, alive -->
+  <canvas id="hero-canvas"></canvas>
+  <div class="hero-vignette"></div>
+
+  <div class="hero-content">
+    <div class="hero-left">
+      <p class="label label-accent hero-eyebrow">Living Digital Art, Curated for Life</p>
+      <h1 class="hero-headline">Art That<br><em>Breathes</em></h1>
+      <p class="hero-sub">A curated collection of generative masterworks — valued at over $3.2M — displayed on a museum-grade canvas purpose-built for art.</p>
+      <div class="hero-ctas">
+        <a href="#art-grid" class="btn btn-filled">Explore the Collection</a>
+        <a href="#canvas-section" class="btn">Learn About Canvas</a>
+      </div>
+    </div>
+    <div class="hero-now-showing">
+      <p class="label now-label">Now Showing</p>
+      <span class="now-title">"Tissue 04"</span>
+      <span class="now-artist">Casey Reas</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════ ART GRID -->
+<section id="art-grid">
+  <div class="art-grid-header">
+    <h2 class="art-grid-headline">The Collection</h2>
+    <a href="#" class="art-grid-link">View all 250+ works →</a>
+  </div>
+  <div class="art-grid-items">
+
+    <div class="art-item">
+      <div class="art-item-canvas-wrap"><canvas data-anim="reas"></canvas></div>
+      <div class="art-item-info">
+        <span class="art-item-artist">Casey Reas</span>
+        <span class="art-item-title">"Tissue 04"</span>
+        <span class="art-item-meta">Ed. 5 of 5 &nbsp;·&nbsp; 12 collections</span>
+        <span class="art-item-value non-member">Est. value $35,000+</span>
+        <span class="art-item-value member-only">Member price: $28,000</span>
+      </div>
+    </div>
+
+    <div class="art-item">
+      <div class="art-item-canvas-wrap"><canvas data-anim="zach"></canvas></div>
+      <div class="art-item-info">
+        <span class="art-item-artist">Zach Lieberman</span>
+        <span class="art-item-title">"Drawn Apart"</span>
+        <span class="art-item-meta">Ed. 8 of 8 &nbsp;·&nbsp; 9 collections</span>
+        <span class="art-item-value non-member">Est. value $25,000+</span>
+        <span class="art-item-value member-only">Member price: $18,000</span>
+      </div>
+    </div>
+
+    <div class="art-item">
+      <div class="art-item-canvas-wrap"><canvas data-anim="rik"></canvas></div>
+      <div class="art-item-info">
+        <span class="art-item-artist">Rik Oostenbroek</span>
+        <span class="art-item-title">"Luminance III"</span>
+        <span class="art-item-meta">Ed. 10 of 10 &nbsp;·&nbsp; 7 collections</span>
+        <span class="art-item-value non-member">Est. value $19,000+</span>
+        <span class="art-item-value member-only">Member price: $12,000</span>
+      </div>
+    </div>
+
+    <div class="art-item">
+      <div class="art-item-canvas-wrap"><canvas data-anim="leander"></canvas></div>
+      <div class="art-item-info">
+        <span class="art-item-artist">Leander Herzog</span>
+        <span class="art-item-title">"Meridian"</span>
+        <span class="art-item-meta">Ed. 12 of 12 &nbsp;·&nbsp; 6 collections</span>
+        <span class="art-item-value non-member">Est. value $16,500+</span>
+        <span class="art-item-value member-only">Member price: $9,500</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═════════════════════════════════════════════════════════ IN SITU -->
+<section id="in-situ">
+  <!-- PLACEHOLDER: Swap canvases for actual video/photo once Drive images downloaded -->
+  <div class="situ-grid">
+
+    <!-- Card 1: Wide top-left — living room (replace with Angelo Sotira photo) -->
+    <div class="situ-card wide">
+      <canvas class="situ-card-canvas" id="sc1"></canvas>
+      <div class="situ-overlay" style="background:linear-gradient(135deg,rgba(200,140,60,0.04) 0%,rgba(10,8,6,0.2) 100%)"></div>
+      <div class="situ-card-label">
+        <p class="label situ-room">Living Room &nbsp;·&nbsp; New York</p>
+        <p class="situ-artwork-title">"Tissue 04"</p>
+        <p class="situ-artwork-artist">Casey Reas</p>
+      </div>
+    </div>
+
+    <!-- Card 2: Tall right — study (replace with Niclas Ernst photo) -->
+    <div class="situ-card tall">
+      <canvas class="situ-card-canvas" id="sc2"></canvas>
+      <div class="situ-overlay" style="background:linear-gradient(to bottom,rgba(10,20,40,0.15) 0%,rgba(10,8,6,0.35) 100%)"></div>
+      <div class="situ-card-label">
+        <p class="label situ-room">Study &nbsp;·&nbsp; London</p>
+        <p class="situ-artwork-title">"Drawn Apart"</p>
+        <p class="situ-artwork-artist">Zach Lieberman</p>
+      </div>
+    </div>
+
+    <!-- Card 3: Bottom-left -->
+    <div class="situ-card">
+      <canvas class="situ-card-canvas" id="sc3"></canvas>
+      <div class="situ-overlay" style="background:rgba(10,8,6,0.1)"></div>
+      <div class="situ-card-label">
+        <p class="label situ-room">Dining Room &nbsp;·&nbsp; Los Angeles</p>
+        <p class="situ-artwork-title">"Meridian"</p>
+        <p class="situ-artwork-artist">Leander Herzog</p>
+      </div>
+    </div>
+
+    <!-- Card 4: Bottom-middle -->
+    <div class="situ-card">
+      <canvas class="situ-card-canvas" id="sc4"></canvas>
+      <div class="situ-overlay" style="background:rgba(20,10,30,0.12)"></div>
+      <div class="situ-card-label">
+        <p class="label situ-room">Bedroom &nbsp;·&nbsp; Miami</p>
+        <p class="situ-artwork-title">"Luminance III"</p>
+        <p class="situ-artwork-artist">Rik Oostenbroek</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════ FEATURE -->
+<section id="feature">
+  <div class="feature-art">
+    <canvas class="feature-art-canvas" id="feature-room-canvas"></canvas>
+    <div class="feature-canvas-device">
+      <canvas id="feature-art-canvas"></canvas>
+    </div>
+    <!-- Window light from right -->
+    <div style="position:absolute;inset:0;background:linear-gradient(to left,rgba(200,169,110,0.06) 0%,transparent 55%);pointer-events:none;"></div>
+    <!-- Floor shadow -->
+    <div style="position:absolute;bottom:0;left:0;right:0;height:200px;background:linear-gradient(to top,rgba(0,0,0,0.6) 0%,transparent 100%);pointer-events:none;"></div>
+  </div>
+  <div class="feature-copy">
+    <p class="label">The Work</p>
+    <h2>Some art hangs on the wall.<br>This art <em>becomes</em> the wall.</h2>
+    <p>Every work in the Layer collection was written in code — not photographed, not reproduced, not scanned. The algorithm that runs on the Canvas is the artwork itself. It lives. It evolves. It responds to the hour and the season. You will never see it the same way twice.</p>
+    <a href="#membership" class="btn" style="margin-bottom:2.5rem">Add to Your Collection</a>
+    <div class="feature-work-card">
+      <p class="feature-work-artist">Casey Reas</p>
+      <p class="feature-work-title">"Tissue 04"</p>
+      <p class="feature-work-meta">
+        Edition 5 of 5 &nbsp;·&nbsp; In 12 collections<br>
+        Appraised: $35,000–$42,000 &nbsp;·&nbsp; ViewTime royalties active
+      </p>
+      <p class="feature-work-price non-member">From $35,000 with Founder Edition</p>
+      <p class="feature-work-price member-only">$28,000 — Member Price</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════ PULL QUOTE -->
+<section id="pull-quote">
+  <p class="pull-quote-text">"The art changes. Your space changes. You change."</p>
+  <p class="pull-quote-attr">Layer Collector &nbsp;·&nbsp; New York</p>
+</section>
+
+<!-- ════════════════════════════════════════════════ VALUE PROPOSITION -->
+<section id="value-prop">
+  <div class="vp-inner">
+    <div class="vp-left">
+      <p class="label" style="margin-bottom:1rem">The Collection</p>
+      <h2>You're not buying a screen.<br>You're acquiring <em>art</em>.</h2>
+      <p style="margin-top:1.5rem">Access to a curated collection with appraised value — then displayed on a purpose-built museum-grade canvas. Layer is not a television. It is an art acquisition platform with the best display ever made for the medium.</p>
+    </div>
+    <div class="vp-stats">
+      <div class="vp-stat">
+        <div class="vp-stat-num">250+</div>
+        <div class="vp-stat-desc">Works by world-class generative artists. Every piece native to the medium — code, not photography.</div>
+      </div>
+      <div class="vp-stat">
+        <div class="vp-stat-num">$3.2M+</div>
+        <div class="vp-stat-desc">Estimated total collection value. Members access this library as it continues to grow.</div>
+      </div>
+      <div class="vp-stat">
+        <div class="vp-stat-num">ViewTime</div>
+        <div class="vp-stat-desc">Artists earn royalties based on how long their work is displayed. You support them by living with their art.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════ ART INTELLIGENCE -->
+<section id="art-intelligence">
+  <div class="ai-inner">
+    <div class="ai-left">
+      <p class="label" style="margin-bottom:1rem">Art Intelligence</p>
+      <h2>Your collection<br>learns to <em>live</em> with you.</h2>
+      <p style="margin-top:1.5rem">Every Layer Canvas runs a model. It knows the natural light in your room. It knows you prefer contemplative work on Sunday mornings. It shifts with the hour, the season, the mood. Your collection is never static — and neither are you.</p>
+    </div>
+    <div class="ai-dashboard">
+      <div class="ai-dash-label">Current Work</div>
+      <span class="ai-dash-active">Casey Reas — "Tissue 04"</span><br>
+      Playing since: 6:14 PM &nbsp;·&nbsp; 1h 42m
+      <hr class="ai-dash-divider">
+      <div class="ai-dash-label">Next Scheduled</div>
+      Zach Lieberman — "Drawn Apart"<br>
+      8:00 PM &nbsp;·&nbsp; Mood: contemplative
+      <hr class="ai-dash-divider">
+      <div class="ai-dash-label">Collection Insights</div>
+      Works acquired: 4<br>
+      Palette affinity: dark / high contrast<br>
+      Peak hours: 7–10 PM<br>
+      Reas 94% &nbsp;·&nbsp; Lieberman 87%
+      <hr class="ai-dash-divider">
+      <div class="ai-dash-label">ViewTime This Month</div>
+      Casey Reas: 48h 12m &nbsp;·&nbsp; $14.20 paid to artist
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ THE CANVAS -->
+<section id="canvas-section">
+  <div class="canvas-inner">
+    <p class="label" style="margin-bottom:1rem">The Canvas</p>
+    <h2>The world's finest display<br>for the world's finest digital art</h2>
+    <p>41.7-inch square. Embedded GPU. True black. No speakers, no camera, no television — only art. Built from the ground up for one purpose: to display generative code at the quality it deserves.</p>
+    <div class="canvas-device-render">
+      <canvas id="canvas-device-art"></canvas>
+    </div>
+    <div class="canvas-specs">
+      <div class="canvas-spec">
+        <span class="canvas-spec-val">41.7″</span>
+        <span class="canvas-spec-key">Square</span>
+      </div>
+      <div class="canvas-spec">
+        <span class="canvas-spec-val">GPU</span>
+        <span class="canvas-spec-key">Embedded</span>
+      </div>
+      <div class="canvas-spec">
+        <span class="canvas-spec-val">True ⬛</span>
+        <span class="canvas-spec-key">Black</span>
+      </div>
+      <div class="canvas-spec">
+        <span class="canvas-spec-val">Art Only</span>
+        <span class="canvas-spec-key">No TV / No Mic</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ MEMBERSHIP -->
+<section id="membership">
+  <div class="membership-inner">
+    <p class="label" style="margin-bottom:1rem">Begin Your Collection</p>
+    <h2>Two ways into Layer</h2>
+    <p>Both include the full collection. Both include Art Intelligence. One includes the Canvas itself.</p>
+    <div class="membership-cards">
+      <div class="membership-card">
+        <div class="membership-tier">Cosmo</div>
+        <div class="membership-price">From $6,995</div>
+        <div class="membership-price-note">The new Canvas — launching soon</div>
+        <div class="membership-desc">
+          The Layer Canvas at an accessible entry point. Full collection access. Art Intelligence. 48-hour drop priority. Designed for discerning collectors who want the complete experience.
+        </div>
+        <a href="#" class="membership-cta">Inquire</a>
+      </div>
+      <div class="membership-card featured">
+        <div class="membership-tier">Founder Edition</div>
+        <div class="membership-price">$22,000</div>
+        <div class="membership-price-note">125 units · Limited</div>
+        <div class="membership-desc">
+          The original Layer Canvas. All Cosmo benefits plus direct artist relationships, first access to every new work, and a place in the founding collection. Fewer than 40 remain.
+        </div>
+        <a href="#" class="membership-cta">Inquire</a>
+      </div>
+    </div>
+    <p class="membership-footnote">Art Intelligence begins learning from day one. &nbsp;·&nbsp; B2B / hospitality: <a href="#" style="color:var(--muted);text-decoration:none;">layer.com/trade</a></p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════ FOOTER -->
+<footer>
+  <span class="footer-logo">Layer</span>
+  <div class="footer-links">
+    <a href="#">Art</a>
+    <a href="#">Canvas</a>
+    <a href="#">Artists</a>
+    <a href="#">Trade</a>
+    <a href="#">About</a>
+    <a href="#">Inquire</a>
+  </div>
+  <span class="footer-copy">© 2026 Layer</span>
+</footer>
+
+<script>
+// ═══════════════════════════════════════════════════════════════ MEMBER TOGGLE
+function toggleMember() {
+  document.body.classList.toggle('member-mode');
+  document.getElementById('member-btn').textContent =
+    document.body.classList.contains('member-mode') ? 'Member View ✓' : 'Member View';
+}
+
+// ═══════════════════════════════════════════════════════════════════ NOISE
+function snoise(x, y, t) {
+  return Math.sin(x * 0.038 + t) * Math.cos(y * 0.032 + t * 0.73) * 0.5 + 0.5;
+}
+
+// ═══════════════════════════════════════════════ HERO — tissue particles (Reas)
+(function() {
+  const cv = document.getElementById('hero-canvas');
+  const ctx = cv.getContext('2d');
+  function resize() {
+    cv.width = window.innerWidth;
+    cv.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+  let t = 0;
+  const N = 180;
+  const pts = Array.from({length: N}, () => ({
+    x: Math.random(), y: Math.random(),
+    vx: (Math.random()-.5)*.0006, vy: (Math.random()-.5)*.0005,
+    r: .003 + Math.random()*.006,
+    hue: 190 + Math.random()*100,
+    life: Math.random(), maxLife: .35 + Math.random()*.65
+  }));
+  function draw() {
+    const W = cv.width, H = cv.height;
+    ctx.fillStyle = 'rgba(10,8,6,.04)'; ctx.fillRect(0, 0, W, H);
+    t += .004;
+    for (const p of pts) {
+      p.x += p.vx + Math.sin(t + p.y*7)*.0003;
+      p.y += p.vy + Math.cos(t*.7 + p.x*6)*.00025;
+      if (p.x<0) p.x=1; if (p.x>1) p.x=0;
+      if (p.y<0) p.y=1; if (p.y>1) p.y=0;
+      p.life += .003;
+      if (p.life > p.maxLife) { p.x=Math.random(); p.y=Math.random(); p.life=0; p.hue=190+Math.random()*100; }
+      const a = Math.sin(p.life/p.maxLife*Math.PI)*.22;
+      ctx.beginPath();
+      ctx.arc(p.x*W, p.y*H, p.r*W, 0, Math.PI*2);
+      ctx.fillStyle = `hsla(${p.hue},60%,58%,${a})`; ctx.fill();
+    }
+    requestAnimationFrame(draw);
+  }
+  ctx.fillStyle = '#0a0806'; ctx.fillRect(0,0,cv.width,cv.height);
+  requestAnimationFrame(draw);
+})();
+
+// ═══════════════════════════════════════════════════════ ART RENDERERS
+function makeReas(cv) {
+  const ctx = cv.getContext('2d');
+  const W = cv.width, H = cv.height;
+  let t = 0;
+  const N = 90;
+  const pts = Array.from({length: N}, () => ({
+    x: Math.random()*W, y: Math.random()*H,
+    vx:(Math.random()-.5)*.55, vy:(Math.random()-.5)*.5,
+    r:1.8+Math.random()*4, hue:185+Math.random()*95,
+    life:Math.random(), maxLife:.35+Math.random()*.65
+  }));
+  function draw() {
+    t+=.005; ctx.fillStyle='rgba(0,0,0,.04)'; ctx.fillRect(0,0,W,H);
+    for(const p of pts){
+      p.x+=p.vx+Math.sin(t+p.y*.01)*.38; p.y+=p.vy+Math.cos(t*.72+p.x*.009)*.3;
+      if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;
+      p.life+=.004;
+      if(p.life>p.maxLife){p.x=Math.random()*W;p.y=Math.random()*H;p.life=0;p.hue=185+Math.random()*95;}
+      const a=Math.sin(p.life/p.maxLife*Math.PI)*.22;
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`hsla(${p.hue},60%,58%,${a})`;ctx.fill();
+    }
+    requestAnimationFrame(draw);
+  }
+  ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);requestAnimationFrame(draw);
+}
+
+function makeZach(cv) {
+  const ctx = cv.getContext('2d');
+  const W = cv.width, H = cv.height;
+  const N=55, D=70;
+  const ns=Array.from({length:N},()=>({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.55,vy:(Math.random()-.5)*.55}));
+  function draw(){
+    ctx.fillStyle='rgba(0,0,0,.06)';ctx.fillRect(0,0,W,H);
+    for(const n of ns){n.x+=n.vx;n.y+=n.vy;if(n.x<0||n.x>W)n.vx*=-1;if(n.y<0||n.y>H)n.vy*=-1;}
+    for(let i=0;i<N;i++)for(let j=i+1;j<N;j++){
+      const dx=ns[i].x-ns[j].x,dy=ns[i].y-ns[j].y,d=Math.sqrt(dx*dx+dy*dy);
+      if(d<D){ctx.beginPath();ctx.moveTo(ns[i].x,ns[i].y);ctx.lineTo(ns[j].x,ns[j].y);
+      ctx.strokeStyle=`rgba(120,180,245,${(1-d/D)*.48})`;ctx.lineWidth=.6;ctx.stroke();}
+    }
+    for(const n of ns){ctx.beginPath();ctx.arc(n.x,n.y,1.3,0,Math.PI*2);ctx.fillStyle='rgba(160,210,255,.85)';ctx.fill();}
+    requestAnimationFrame(draw);
+  }
+  ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);requestAnimationFrame(draw);
+}
+
+function makeRik(cv) {
+  const ctx = cv.getContext('2d');
+  const W = cv.width, H = cv.height;
+  let t=0;
+  function draw(){
+    t+=.007;
+    const bg=ctx.createLinearGradient(0,0,W,H);
+    bg.addColorStop(0,'#060008');bg.addColorStop(1,'#000306');
+    ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+    for(let i=0;i<5;i++){
+      const cx=W*(.32+Math.sin(t+i*.8)*.28),cy=H*(.42+Math.cos(t*.75+i*.6)*.28);
+      const gr=ctx.createRadialGradient(cx,cy,0,cx,cy,W*.55);
+      const h=255+i*30+t*9;
+      gr.addColorStop(0,`hsla(${h},85%,60%,.24)`);
+      gr.addColorStop(.5,`hsla(${h+30},65%,40%,.09)`);
+      gr.addColorStop(1,'hsla(0,0%,0%,0)');
+      ctx.fillStyle=gr;ctx.beginPath();ctx.arc(cx,cy,W*.55,0,Math.PI*2);ctx.fill();
+    }
+    requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+}
+
+function makeLeander(cv) {
+  const ctx = cv.getContext('2d');
+  const W = cv.width, H = cv.height;
+  let t=0;
+  const lines=Array.from({length:35},()=>({y:Math.random()*H,vy:(Math.random()-.5)*.42,thick:.4+Math.random()*1.8,a:.04+Math.random()*.18}));
+  function draw(){
+    t+=.004;ctx.fillStyle='rgba(0,0,0,.07)';ctx.fillRect(0,0,W,H);
+    for(const l of lines){
+      l.y+=l.vy;if(l.y<0)l.y=H;if(l.y>H)l.y=0;
+      ctx.beginPath();ctx.moveTo(0,l.y);ctx.lineTo(W,l.y);
+      ctx.strokeStyle=`rgba(255,255,255,${l.a})`;ctx.lineWidth=l.thick;ctx.stroke();
+    }
+    requestAnimationFrame(draw);
+  }
+  ctx.fillStyle='#050505';ctx.fillRect(0,0,W,H);requestAnimationFrame(draw);
+}
+
+// ═══════════════════════════════════════════════════════ IN SITU canvases
+function makeSituCard(id, renderer, bg) {
+  const cv = document.getElementById(id);
+  if (!cv) return;
+  cv.width = cv.offsetWidth || 800;
+  cv.height = cv.offsetHeight || 480;
+  renderer(cv, bg);
+}
+
+function situReas(cv) {
+  // Reas tissue — warm and alive on wall, rest is warm dark room
+  const ctx = cv.getContext('2d');
+  const W = cv.width, H = cv.height;
+  const WW = Math.round(W * .45), WH = Math.round(H * .6);
+  const WX = Math.round(W * .28), WY = Math.round(H * .18);
+  let t = 0, pts = Array.from({length: 80}, () => ({
+    x: Math.random()*WW, y: Math.random()*WH,
+    vx:(Math.random()-.5)*.6, vy:(Math.random()-.5)*.55,
+    r:1.5+Math.random()*3.5, hue:185+Math.random()*95,
+    life:Math.random(), maxLife:.35+Math.random()*.65
+  }));
+  function draw() {
+    t+=.005;
+    // Warm room background
+    const bg=ctx.createLinearGradient(0,0,W,H);
+    bg.addColorStop(0,'#1a1108');bg.addColorStop(.5,'#231608');bg.addColorStop(1,'#0e0a05');
+    ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+    // Floor line
+    ctx.fillStyle='rgba(0,0,0,.45)';ctx.fillRect(0,H*.72,W,H*.28);
+    // Warm right sidelight (window)
+    const gl=ctx.createRadialGradient(W*.9,H*.2,0,W*.9,H*.2,W*.6);
+    gl.addColorStop(0,'rgba(200,160,80,.07)');gl.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=gl;ctx.fillRect(0,0,W,H);
+    // Art on wall
+    const offscreen = document.createElement('canvas');
+    offscreen.width = WW; offscreen.height = WH;
+    const octx = offscreen.getContext('2d');
+    octx.fillStyle='#000';octx.fillRect(0,0,WW,WH);
+    for(const p of pts){
+      p.x+=p.vx+Math.sin(t+p.y*.012)*.35;p.y+=p.vy+Math.cos(t*.72+p.x*.01)*.28;
+      if(p.x<0)p.x=WW;if(p.x>WW)p.x=0;if(p.y<0)p.y=WH;if(p.y>WH)p.y=0;
+      p.life+=.004;
+      if(p.life>p.maxLife){p.x=Math.random()*WW;p.y=Math.random()*WH;p.life=0;p.hue=185+Math.random()*95;}
+      const a=Math.sin(p.life/p.maxLife*Math.PI)*.25;
+      octx.beginPath();octx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      octx.fillStyle=`hsla(${p.hue},60%,58%,${a})`;octx.fill();
+    }
+    ctx.save();
+    ctx.shadowColor='rgba(180,140,80,.2)';ctx.shadowBlur=25;
+    ctx.drawImage(offscreen,WX,WY,WW,WH);
+    ctx.restore();
+    ctx.strokeStyle='rgba(255,255,255,.04)';ctx.lineWidth=1;ctx.strokeRect(WX,WY,WW,WH);
+    requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+}
+
+function situZach(cv) {
+  const ctx=cv.getContext('2d');const W=cv.width,H=cv.height;
+  const N=40,D=60;const ns=Array.from({length:N},()=>({x:Math.random()*W*.55+W*.2,y:Math.random()*H*.55+H*.2,vx:(Math.random()-.5)*.38,vy:(Math.random()-.5)*.38}));
+  function draw(){
+    ctx.fillStyle='#0c1521';ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='rgba(0,0,0,.3)';ctx.fillRect(0,H*.75,W,H*.25);
+    for(const n of ns){n.x+=n.vx;n.y+=n.vy;if(n.x<W*.12||n.x>W*.88)n.vx*=-1;if(n.y<H*.1||n.y>H*.9)n.vy*=-1;}
+    for(let i=0;i<N;i++)for(let j=i+1;j<N;j++){
+      const dx=ns[i].x-ns[j].x,dy=ns[i].y-ns[j].y,d=Math.sqrt(dx*dx+dy*dy);
+      if(d<D){ctx.beginPath();ctx.moveTo(ns[i].x,ns[i].y);ctx.lineTo(ns[j].x,ns[j].y);ctx.strokeStyle=`rgba(100,160,220,${(1-d/D)*.42})`;ctx.lineWidth=.5;ctx.stroke();}
+    }
+    for(const n of ns){ctx.beginPath();ctx.arc(n.x,n.y,1.2,0,Math.PI*2);ctx.fillStyle='rgba(140,190,240,.75)';ctx.fill();}
+    requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+}
+
+function situLeander(cv) {
+  const ctx=cv.getContext('2d');const W=cv.width,H=cv.height;
+  let t=0;const lines=Array.from({length:28},()=>({y:Math.random()*H,vy:(Math.random()-.5)*.38,thick:.3+Math.random()*1.5,a:.04+Math.random()*.16}));
+  function draw(){
+    t+=.004;
+    const bg=ctx.createLinearGradient(0,0,W,H);bg.addColorStop(0,'#f0e8d6');bg.addColorStop(1,'#d8ccb8');
+    ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='rgba(0,0,0,.12)';ctx.fillRect(0,H*.78,W,H*.22);
+    // Art on light wall
+    const aw=W*.46,ah=H*.5,ax=W*.27,ay=H*.18;
+    ctx.fillStyle='#050505';ctx.fillRect(ax,ay,aw,ah);
+    for(const l of lines){
+      l.y+=l.vy;if(l.y<0)l.y=H;if(l.y>H)l.y=0;
+    }
+    const s=ctx.save;ctx.save();ctx.rect(ax,ay,aw,ah);ctx.clip();
+    for(const l of lines){ctx.beginPath();ctx.moveTo(ax,ay+l.y%ah);ctx.lineTo(ax+aw,ay+l.y%ah);ctx.strokeStyle=`rgba(255,255,255,${l.a})`;ctx.lineWidth=l.thick;ctx.stroke();}
+    ctx.restore();
+    ctx.strokeStyle='rgba(0,0,0,.08)';ctx.lineWidth=1;ctx.strokeRect(ax,ay,aw,ah);
+    requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+}
+
+function situRik(cv) {
+  const ctx=cv.getContext('2d');const W=cv.width,H=cv.height;let t=0;
+  function draw(){
+    t+=.006;
+    const bg=ctx.createLinearGradient(0,0,W,H);bg.addColorStop(0,'#0a0215');bg.addColorStop(1,'#050a10');
+    ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='rgba(0,0,0,.35)';ctx.fillRect(0,H*.76,W,H*.24);
+    for(let i=0;i<4;i++){
+      const cx=W*(.4+Math.sin(t+i)*.22),cy=H*(.38+Math.cos(t*.8+i)*.2);
+      const gr=ctx.createRadialGradient(cx,cy,0,cx,cy,W*.45);
+      const h=260+i*28+t*8;
+      gr.addColorStop(0,`hsla(${h},80%,58%,.22)`);gr.addColorStop(1,'hsla(0,0%,0%,0)');
+      ctx.fillStyle=gr;ctx.beginPath();ctx.arc(cx,cy,W*.45,0,Math.PI*2);ctx.fill();
+    }
+    requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+}
+
+// Wait for layout, then init situ canvases
+window.addEventListener('load', () => {
+  ['sc1','sc2','sc3','sc4'].forEach(id => {
+    const cv = document.getElementById(id);
+    if (!cv) return;
+    cv.width = cv.offsetWidth;
+    cv.height = cv.offsetHeight;
+  });
+  situReas(document.getElementById('sc1'));
+  situZach(document.getElementById('sc2'));
+  situLeander(document.getElementById('sc3'));
+  situRik(document.getElementById('sc4'));
+});
+
+// ═══════════════════════════════════════════ FEATURE + CANVAS DEVICE canvases
+(function(){
+  const cv = document.getElementById('feature-room-canvas');
+  if (!cv) return;
+  cv.width = cv.offsetWidth || 800;
+  cv.height = cv.offsetHeight || 680;
+  const ctx = cv.getContext('2d');
+  const W = cv.width, H = cv.height;
+  const bg = ctx.createLinearGradient(0,0,W,H);
+  bg.addColorStop(0,'#1c1208');bg.addColorStop(.5,'#251a0e');bg.addColorStop(1,'#100c06');
+  ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  const gl=ctx.createRadialGradient(W*.85,H*.25,0,W*.85,H*.25,W*.65);
+  gl.addColorStop(0,'rgba(200,160,80,.07)');gl.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=gl;ctx.fillRect(0,0,W,H);
+})();
+
+(function(){
+  const cv = document.getElementById('feature-art-canvas');
+  if (!cv) return;
+  cv.width = cv.offsetWidth || 400; cv.height = cv.offsetHeight || 400;
+  makeReas(cv);
+})();
+
+(function(){
+  const cv = document.getElementById('canvas-device-art');
+  if (!cv) return;
+  cv.width = cv.offsetWidth || 320; cv.height = cv.offsetHeight || 320;
+  makeRik(cv);
+})();
+
+// ═════════════════════════════════════════════════════ ART GRID canvases
+document.querySelectorAll('.art-item-canvas-wrap canvas').forEach(cv => {
+  const anim = cv.dataset.anim;
+  cv.width = 300; cv.height = 375;
+  if (anim==='reas') makeReas(cv);
+  else if (anim==='zach') makeZach(cv);
+  else if (anim==='rik') makeRik(cv);
+  else if (anim==='leander') makeLeander(cv);
+});
+</script>
+</body>
+</html>
